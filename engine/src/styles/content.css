@@ -1,0 +1,362 @@
+@charset "UTF-8";
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  height: 100%;
+  width: 100%;
+}
+
+
+.location.panel {
+  color: #222;
+  display: inline-block;
+}
+.location.panel h1{
+  margin: 0 1.5rem 0 0;
+  padding: 0;
+  font-size: 5em;
+  font-weight: normal;
+  display: inline-block;
+  letter-spacing: -2px
+}
+.location.panel h2{
+  margin: 0;
+  padding: 0;
+  font-size: 3.5em;
+  font-weight: 300;
+  display: inline-block;
+}
+.stats {
+  min-width: 200px;
+  min-height: 100px;
+  color: #646464;
+  font-size: 2.3em;
+  white-space: nowrap;
+  max-width: 1024px;
+  max-height: 256px;
+  overflow: hidden;
+  z-index: 10;
+  display: inline-block;
+  pointer-events: none;
+  vertical-align: top;
+  background-origin: content-box;
+}
+
+#fixed .stats *, #fixed .stats {
+  pointer-events: none;
+}
+.stats h2 {
+  font-weight: normal;
+  text-transform: uppercase;
+  max-width: 7em;
+  font-size: 0.9em;
+  margin: 0;
+  letter-spacing: -1px;
+  letter-spacing: -0.5px;
+  white-space: normal;
+}
+
+.stats h2 strong {
+  display: block;
+  font-size: 1.4em;
+  font-weight: normal;
+  letter-spacing: 0;
+}
+
+.stats > ul {
+  margin: 0;
+  padding: 0 0;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.stats > ul > li{
+  margin: 0;
+  padding: 0.35em 0.35em 0.35em 0.35em;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.stats > ul > li.selected:not(.simplified) {
+  background: rgba(0,0,0,0.15);
+  border-radius: 4px;
+}
+.stats.simplified .stackchart > li {
+  margin-top: 0;
+}
+.stats.simplified strong {
+  display: none;
+}
+.stackchart > li{
+  padding: 0;
+  white-space: normal;
+  height: 0.35em;
+  list-style: none;
+  margin-top: 0.75em;
+}
+
+.stackchart > li:first-child {
+  border-radius: 0.13em 0 0 0.13em;
+}
+.stackchart > li:last-child {
+  border-radius: 0 0.13em 0.13em 0;
+}
+
+.stackchart {
+  margin: 0;
+  padding: 0;
+  height: 0.35em;
+  margin-left: -0.2em;
+  width: 6em;
+  display: inline-flex;
+  flex-direction: row;
+}
+
+.stats .number {
+  margin-top: 0.5em;
+  display: inline-block;
+  font-size: 0.8em;
+  color: #6FC373;
+}
+
+.stats .falling {
+  color: #FA7878;
+}
+
+
+
+
+
+
+
+
+
+
+#floater-container {
+  position: absolute;
+  top: 0;
+  z-index: 222500;
+  left: 0;
+  display: none;
+  transition: opacity 0.2s 0.25s ease-out;
+  opacity: 1;
+}
+#floater-container.loading{
+  opacity: 0;
+  transition: opacity 0.1s ease-out;
+}
+
+
+#floater {
+  border: 0px solid transparent;
+  display: block;
+  min-height: 100%;
+}
+
+
+
+
+
+.panel.profile {
+  white-space: normal;
+  min-width: 500px;
+  max-width: 1024px;
+  max-height: 256px;
+  overflow: hidden;
+  display: inline-block;
+  font-size: 2rem;
+  padding: 0.4em 1em 0.1em;
+  text-align: center;
+  color: #4f4f4f;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.panel.profile > * {
+  margin: 0 auto;
+  max-width: 561px;
+  padding: 0;
+}
+.panel.profile h2 {
+  font-weight: normal;
+  padding: 0;
+}
+.profile.active h2,
+.workplace.profile .tagline {
+  color: #E955A4;
+}
+.panel.profile p {
+  color: #8f8f8f;
+  font-size: 1.15em;
+  line-height: 1.1;
+  padding: 0em 0em 0;
+  font-weight: 400;
+}
+.panel.profile .compass {
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  top: 0.4em;
+  left: 0.75em;
+}
+.panel.profile > span {
+  font-size: 0.9em;
+  display: inline-block;
+  padding: 0.5em 0 1em;
+  white-space: normal;
+  font-weight: 400;
+}
+
+
+.label * {
+  margin: 0;
+}
+
+
+
+.label.area {
+  margin: 1px auto 0; 
+  display: inline-block; 
+  box-sizing: border-box; 
+  padding: 3px 12px 6px 12px; 
+  max-height: 128px;
+  max-width: 512px;
+  overflow: hidden;
+  border-radius: 12px;
+  white-space: nowrap; 
+  font-size: 1.5rem;
+  line-height: 1; 
+  overflow: hidden;
+  color: #111;
+}
+
+
+.label.area p{
+  font-weight: 500;
+  font-size: 1.1em;
+  line-height: 1.4em;
+  padding-top: 0.3rem;
+}
+
+.label.area h2{
+  font-weight: 400;
+  font-size: 1.6em;
+  line-height: 1.2em;
+  padding-bottom: : 0.2rem;
+}
+
+.label.company {
+  margin: 1px auto 0; 
+  display: inline-block; 
+  box-sizing: border-box; 
+  padding: 3px 12px 6px 12px; 
+  max-height: 128px;
+  max-width: 512px;
+  overflow: hidden;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  line-height: 1; 
+  overflow: hidden;
+  color: #eee;
+  text-align: center;
+}
+
+
+.label.company p{
+  font-weight: 500;
+  font-size: 1.1em;
+  line-height: 1.4em;
+  padding-top: 0.3rem;
+}
+
+.label.company h2{
+  font-weight: 500;
+  font-size: 1.4em;
+  line-height: 1.2em;
+  padding-bottom: : 0.2rem;
+}
+
+
+.label.zone {
+  
+  margin: 1px auto 0; 
+  display: inline-block; 
+  box-sizing: border-box; 
+  padding: 3px 12px 6px 12px; 
+  max-height: 128px;
+  max-width: 512px;
+  overflow: hidden;
+  min-width: 10px;
+  border-radius: 10px 10px 0 0;
+  white-space: nowrap; 
+  font-size: 2.3rem; 
+  line-height: 1; 
+  overflow: hidden;
+  color: #111;
+  text-align: center;
+}
+
+.label.zone p {
+  font-weight: normal;
+  font-size: 1em;
+  line-height: 1em;
+  padding: 0;
+}
+.label.zone h2 {
+  font-weight: 300;
+  font-size: 2em;
+  line-height: 1;
+  padding: 0;
+}
+
+
+
+.person.avatar {
+  width: 200px;
+  height: 200px;
+  text-align: center;
+}
+
+.person.avatar h2 {
+  font-size: 8em;
+  color: #999;
+  background-color: #fff;
+  margin: 0;
+  padding: 0;
+  line-height: 200px;
+}
+
+
+.label.pin {
+  display: inline-block; 
+  box-sizing: border-box; 
+  padding: 0 12px 0 12px; 
+  overflow: hidden;
+  min-width: 10px;
+  border-radius: 10px 10px 0 0;
+  white-space: nowrap; 
+  overflow: hidden;
+  color: #777;
+  text-align: center;
+}
+.label.pin:not(.person) {
+  text-shadow: 5px 2px 0px rgba(255,255,255,0.75);
+}
+
+.label.pin p {
+  font-weight: normal;
+  font-size: 2rem; 
+  line-height: 1em;
+  padding: 0;
+  max-width: 5em;
+  white-space: normal;
+}
+.label.pin h2 {
+  font-weight: 300;
+  font-size: 2em;
+  line-height: 1;
+  padding: 0;
+}
