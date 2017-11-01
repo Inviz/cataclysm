@@ -69,12 +69,12 @@ function drawTree(node, level) {
       rects.unshift(rect);
     }
     if (level == 4)
-//
+    
       for (var hash in node.connections) {
         var n = parseInt(hash)
         var a = n % 100000000
         var b = (n - a) / 100000000
-        lines.push([rect[0], 6 - node.height, [
+        lines.push([rect[0], 2, [
           tree.coordinates[a],
           tree.coordinates[b]
           ]])
@@ -95,15 +95,35 @@ function drawTree(node, level) {
     //      ]])
     //  }
     if (level == 0) {
-      for (var hash in tree.districtNetwork) {
-        var n = parseInt(tree.districtNetwork[hash])
-        var a = n % 100000000
-        var b = (n - a) / 100000000
-        lines.push(['purple', 3, [
-          tree.coordinates[a],
-          tree.coordinates[b]
-          ]])
-      }
+      tree.somePaths.forEach(function(path) {
+
+        path.forEach(function(step, index) {
+          if (index > 0)
+          lines.push(['blue', 10, [
+            tree.coordinates[path[index - 1]],
+            tree.coordinates[step]
+            ]])
+        })
+      })
+      tree.someFails.forEach(function(path) {
+
+        path.forEach(function(step, index) {
+          if (index > 0)
+          lines.push(['green', 20, [
+            tree.coordinates[path[index - 1]],
+            tree.coordinates[step]
+            ]])
+        })
+      })
+      //for (var hash in tree.districtNetwork) {
+      //  var n = parseInt(tree.districtNetwork[hash])
+      //  var a = n % 100000000
+      //  var b = (n - a) / 100000000
+      //  lines.push(['purple', 3, [
+      //    tree.coordinates[a],
+      //    tree.coordinates[b]
+      //    ]])
+      //}
       
       //for (var hash in tree.districtNetwork) {
       //  var n = parseInt(hash)
@@ -116,14 +136,14 @@ function drawTree(node, level) {
       //    tree.coordinates[b]
       //    ]])
       //}
-      //for (var hash in tree.hullBranches) {
-      //  if (tree.hullBranches[hash] < 3) continue;
-//
-      //  dots.push([rect[0], 1, [
-      //    tree.coordinates[hash],
-      //    tree.coordinates[hash]
-      //    ]])
-      //}
+      tree.someDots.forEach(function(hash) {
+      
+        dots.push(['red', 1, [
+          tree.coordinates[hash],
+          tree.coordinates[hash]
+          ]])
+      })
+
       for (var hash in tree.districtHubs) {
         dots.push([rect[0], 1, [
           tree.coordinates[hash],

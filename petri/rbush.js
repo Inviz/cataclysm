@@ -87,7 +87,7 @@ rbush.prototype = {
         return this._all(this.data, []);
     },
 
-    search: function (bbox, callback) {
+    search: function (bbox, callback, a1, a2) {
 
         var node = this.data,
             result = [],
@@ -104,7 +104,7 @@ rbush.prototype = {
                 childBBox = node.leaf ? toBBox(child) : child;
 
                 if (intersects(bbox, childBBox)) {
-                    if (callback && node.leaf && !callback(child))
+                    if (callback && !callback(child, bbox, a1, a2))
                       continue;
                     if (node.leaf) result.push(child);
                     else if (contains(bbox, childBBox)) this._all(child, result);

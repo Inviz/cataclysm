@@ -1,0 +1,1 @@
+cat prelude.js ../citygen/assets/js/bundle.js ../src/City.js ../vendor/hull.js rbush.js navigation.js demo.js > bundle.js
