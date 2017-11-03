@@ -99,9 +99,9 @@ function drawTree(node, level) {
 
         path.forEach(function(step, index) {
           if (index > 0)
-          lines.push(['blue', 10, [
-            tree.coordinates[path[index - 1]],
-            tree.coordinates[step]
+          lines.push(['blue', 5, [
+            path[index - 1],
+            step
             ]])
         })
       })
@@ -109,9 +109,9 @@ function drawTree(node, level) {
 
         path.forEach(function(step, index) {
           if (index > 0)
-          lines.push(['green', 20, [
-            tree.coordinates[path[index - 1]],
-            tree.coordinates[step]
+          lines.push(['red', 20, [
+            path[index - 1],
+            step
             ]])
         })
       })

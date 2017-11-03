@@ -99,17 +99,17 @@
 	  Building.prototype.generateCorners = function() {
 	    return [
 	      {
-	        x: this.center.x + this.diagonal * math.sinDegrees(+this.aspectDegree + this.dir),
-	        y: this.center.y + this.diagonal * math.cosDegrees(+this.aspectDegree + this.dir)
+	        x: 1 * Math.floor(1 * (this.center.x + this.diagonal * math.sinDegrees(+this.aspectDegree + this.dir))),
+	        y: 1 * Math.floor(1 * (this.center.y + this.diagonal * math.cosDegrees(+this.aspectDegree + this.dir)))
 	      }, {
-	        x: this.center.x + this.diagonal * math.sinDegrees(-this.aspectDegree + this.dir),
-	        y: this.center.y + this.diagonal * math.cosDegrees(-this.aspectDegree + this.dir)
+	        x: 1 * Math.floor(1 * (this.center.x + this.diagonal * math.sinDegrees(-this.aspectDegree + this.dir))),
+	        y: 1 * Math.floor(1 * (this.center.y + this.diagonal * math.cosDegrees(-this.aspectDegree + this.dir)))
 	      }, {
-	        x: this.center.x + this.diagonal * math.sinDegrees(180 + this.aspectDegree + this.dir),
-	        y: this.center.y + this.diagonal * math.cosDegrees(180 + this.aspectDegree + this.dir)
+	        x: 1 * Math.floor(1 * (this.center.x + this.diagonal * math.sinDegrees(180 + this.aspectDegree + this.dir))),
+	        y: 1 * Math.floor(1 * (this.center.y + this.diagonal * math.cosDegrees(180 + this.aspectDegree + this.dir)))
 	      }, {
-	        x: this.center.x + this.diagonal * math.sinDegrees(180 - this.aspectDegree + this.dir),
-	        y: this.center.y + this.diagonal * math.cosDegrees(180 - this.aspectDegree + this.dir)
+	        x: 1 * Math.floor(1 * (this.center.x + this.diagonal * math.sinDegrees(180 - this.aspectDegree + this.dir))),
+	        y: 1 * Math.floor(1 * (this.center.y + this.diagonal * math.cosDegrees(180 - this.aspectDegree + this.dir)))
 	      }
 	    ];
 	  };
@@ -159,7 +159,7 @@
 	  return buildings;
 	};
 
-	window.BuildGen = module.exports = {
+	BuildGen = module.exports = {
 	  buildingFactory: (function() {
 	    return {
 	      fromProbability: function(time) {
@@ -13938,7 +13938,7 @@
 	  };
 	};
 
-	window.Mapgen = module.exports = {
+	Mapgen = module.exports = {
 	  Segment: Segment,
 	  config: config,
 	  math: math,

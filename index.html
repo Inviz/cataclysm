@@ -26,6 +26,9 @@
     var map = City()
     var walls = [];
     var zones = [];
+    P.Wall.atGrid = function(v) {
+      return v
+    }
     map.buildings.map(function(building, index) {
       walls.push(
         [0, P.Wall.atGrid(building.corners[0].x),

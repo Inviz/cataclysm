@@ -88,7 +88,7 @@ rbush.prototype = {
     },
 
     search: function (bbox, callback, a1, a2) {
-
+        debugger
         var node = this.data,
             result = [],
             toBBox = this.toBBox;

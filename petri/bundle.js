@@ -15596,7 +15596,8 @@ function City(size) {
 
   map.buildings = buildings;
   return map
-}require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+};
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict'
 
 module.exports = monotoneConvexHull2D
@@ -17693,7 +17694,7 @@ rbush.prototype = {
     },
 
     search: function (bbox, callback, a1, a2) {
-
+        debugger
         var node = this.data,
             result = [],
             toBBox = this.toBBox;
@@ -18260,13 +18261,11 @@ function checkIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
 
 var c = {};
 var searching = {};
-checkObstacleIntersections = 0;
 
 function checkGivenObstacleIntersection(p1,p2, height, obstacles) {
   for (var o = 0; o < obstacles.length; o++) {
     var obstacle = obstacles[o];
     var poly = obstacle.polygon;
-    checkObstacleIntersections ++;
     for (var k = 0, l = poly.length - 1; k < poly.length; l = k++) {
       var p;
       if (p = checkIntersection(poly[k].x, poly[k].y,
@@ -18274,9 +18273,7 @@ function checkGivenObstacleIntersection(p1,p2, height, obstacles) {
                             p1.x, p1.y, 
                             p2.x, p2.y 
                         )) {
-        var parent = obstacle;
-        while (parent.height != p1.box.height)
-          parent = parent.parent;
+        var parent = obstacle.parent
 
         if (p1.box == parent && p.x == p1.x && p.y == p1.y
           || p2.box == parent && p.x == p2.x && p.y == p2.y) {
@@ -18286,11 +18283,13 @@ function checkGivenObstacleIntersection(p1,p2, height, obstacles) {
       }
     }
   }
-  c.x = p1.x + (p2.x - p1.x) / 2
-  c.y = p1.y + (p2.y - p1.y) / 2
-  for (var o = 0; o < obstacles.length; o++) {
-    if (intersectPolygon(c, obstacles[o].polygon) && distanceToPolygon(c, obstacles[o].polygon) > 0)
-      return true
+  if (height == p1.box.height) {
+    c.x = p1.x + (p2.x - p1.x) / 2
+    c.y = p1.y + (p2.y - p1.y) / 2
+    for (var o = 0; o < obstacles.length; o++) {
+      if (intersectPolygon(c, obstacles[o].polygon) && distanceToPolygon(c, obstacles[o].polygon) > 0)
+        return true
+    }
   }
   return false
 }
@@ -18303,13 +18302,7 @@ function checkObstacleIntersection(p1, p2, height) {
   searching.minY = Math.min(p1.y - 1, p2.y + 1),
   searching.maxX = Math.max(p1.x - 1, p2.x + 1),
   searching.maxY = Math.max(p1.y - 1, p2.y + 1)
-  if (height < 2) {
-    var obstacles = tree.search(searching)
-  }
-  else {
-    var obstacles = tree.buildings;
-  }
-
+  var obstacles = map.buildings;
   return checkGivenObstacleIntersection(p1,p2, height,obstacles)
 }
 intersectPolygon = function (point, vs) {
@@ -18438,10 +18431,16 @@ rbush.prototype.analyzePoints = function(tree, node, points, height) {
       var xyj = p2.x + p2.y * 10000;
       if (xyi == xyj) continue;
 
-      var a = Math.min(xyi, xyj) + Math.max(xyi, xyj) * 100000000 
+      var min = Math.min(xyi, xyj);
+      var max = Math.max(xyi, xyj)
+      var a = min + max * 100000000 
 
-      if (tree.tested[a] != null)
+      var tested = tree.tested[min];
+      if (!tested)
+        tested = tree.tested[min] = {};
+      if (tested[max])
         continue
+      tested[max] =true;
 
       //node.coordinates[xyi] = points[i]
       //node.coordinates[xyj] = points[j]
@@ -18459,9 +18458,6 @@ rbush.prototype.analyzePoints = function(tree, node, points, height) {
 
       var b1 = p1.box && p1.box.building;
       if (b1) {
-
-        if (tree.buildings.indexOf(b1) == -1)
-          tree.buildings.push(b1);
         tree.buildingsPoints[xyi] = b1;
       }
       else
@@ -18469,8 +18465,6 @@ rbush.prototype.analyzePoints = function(tree, node, points, height) {
       var b2 = p2.box && p2.box.building;
       if (b2) {
         tree.buildingsPoints[xyj] = b2;
-        if (tree.buildings.indexOf(b2) == -1)
-          tree.buildings.push(b2);
       }
       else
         var b2 = tree.buildingsPoints[xyj]
@@ -18590,23 +18584,62 @@ rbush.prototype.compute = function() {
 
   }
 
-  tree.distances = {};
+  //tree.distances = {};
+  //tree.levels[1].forEach(function(node) {
+  //  node.distances = tree.solveDistances(node, node.connections)
+  //  for (var property in node.distances) {
+  //    tree.distances[property] = node.distances[property];
+  //  }
+  //})
+  //var districts = {};
+  //tree.globalNetwork = {};
+  //var outports = {};
+  //tree.outports = outports
+
+  //for (var hash in tree.districtNetwork) {
+  //  var outport = tree.districtNetwork[hash];
+  //  var n = parseInt(outport)
+  //  var a = n % 100000000
+  //  var b = (n - a) / 100000000
+  //  outports[a] = 1;
+  //  outports[b] = 1;
+  //  tree.globalNetwork[tree.districtNetwork[hash]] = tree.districtNetwork[hash]
+  //}
+  //var keys = Object.keys(outports)
+  //tree.levels[1].forEach(function(node) {
+  //  for (var i = 0; i < keys.length; i++) {
+  //    var o1 = parseInt(keys[i]);
+  //    for (var j = 0; j < keys.length; j++) {
+  //      var o2 = parseInt(keys[j]);
+  //      var r = node.distances[o1 * 100000000 + o2]
+  //      if (r && !tree.globalNetwork[o1 * 100000000 + o2]) {
+  //        debugger
+  //        tree.globalNetwork[o1 * 100000000 + o2] = 1
+  //        tree.globalNetwork[o2 * 100000000 + o1] = 1
+  //      }
+  //    }
+  //  }
+  //})
+  var detachedPoints = {};
   tree.levels[1].forEach(function(node) {
-    node.distances = tree.solveDistances(node, node.connections)
-    for (var property in node.distances)
-      tree.distances[property] = node.distances[property];
-  })
-  tree.districtDistances = tree.solveDistances(tree, tree.districtNetwork, true)
-  tree.globalNetwork = {};
-  for (var hash in tree.districtNetwork) {
-    tree.globalNetwork[tree.districtNetwork[hash]] = tree.districtNetwork[hash]
-  }
-  tree.globalDistances = tree.solveDistances(tree, tree.globalNetwork, false, function(a, b) {
 
-    return tree.distances[a * 100000000 + b] || tree.distances[b * 100000000 + a]
-  })
-  tree.finalNetwork = {};
+    node.points.forEach(function(p1, i1) {
+      var detached = true;
+        var xyi = p1.x + p1.y * 10000;
+      node.points.forEach(function(p2, i2) {
+        var xyj = p2.x + p2.y * 10000;
+        if (xyi == xyj) return;
 
+        var a = Math.min(xyi, xyj) + Math.max(xyi, xyj) * 100000000 
+        if (tree.connections[a])
+          detached = false;
+      })
+      if (detached)
+        detachedPoints[xyi] = true
+    })
+  })
+
+  this.distances = tree.globalDistances = tree.solveDistances(tree, tree.connections)
 
   /*
   for (var xyi in tree.hullBranches) {
@@ -18664,6 +18697,7 @@ rbush.prototype.solveDistances = function(node, points, useValueForDistance, cal
   }
   var length = number;
   var graph = new Uint32Array(length * length)
+  var transitions = new Uint32Array(length * length)
   var i,j,k
 
 
@@ -18671,6 +18705,7 @@ rbush.prototype.solveDistances = function(node, points, useValueForDistance, cal
     for (j = 0; j < length; ++j) 
       graph[i * length + j] = 9999999
     graph[i * length + i] = 0
+    transitions[i * length + j] = 9999999
   }
 
   if (callback)
@@ -18679,8 +18714,11 @@ rbush.prototype.solveDistances = function(node, points, useValueForDistance, cal
     for (j = 0; j < i; ++j) { 
       var b = byIndex[j]
       d = callback(a, b)
-      if (d != null)
+      if (d != null) {
         graph[i * length + j] = graph[j * length + i] = d
+        transitions[i * length + j] = i
+        transitions[j * length + i] = j
+      }
     }
   }
 
@@ -18690,6 +18728,11 @@ rbush.prototype.solveDistances = function(node, points, useValueForDistance, cal
     var a = n % 100000000
     var b = (n - a) / 100000000
     graph[indecies[b] * length + indecies[a]] = graph[indecies[a] * length + indecies[b]] = d;
+
+    if (d != 0 && d < 9999999) {
+      transitions[indecies[b] * length + indecies[a]] = indecies[b]
+      transitions[indecies[a] * length + indecies[b]] = indecies[a]
+    }
   }
    
   for (k = 0; k < length; ++k) {
@@ -18697,22 +18740,50 @@ rbush.prototype.solveDistances = function(node, points, useValueForDistance, cal
       for (j = 0; j < length; ++j) {
         var il = i * length;
         var kj = graph[k * length + j];
-        if (graph[il + j] > graph[il + k] + kj)
+        if (graph[il + j] > graph[il + k] + kj) {
           graph[il + j] = graph[il + k] + kj
+          transitions[il + j] = transitions[k * length + j]
+        }
       }
     }
   }
 
-  this.solvedDistances = graph;
+  node.solvedDistances = graph;
+  node.solvedTransitions = transitions;
+  node.solvedPathfinding = {};
+  node.pointsByIndex = byIndex
+  node.pointsIndecies = indecies;
 
   var result = {};
   for (i = 0; i < length; ++i) {
+    var a = byIndex[i];
+    var from = node.solvedPathfinding[a];
+    if (!from)
+      from = node.solvedPathfinding[a] = {};
+
     for (j = 0; j < length; ++j) {
       var distance = graph[i * length + j];
-      result[byIndex[i] * 100000000 + byIndex[j]] = distance
+      if (i == j  || distance > 999999 )
+        continue
+      var b = byIndex[j];
+      //var key = Math.max(a, b) * 100000000 + Math.max(a, b)
+      //if (!tree.connections[key]) {
+      //  result[key] = distance
+      //}
+      from[b] = byIndex[transitions[j * length + i]]
     }
   }
   return result
+};
+
+rbush.prototype.getPath = function(a, b) {
+  var path = [];
+  for (var current = a; current; ) {
+    path.push(current)
+    var from = this.solvedPathfinding[current];
+    current = from && from[b]
+  }
+  return path
 };
 var map = City();
 
@@ -18821,4 +18892,61 @@ tree._leaves = function (node, result, height) {
 
 tree.compute()
 
+tree.somePaths = []
+tree.someFails = []
+tree.someDots = []
+
+  tree.levels[1].forEach(function(node) {
+
+    node.points.forEach(function(p1, i1) {
+      var detached = true;
+        var xyi = p1.x + p1.y * 10000;
+      node.points.forEach(function(p2, i2) {
+        var xyj = p2.x + p2.y * 10000;
+        if (xyi == xyj) return;
+
+        var a = Math.min(xyi, xyj) + Math.max(xyi, xyj) * 100000000 
+        if (tree.connections[a])
+          detached = false;
+      })
+      if (detached) {
+        tree.someDots.push(xyi)
+
+      }
+    })
+  })
+
+//var points = Object.keys(tree.coordinates)
+//for (var i = 0; i < 30; i++) {
+//  var from = points[Math.floor(Math.random() * points.length)];
+//  var to = points[Math.floor(Math.random() * points.length)]
+//  var path = tree.getPath(from, to)
+//  if (path.length > 2) {
+//    tree.somePaths.push(path)
+//  } else {
+//    tree.someFails.push([from, to])
+//  }
+//}
+
+var c = 0;
+var points = Object.keys(tree.coordinates)
+for (var hash in tree.districtNetwork) {
+  if (c++ > 229) break
+
+  var from = parseInt(points[Math.floor(Math.random() * points.length)]);
+  var to = parseInt(points[Math.floor(Math.random() * points.length)])
+
+  var path = tree.getPath(from, to)
+  if (path.length >= 2 && path[path.length - 1] == to) {
+    tree.somePaths.push(path)
+  } else {
+    tree.someFails.push([from, to])
+  }
+}
+for (var i = 0; i < 30; i++) {
+
+}
+
 console.info(Object.keys(tree.globalDistances).length, 'connections')
+
+;

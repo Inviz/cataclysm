@@ -1,3 +1,4 @@
+
 function City(size) {
 
     branchAngleDev = 3;
@@ -13,42 +14,40 @@ function City(size) {
       }
       return val;
     };
-  Mapgen.config.mapGeneration = {
-        BUILDING_PLACEMENT_LOOP_LIMIT: 3,
-        DEFAULT_SEGMENT_LENGTH: 300,
-        HIGHWAY_SEGMENT_LENGTH: 250,
-        DEFAULT_SEGMENT_WIDTH: 30,
-        HIGHWAY_SEGMENT_WIDTH: 60,
-        RANDOM_BRANCH_ANGLE: function() {
-          return randomAngle(branchAngleDev);
-        },
-        RANDOM_STRAIGHT_ANGLE: function() {
-          return randomAngle(forwardAngleDev);
-        },
-        DEFAULT_BRANCH_PROBABILITY: 0.4,
-        HIGHWAY_BRANCH_PROBABILITY: 0.05,
-        HIGHWAY_BRANCH_POPULATION_THRESHOLD: 0.1,
-        NORMAL_BRANCH_POPULATION_THRESHOLD: 0.1,
-        NORMAL_BRANCH_TIME_DELAY_FROM_HIGHWAY: 5,
-        MINIMUM_INTERSECTION_DEVIATION: 30,
-        SEGMENT_COUNT_LIMIT: 150,
-        DEBUG_DELAY: 0,
-        ROAD_SNAP_DISTANCE: 50,
-        HEAT_MAP_PIXEL_DIM: 50,
-        DRAW_HEATMAP: false,
-        QUADTREE_PARAMS: {
-          x: -10000,
-          y: -10000,
-          width: 40000,
-          height: 40000
-        },
-        QUADTREE_MAX_OBJECTS: 10,
-        QUADTREE_MAX_LEVELS: 10,
-        DEBUG: false
-      }
+    Mapgen.config.mapGeneration.BUILDING_PLACEMENT_LOOP_LIMIT = 3
+    Mapgen.config.mapGeneration.DEFAULT_SEGMENT_LENGTH = 300
+    Mapgen.config.mapGeneration.HIGHWAY_SEGMENT_LENGTH = 250
+    Mapgen.config.mapGeneration.DEFAULT_SEGMENT_WIDTH = 30
+    Mapgen.config.mapGeneration.HIGHWAY_SEGMENT_WIDTH = 60
+    Mapgen.config.mapGeneration.RANDOM_BRANCH_ANGLE = function() {
+      return randomAngle(branchAngleDev);
+    },
+    Mapgen.config.mapGeneration.RANDOM_STRAIGHT_ANGLE= function() {
+      return randomAngle(forwardAngleDev);
+    },
+    Mapgen.config.mapGeneration.DEFAULT_BRANCH_PROBABILITY = 0.5
+    Mapgen.config.mapGeneration.HIGHWAY_BRANCH_PROBABILITY = 0.04
+    Mapgen.config.mapGeneration.HIGHWAY_BRANCH_POPULATION_THRESHOLD = 0.1
+    Mapgen.config.mapGeneration.NORMAL_BRANCH_POPULATION_THRESHOLD = 0.1
+    Mapgen.config.mapGeneration.NORMAL_BRANCH_TIME_DELAY_FROM_HIGHWAY = 5
+    Mapgen.config.mapGeneration.MINIMUM_INTERSECTION_DEVIATION = 30
+    Mapgen.config.mapGeneration.SEGMENT_COUNT_LIMIT = 150
+    Mapgen.config.mapGeneration.DEBUG_DELAY = 0
+    Mapgen.config.mapGeneration.ROAD_SNAP_DISTANCE = 50
+    Mapgen.config.mapGeneration.HEAT_MAP_PIXEL_DIM = 50
+    Mapgen.config.mapGeneration.DRAW_HEATMAP = false
+    Mapgen.config.mapGeneration.QUADTREE_PARAMS= {
+      x: -10000,
+      y: -10000,
+      width: 40000,
+      height: 40000
+    },
+    Mapgen.config.mapGeneration.QUADTREE_MAX_OBJECTS = 10
+    Mapgen.config.mapGeneration.QUADTREE_MAX_LEVELS = 10
+    Mapgen.config.mapGeneration.DEBUG = false
 
-  var size = 0.5//Math.random();
-  Mapgen.config.mapGeneration.SEGMENT_COUNT_LIMIT = 150 + size * 200
+  var size = 0.25//Math.random();
+  Mapgen.config.mapGeneration.SEGMENT_COUNT_LIMIT = 100 + size * 200
   var map = Mapgen.generate(2)
 
   var qTree = map.qTree
@@ -59,13 +58,13 @@ function City(size) {
   for (var i = 0; i < map.segments.length; i ++) {
     var segment = map.segments[i]
 
-    if (i % 10 != 0 && segment.links.f.length && segment.links.f.length < 2) continue;
+    if (i % 20 != 0 && segment.links.f.length && segment.links.f.length < 2) continue;
 
     if (segment.links.f.length) {
-      var links = 5// + Math.floor(Math.random() * 5) 
+      var links = 3// + Math.floor(Math.random() * 5) 
       var distance = 400;
     } else {
-      var links = 5// + Math.floor(Math.random() * 5) 
+      var links = 3// + Math.floor(Math.random() * 5) 
       var distance = 200;
     }
     var newBuildings = BuildGen.buildingFactory.aroundSegment(
@@ -82,4 +81,4 @@ function City(size) {
 
   map.buildings = buildings;
   return map
-}
+};

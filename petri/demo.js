@@ -63,9 +63,10 @@ map.buildings.forEach(function(building, index) {
   var minYB =  Infinity
   var maxYB = -Infinity
 
+  var corners = building.generateCorners()
   for (var i = 0; i < 4; i++) {
-    var pX = building.corners[i].x
-    var pY = building.corners[i].y
+    var pX = corners[i].x
+    var pY = corners[i].y
     if (pX > maxXB) maxXB = pX;
     if (pX < minXB) minXB = pX;
     if (pY > maxYB) maxYB = pY;
@@ -79,7 +80,7 @@ map.buildings.forEach(function(building, index) {
     maxX: Math.floor((maxXB - minX) * zoom), 
     maxY: Math.floor((maxYB - minY) * zoom)
   }
-  node.polygon = building.polygon = building.corners.map(function(corner) {
+  node.polygon = building.polygon = corners.map(function(corner) {
     return {
       x: Math.floor((corner.x - minX) * zoom),
       y: Math.floor((corner.y - minY) * zoom),
@@ -109,25 +110,6 @@ tree.somePaths = []
 tree.someFails = []
 tree.someDots = []
 
-  tree.levels[1].forEach(function(node) {
-
-    node.points.forEach(function(p1, i1) {
-      var detached = true;
-        var xyi = p1.x + p1.y * 10000;
-      node.points.forEach(function(p2, i2) {
-        var xyj = p2.x + p2.y * 10000;
-        if (xyi == xyj) return;
-
-        var a = Math.min(xyi, xyj) + Math.max(xyi, xyj) * 100000000 
-        if (tree.connections[a])
-          detached = false;
-      })
-      if (detached) {
-        tree.someDots.push(xyi)
-
-      }
-    })
-  })
 
 //var points = Object.keys(tree.coordinates)
 //for (var i = 0; i < 30; i++) {
@@ -143,18 +125,10 @@ tree.someDots = []
 
 var c = 0;
 var points = Object.keys(tree.coordinates)
-for (var hash in tree.districtNetwork) {
-  if (c++ > 9) break
+for (var c = 0; c < 500; c++) {
 
-  var from = points[Math.floor(Math.random() * points.length)];
-  var to = points[Math.floor(Math.random() * points.length)]
-  if (c != 8) continue
-
-  var A = tree.coordinates[from]
-  var from = A.box.parent.districtHub
-  var B = tree.coordinates[to]
-  var to = B.box.parent.districtHub
-
+  var from = tree.points[Math.floor(Math.random() * points.length)];
+  var to = tree.points[Math.floor(Math.random() * points.length)]
   var path = tree.getPath(from, to)
   if (path.length >= 2 && path[path.length - 1] == to) {
     tree.somePaths.push(path)
@@ -162,8 +136,4 @@ for (var hash in tree.districtNetwork) {
     tree.someFails.push([from, to])
   }
 }
-for (var i = 0; i < 30; i++) {
 
-}
-
-console.info(Object.keys(tree.globalDistances).length, 'connections')
