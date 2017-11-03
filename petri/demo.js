@@ -9,6 +9,7 @@ var maxY = -Infinity
 
 
 tree.roads = [];
+tree.polygons = [];
 map.segments.forEach(function(wall) {
   var pX = wall.r.start.x
   var pY = wall.r.start.y
@@ -80,13 +81,26 @@ map.buildings.forEach(function(building, index) {
     maxX: Math.floor((maxXB - minX) * zoom), 
     maxY: Math.floor((maxYB - minY) * zoom)
   }
-  node.polygon = building.polygon = corners.map(function(corner) {
-    return {
-      x: Math.floor((corner.x - minX) * zoom),
-      y: Math.floor((corner.y - minY) * zoom),
-      box: node
-    }
+
+  var coordinates = [];
+  node.points = building.points = corners.map(function(corner) {
+    var point = turf.point([
+      Math.floor((corner.x - minX) * zoom), 
+      Math.floor((corner.y - minY) * zoom)
+    ], {box: node})
+    point.x = point.geometry.coordinates[0]
+    point.y = point.geometry.coordinates[1]
+    point.box = node;
+    coordinates.push([point.x, point.y])
+    return point
   })
+
+  coordinates.push(coordinates[0])
+  var polygons = turf.polygon([coordinates], {
+    building: building, 
+    node: node
+  });
+  tree.polygons.push(polygons)
   tree.insert(node)
 })
 

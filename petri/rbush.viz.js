@@ -56,8 +56,8 @@ function drawTree(node, level) {
         rect.push(node.hull)
         hulls.push(rect);
       }
-    } else if (node.polygon) {
-      rect.push(node.polygon)
+    } else if (node.points && node.parent && node.parent.leaf) {
+      rect.push(node.points)
       polys.push(rect);
     } else {
       rect.push([

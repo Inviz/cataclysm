@@ -29,40 +29,46 @@ function checkIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
 var c = {};
 var searching = {};
 
+var line = turf.lineString([[0,0],[0,0]])
 function checkGivenObstacleIntersection(p1,p2, obstacles) {
+  var obstacles = tree.union.polygons;
   for (var o = 0; o < obstacles.length; o++) {
     var obstacle = obstacles[o];
-    var poly = obstacle.polygon;
-    for (var k = 0, l = poly.length - 1; k < poly.length; l = k++) {
+    var poly = obstacle.geometry.coordinates[0]
+    var p = null;
+    var intersections = 0;
+    var lastpx = null
+    var lastpy = null;
+    for (var k = 1, l = 0; k < poly.length; l = k++) {
+      var kx = poly[k][0]
+      var ky = poly[k][1]
+      var lx = poly[l][0]
+      var ly = poly[l][1]
+
+      if (kx == p1.x && ky == p1.y && lx == p2.x && ly == p2.y
+      ||  kx == p2.x && ky == p2.y && lx == p1.x && ly == p1.y) {
+        return false;
+      }
+
+
       var p;
-      if (p = checkIntersection(poly[k].x, poly[k].y,
-                            poly[l].x, poly[l].y,
+      if (p = checkIntersection(kx, ky,
+                            lx, ly,
                             p1.x, p1.y, 
                             p2.x, p2.y 
                         )) {
-        var parent = obstacle.parent
+        if (lastpx != p.x || lastpy != p.y) {
 
-        // check if path is along the way
-        if (p.x == p1.x && p.y == p1.y && (p1.boxes ? p1.boxes.indexOf(parent) > -1 : p1.box == parent)
-          || p.x == p2.x && p.y == p2.y && (p2.boxes ? p2.boxes.indexOf(parent) > -1 : p2.box == parent)) {
-          continue
+         intersections++;
         }
-        return true
+        var lastpx = p.x;
+        var lastpy = p.y;
+
       }
     }
+    if (intersections > 1)
+      return true
   }
-
-  var closestPolygons = []
-    c.x = p1.x + (p2.x - p1.x) / 2
-    c.y = p1.y + (p2.y - p1.y) / 2
-    for (var o = 0; o < obstacles.length; o++) {
-      var b1 = p1.box;
-      var d = distanceToPolygon(c, obstacles[o].polygon);
-      if (intersectPolygon(c, obstacles[o].polygon) 
-        && (distanceToPolygon(c, obstacles[o].polygon) > 0))
-        return true
-    }
-
   return
 }
 
@@ -77,9 +83,9 @@ intersectPolygon = function (point, vs) {
   var x = point.x, y = point.y;
 
   var inside = false;
-  for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-      var xi = vs[i].x, yi = vs[i].y;
-      var xj = vs[j].x, yj = vs[j].y;
+  for (var i = 1, j = 0; i < vs.length; j = i++) {
+      var xi = vs[i][0], yi = vs[i][1];
+      var xj = vs[j][0], yj = vs[j][1];
 
       var intersect = ((yi > y) != (yj > y))
           && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
@@ -130,7 +136,7 @@ function intersectRectangle (x1, y1, x2, y2, minX, minY, maxX, maxY) {
 
 distanceToPolygon = function (point, poly) {
   var minDistance = Infinity;
-  for (var i = 0; i < poly.length; i++) {
+  for (var i = 1; i < poly.length; i++) {
     var p1 = poly[i];
     var prev = (i == 0 ? poly.length : i) - 1,
         p2 = poly[prev]
@@ -190,6 +196,8 @@ rbush.prototype.setXY = function(collection, value, x, y) {
 }
 
 rbush.prototype.analyzePoints = function(node, points) {
+  
+
   var length = 0;
   this.coordinates = {};
   this.points = [];
@@ -208,6 +216,11 @@ rbush.prototype.analyzePoints = function(node, points) {
     this.coordinates[xyi] = p1;
     this.points.push(p1)
   }
+  tree.union = turf.union.apply(turf, tree.polygons);
+  tree.union.polygons = tree.union.geometry.coordinates.map(function(segments) {
+    var polygon = turf.polygon(segments);
+    return polygon
+  })
   points = this.points
   this.totalPoints = length;
 
@@ -291,11 +304,7 @@ rbush.prototype.compute = function() {
         }
         if (child.height == null)
           child.height = height;
-        if (child.points) {
-          points.push.apply(points, child.points)
-        }
-        else
-          points.push.apply(points, child.polygon)
+        points.push.apply(points, child.points)
       });
       node.points = points;
       
