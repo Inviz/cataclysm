@@ -45,13 +45,14 @@ function checkGivenObstacleIntersection(p1,p2, obstacles) {
       var lx = poly[l][0]
       var ly = poly[l][1]
 
+      // if line lies on polygon, allow it (because we merged geometry before)
       if (kx == p1.x && ky == p1.y && lx == p2.x && ly == p2.y
       ||  kx == p2.x && ky == p2.y && lx == p1.x && ly == p1.y) {
         return false;
       }
-
-
       var p;
+
+      // check if line intersect at least two polygon segments, excluding corners
       if (p = checkIntersection(kx, ky,
                             lx, ly,
                             p1.x, p1.y, 
@@ -59,10 +60,10 @@ function checkGivenObstacleIntersection(p1,p2, obstacles) {
                         )) {
         if (lastpx != p.x || lastpy != p.y) {
 
-         intersections++;
+          intersections++;
+          var lastpx = p.x;
+          var lastpy = p.y;
         }
-        var lastpx = p.x;
-        var lastpy = p.y;
 
       }
     }
@@ -195,6 +196,7 @@ rbush.prototype.setXY = function(collection, value, x, y) {
   collection[value]
 }
 
+
 rbush.prototype.analyzePoints = function(node, points) {
   
 
@@ -216,9 +218,78 @@ rbush.prototype.analyzePoints = function(node, points) {
     this.coordinates[xyi] = p1;
     this.points.push(p1)
   }
+  
+  tree.skeletons = [];
   tree.union = turf.union.apply(turf, tree.polygons);
   tree.union.polygons = tree.union.geometry.coordinates.map(function(segments) {
+    var path = [];
     var polygon = turf.polygon(segments);
+    
+    polygon.properties.buildings = [];
+    polygon.properties.bones = 0;
+
+
+    polygon.geometry.coordinates = polygon.geometry.coordinates.map(function(segment) {
+      var lastX = null;
+      var lastY = null
+      var result = [];
+      segment.forEach(function(point, index) {
+        var minD = Infinity;
+        var best;
+        tree.points.forEach(function(pt) {
+          var d = Math.sqrt(Math.pow(pt.x - point[0], 2) + Math.pow(pt.y - point[1], 2))
+          if (d < minD) {
+            best = pt;
+            minD = d;
+          }
+        })
+        point[0] = Math.floor(best.x)
+        point[1] = Math.floor(best.y)
+        point[2] = Math.floor(best.y)
+        points.length = 3;
+
+        if (polygon.properties.buildings.indexOf(best.box) == -1)
+          polygon.properties.buildings.push(best.box)
+        if (lastX == point[0] && lastY == point[1]) 
+          return;
+        lastX = point[0]
+        lastY = point[1]
+        return result.unshift(point)
+      })
+      return result;
+    })
+    var pather
+    polygon.geometry.coordinates[0].map(function(to, index) {
+      if (index == 0)
+        pather = new CompGeo.shapes.Pather(to)
+      else
+        pather.lineTo(to)
+    })
+
+    pather.close();
+
+    var skeleton = new CompGeo.Skeleton( pather.path, Infinity );
+
+    polygon.properties.skeleton = skeleton
+    //var skeletonPath = new CompGeo.shapes.Path( skeleton.spokes );
+    //var shape = new CompGeo.shapes.Shape( path.concat( skeletonPath ) ) 
+
+
+    var uniqueness = {};
+    skeleton.spokes.forEach(function(spoke) {
+      var key = Math.floor(spoke.end[0]) + 'x' + Math.floor(spoke.end[1]);
+      if (uniqueness[key]) {
+        return
+      } else {
+        uniqueness[key] = true;
+        polygon.properties.bones++
+      }
+
+    })
+    console.log(uniqueness)
+    tree.skeletons.push(skeleton)
+
+
     return polygon
   })
   points = this.points

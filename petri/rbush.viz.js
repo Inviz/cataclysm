@@ -95,6 +95,15 @@ function drawTree(node, level) {
     //      ]])
     //  }
     if (level == 0) {
+      tree.union.polygons.forEach(function(polygon) {
+        var skeleton = polygon.properties.skeleton
+        skeleton.spokes.forEach(function(line) {
+          lines.push(['green', 5, [
+                      {x: line.start[0], y: line.start[1]},
+                      {x: line.end[0], y: line.end[1]}
+                      ]])
+        })
+      })
       tree.somePaths.forEach(function(path) {
 
         path.forEach(function(step, index) {

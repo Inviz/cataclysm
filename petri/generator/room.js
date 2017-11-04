@@ -1,0 +1,3 @@
+Game.Room = function() {
+  
+}

@@ -64,6 +64,7 @@ map.buildings.forEach(function(building, index) {
   var minYB =  Infinity
   var maxYB = -Infinity
 
+  building.diagonal -= 10;
   var corners = building.generateCorners()
   for (var i = 0; i < 4; i++) {
     var pX = corners[i].x
@@ -76,10 +77,10 @@ map.buildings.forEach(function(building, index) {
   building.index = index
   var node = {
     building: building,
-    minX: Math.floor((minXB - minX) * zoom), 
-    minY: Math.floor((minYB - minY) * zoom),
-    maxX: Math.floor((maxXB - minX) * zoom), 
-    maxY: Math.floor((maxYB - minY) * zoom)
+    minX: (minXB - minX) * zoom, 
+    minY: (minYB - minY) * zoom,
+    maxX: (maxXB - minX) * zoom, 
+    maxY: (maxYB - minY) * zoom
   }
 
   var coordinates = [];
@@ -139,7 +140,7 @@ tree.someDots = []
 
 var c = 0;
 var points = Object.keys(tree.coordinates)
-for (var c = 0; c < 500; c++) {
+for (var c = 0; c < 5000; c++) {
 
   var from = tree.points[Math.floor(Math.random() * points.length)];
   var to = tree.points[Math.floor(Math.random() * points.length)]
