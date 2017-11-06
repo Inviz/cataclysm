@@ -177,7 +177,7 @@
 	            building = new Building({
 	              x: 0,
 	              y: 0
-	            }, 0, 80, Building.Type.RESIDENTIAL, math.randomRange(0.5, 2));
+	            }, 0, 110, Building.Type.RESIDENTIAL, math.randomRange(0.5, 2));
 	            break;
 	          case Building.Type.IMPORT:
 	            building = new Building({

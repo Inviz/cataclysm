@@ -64,7 +64,6 @@ map.buildings.forEach(function(building, index) {
   var minYB =  Infinity
   var maxYB = -Infinity
 
-  building.diagonal -= 10;
   var corners = building.generateCorners()
   for (var i = 0; i < 4; i++) {
     var pX = corners[i].x
@@ -85,10 +84,19 @@ map.buildings.forEach(function(building, index) {
 
   var coordinates = [];
   node.points = building.points = corners.map(function(corner) {
-    var point = turf.point([
-      Math.floor((corner.x - minX) * zoom), 
-      Math.floor((corner.y - minY) * zoom)
-    ], {box: node})
+    var point = {
+      type: 'Feature',
+      properties: {
+        box: node
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [
+          Math.floor((corner.x - minX) * zoom), 
+          Math.floor((corner.y - minY) * zoom)
+        ]
+      }
+    }
     point.x = point.geometry.coordinates[0]
     point.y = point.geometry.coordinates[1]
     point.box = node;
@@ -97,12 +105,22 @@ map.buildings.forEach(function(building, index) {
   })
 
   coordinates.push(coordinates[0])
-  var polygons = turf.polygon([coordinates], {
-    building: building, 
-    node: node
-  });
+  var polygons = {
+    type: 'Feature',
+    properties: {
+      box: node,
+      building: building
+    },
+    geometry: {
+      type: 'Polygon',
+      coordinates: [coordinates]
+    }
+  }
   tree.polygons.push(polygons)
   tree.insert(node)
+
+  //building.diagonal -= 10;
+  //building.corners = building.generateCorners()
 })
 
 tree._leaves = function (node, result, height) {
@@ -118,37 +136,3 @@ tree._leaves = function (node, result, height) {
     }
     return result;
 }
-
-tree.compute()
-
-tree.somePaths = []
-tree.someFails = []
-tree.someDots = []
-
-
-//var points = Object.keys(tree.coordinates)
-//for (var i = 0; i < 30; i++) {
-//  var from = points[Math.floor(Math.random() * points.length)];
-//  var to = points[Math.floor(Math.random() * points.length)]
-//  var path = tree.getPath(from, to)
-//  if (path.length > 2) {
-//    tree.somePaths.push(path)
-//  } else {
-//    tree.someFails.push([from, to])
-//  }
-//}
-
-var c = 0;
-var points = Object.keys(tree.coordinates)
-for (var c = 0; c < 5000; c++) {
-
-  var from = tree.points[Math.floor(Math.random() * points.length)];
-  var to = tree.points[Math.floor(Math.random() * points.length)]
-  var path = tree.getPath(from, to)
-  if (path.length >= 2 && path[path.length - 1] == to) {
-    tree.somePaths.push(path)
-  } else {
-    tree.someFails.push([from, to])
-  }
-}
-

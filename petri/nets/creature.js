@@ -1,7 +1,7 @@
 
 Game.Creature = [
-  function hunger(hunger, simulation) {
-    return Math.min(100, hunger + (simulation.step % 10 === 0));
+  function hunger(hunger, context) {
+    return Math.min(100, hunger + (context.step % 10 === 0));
   },
 
   // multiple transitions

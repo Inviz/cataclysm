@@ -84,3 +84,121 @@ function Noise(vx, vy) {
 
   return 130 * ((gx * mx) + (gy * my) + (gz * mz));
 }
+
+function polygonFromRotatedRectangle (x, y, width, height, angle) {
+  var polygon = [];
+  for (var i = 0; i < 4; i++) {
+    var Ox = width * ((i > 1) ? .5 : -.5)
+    var Oy = height * ((i == 0 || i == 3) ? -.5 : .5)   
+    polygon.push({
+      x: x + (Ox  * Math.cos(angle)) - (Oy * Math.sin(angle)),
+      y: y + (Ox  * Math.sin(angle)) + (Oy * Math.cos(angle))
+    });
+  }
+  return polygon;
+
+  //The rotated position of this corner in world coordinates 
+}
+
+shuffleIndex.RAND_MASKS = [
+  0x00000001, 0x00000003, 0x00000006, 0x0000000C, 0x00000014, 0x00000030,
+  0x00000060, 0x000000B8, 0x00000110, 0x00000240, 0x00000500, 0x00000CA0,
+  0x00001B00, 0x00003500, 0x00006000, 0x0000B400, 0x00012000, 0x00020400,
+  0x00072000, 0x00090000, 0x00140000, 0x00300000, 0x00400000, 0x00D80000,
+  0x01200000, 0x03880000, 0x07200000, 0x09000000, 0x14000000, 0x32800000,
+  0x48000000, 0xA3000000
+]
+function shuffleIndex(length, previous) {
+  if (previous == null) {
+    var width = 0
+    var n = length;
+    while (n > 0) {
+      n >>= 1
+      ++width
+    }
+    var mask = shuffleIndex.RAND_MASKS[width - 1]
+    value = 1;
+  } else {
+    var value = previous[0];
+    var mask = previous[1]
+  }
+  while (true) {
+    value = ((value & 1) != 0) ? ((value >> 1) ^ mask) : (value >> 1);
+    if (value <= length) {
+      if (!previous) return [value, mask];
+      if (previous) {
+        previous[0] = value
+        return previous
+      };
+    }
+    if (value === 1)
+      break;
+  }
+  return;
+}
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array
+}
+
+
+
+function doPolygonsIntersect (a, b) {
+    var polygons = [a, b];
+    var minA, maxA, projected, i, i1, j, minB, maxB;
+
+    for (i = 0; i < polygons.length; i++) {
+
+        // for each polygon, look at each edge of the polygon, and determine if it separates
+        // the two shapes
+        var polygon = polygons[i];
+        for (i1 = 0; i1 < polygon.length; i1++) {
+
+            // grab 2 vertices to create an edge
+            var i2 = (i1 + 1) % polygon.length;
+            var p1 = polygon[i1];
+            var p2 = polygon[i2];
+
+            // find the line perpendicular to this edge
+            var normal = { x: p2.y - p1.y, y: p1.x - p2.x };
+
+            minA = maxA = undefined;
+            // for each vertex in the first shape, project it onto the line perpendicular to the edge
+            // and keep track of the min and max of these values
+            for (j = 0; j < a.length; j++) {
+                projected = normal.x * a[j].x + normal.y * a[j].y;
+                if ((minA === undefined) || projected < minA) {
+                    minA = projected;
+                }
+                if ((maxA === undefined) || projected > maxA) {
+                    maxA = projected;
+                }
+            }
+
+            // for each vertex in the second shape, project it onto the line perpendicular to the edge
+            // and keep track of the min and max of these values
+            minB = maxB = undefined;
+            for (j = 0; j < b.length; j++) {
+                projected = normal.x * b[j].x + normal.y * b[j].y;
+                if ((minB === undefined) || projected < minB) {
+                    minB = projected;
+                }
+                if ((maxB === undefined) || projected > maxB) {
+                    maxB = projected;
+                }
+            }
+
+            // if there is no overlap between the projects, the edge we are looking at separates the two
+            // polygons, and we know there is no overlap
+            if (maxA < minB || maxB < minA) {
+                return false;
+            }
+        }
+    }
+    return true;
+};

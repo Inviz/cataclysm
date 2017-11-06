@@ -57,7 +57,7 @@ function drawTree(node, level) {
         hulls.push(rect);
       }
     } else if (node.points && node.parent && node.parent.leaf) {
-      rect.push(node.points)
+      rect.push(node.building.points)
       polys.push(rect);
     } else {
       rect.push([
@@ -95,15 +95,72 @@ function drawTree(node, level) {
     //      ]])
     //  }
     if (level == 0) {
-      tree.union.polygons.forEach(function(polygon) {
+      tree.union.forEach(function(polygon) {
         var skeleton = polygon.properties.skeleton
         skeleton.spokes.forEach(function(line) {
-          lines.push(['green', 5, [
+          lines.push(['green', 2, [
                       {x: line.start[0], y: line.start[1]},
                       {x: line.end[0], y: line.end[1]}
                       ]])
         })
+        //polygon.properties.bones.forEach(function(line) {
+        //  dots.push(['green', 5, [
+        //              {x: line[0], y: line[1]},
+        //              {x: line[0], y: line[1]}
+        //              ]])
+        //})
+        polygon.properties.backbone.forEach(function(line, index) {
+          lines.push(['red', 1, [
+              {x: line[0][0], y: line[0][1]},
+              {x: line[1][0], y: line[1][1]}
+            ]])
+        })
+        polygon.properties.spines.forEach(function(line, index) {
+          dots.push(['green', 2, [
+                      {x: line[0], y: line[1]},
+                      {x: line[0], y: line[1]}
+                      ]])
+        })
+        polygon.properties.paddingPoints.forEach(function(polyline) {
+          polyline.forEach(function(line, index) {
+
+          //  if (index > 0)
+          //  lines.push(['red', 1, [
+          //      {x: line[0], y: line[1]},
+          //      {x: polyline[index - 1][0], y: polyline[index - 1][1]}
+          //    ]])
+          
+          var x2 = line[0] + Math.cos(line[3]) * 10
+          var y2 = line[1] + Math.sin(line[3]) * 10
+
+          lines.push(['green', 2, [
+                      {x: line[0], y: line[1]},
+                      {x: x2, y: y2}
+                      ]])
+          })
+        })
+        polygon.properties.marginPoints.forEach(function(polyline) {
+          polyline.forEach(function(line, index) {
+
+          //if (index > 0)
+          //  lines.push(['red', 1, [
+          //      {x: line[0], y: line[1]},
+          //      {x: polyline[index - 1][0], y: polyline[index - 1][1]}
+          //    ]])
+          var x2 = line[0] + Math.cos(line[3]) * 5
+          var y2 = line[1] + Math.sin(line[3]) * 5
+          lines.push(['blue', 3, [
+                      {x: line[0], y: line[1]},
+                      {x: x2, y: y2}
+                      ]])
+          dots.push(['black', 2, [
+                      {x: x2, y: y2},
+                      {x: x2, y: y2}
+                      ]])
+          })
+        })
       })
+      if (tree.somePaths)
       tree.somePaths.forEach(function(path) {
 
         path.forEach(function(step, index) {
@@ -114,6 +171,7 @@ function drawTree(node, level) {
             ]])
         })
       })
+      if (tree.someFails)
       tree.someFails.forEach(function(path) {
 
         path.forEach(function(step, index) {
@@ -124,6 +182,18 @@ function drawTree(node, level) {
             ]])
         })
       })
+      if (tree.things) {
+        if (tree.things.computedFurniturePolygon)
+        Object.keys(tree.things.computedFurniturePolygon).forEach(function(key) {
+          tree.things.computedFurniturePolygon[key].forEach(function(step, index) {
+            lines.push([(tree.things.getFurnitureAnchor(key) & Game.ANCHORS.INWARDS) ? 'blue' : 'green', 3, [
+              tree.things.computedFurniturePolygon[key][index - 1] ||
+              tree.things.computedFurniturePolygon[key][tree.things.computedFurniturePolygon[key].length - 1],
+              step
+              ]])
+          })
+        })
+      }
       //for (var hash in tree.districtNetwork) {
       //  var n = parseInt(tree.districtNetwork[hash])
       //  var a = n % 100000000
@@ -145,6 +215,7 @@ function drawTree(node, level) {
       //    tree.coordinates[b]
       //    ]])
       //}
+      if (tree.someDots)
       tree.someDots.forEach(function(hash) {
       
         dots.push(['red', 1, [
@@ -243,9 +314,9 @@ function draw() {
       ctx.beginPath();
         ctx.strokeStyle = dots[i][0]
         ctx.globalAlpha = 1;
-        ctx.lineWidth = 10;
-      ctx.moveTo(dots[i][2][0].x * window.devicePixelRatio - 5 , dots[i][2][0].y * window.devicePixelRatio) - 5;
-      ctx.lineTo(dots[i][2][1].x * window.devicePixelRatio + 5,  dots[i][2][1].y * window.devicePixelRatio) + 5;
+        ctx.lineWidth = dots[i][1]
+      ctx.moveTo(dots[i][2][0].x * window.devicePixelRatio - dots[i][1] / 2 , dots[i][2][0].y * window.devicePixelRatio) - dots[i][1] / 2;
+      ctx.lineTo(dots[i][2][1].x * window.devicePixelRatio + dots[i][1] / 2,  dots[i][2][1].y * window.devicePixelRatio) + dots[i][1] / 2;
       ctx.stroke()
     }
 }

@@ -1,10 +1,31 @@
-
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<canvas id="canvas" width="1500" height="1500"></canvas>
 <script src="game.js"></script>
+<script src="cdt2d.js"></script>
+<script src="geo.js"></script>
+<script src="offset.js"></script>
+<script src="geometry.js"></script>
+<script src="generator/room.js"></script>
 <script src="simulation.js"></script>
+<script src="generation.js"></script>
 <script src="nets/area.js"></script>
 <script src="nets/zone.js"></script>
 <script src="nets/creature.js"></script>
-<script src="petri.js"></script>
 <script src="../citygen/assets/js/bundle.js"></script>
+<script src="../src/City.js"></script>
 <script src="noise.js"></script>
 <script src="rbush.js"></script>
+<script src="rbush.viz.js"></script>
+<script src="navigation.js"></script>
+<script src="demo.js"></script>
+<script src="petri.js"></script>
+<script>
+  tree.compute()
+var state = Sim()
+var things = Gen(tree.union, tree)
+tree.things = things
+draw()
+</script>

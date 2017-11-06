@@ -9,11 +9,11 @@ function Simulation(step, seed, previous) {
 }
 Simulation.prototype.advance = function() {
   var step = this.step = this.step + 1;
-  this.Area('areas', 0, this)
+  this.Area(0)
   for (var i = 0; i < 10; i++)
-    this.Zone('zones', i, this)
+    this.Zone(i)
   for (var i = 0; i < 10000; i++) {
-    this.Creature('creatures', i, this)
+    this.Creature(i)
   }
   return this;
 }
@@ -35,11 +35,12 @@ Simulation.prototype.random = function() {
           (this.seedZ = (170 * this.seedZ) % 30323) / 30323.0) % 1.0;
 }
 
-Simulation.prototype.compile = function(functions, properties, relations, name) {
+Simulation.prototype.compile = function(functions, properties, relations, name, collection) {
   var attributes = {}
   var size = 0;
 
   // access functions as strings
+
   functions = functions.map(function(fn) {
     return fn.toString()
   })
@@ -47,7 +48,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name) 
   // index all attributes used in function
   var allArgs = functions.map(function(fn) {
     return fn.match(/\(\s*(.*?)\s*\)/)[1].split(/\s*,\s*/).map(function(arg, index) {
-      if (properties.indexOf(arg) == -1)
+      if (properties.indexOf(arg) == -1 || index == 0)
         if (attributes[arg] == null)
           attributes[arg] = size++
       return arg;
@@ -56,6 +57,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name) 
 
   // fetch/store arguments as array indecies
   var self = this;
+  var changed = [];
   var invocations = functions.map(function(fn, index) {
     var args = allArgs[index];
     var attribute = attributes[args[0]]
@@ -63,22 +65,61 @@ Simulation.prototype.compile = function(functions, properties, relations, name) 
     var suffix = ']';
     // pass context to reference relations
     args.forEach(function(arg) {
-      if (relations[arg] && args.indexOf('simulation') == -1) {
-        args.push('simulation')
-        functions[index] = functions[index].replace(')', ', simulation)')
+      if (relations[arg] && args.indexOf('this') == -1 && args.indexOf('context') == -1) {
+        args.push('context')
+        functions[index] = functions[index].replace(')', ', context)')
       }
     })
     var name = fn.match(/function\s+(\w+)/)[1]
-    return prefix + attributes[args[0]] + suffix + ' = ' + name + '(' + args.map(function(arg) {
-      if (properties.indexOf(arg) > -1 || arg === 'index')
-        return arg
+    return prefix + attributes[args[0]] + suffix + ' = ' + name + '(' + args.map(function(arg, index) {
+      if (arg === 'context')
+        return 'this'
+      if (changed.indexOf(arg) == -1) {
+        if (index == 0)
+          changed.push(arg)
+        if ((properties.indexOf(arg) > -1 && !functions[index].match(/function\s+compute(\w+)/)) || arg === 'index')
+          return arg
+      }
       return prefix + attributes[arg] + suffix 
     }).join(', ') + ')'
   });
 
+  var prefix = name.charAt(0).toUpperCase() + name.substring(1)
   var related = ''
   for (var property in relations)
     related = 'var ' + property + ' = this[' + relations[property] + ']' 
+  if (!collection)
+    collection = name;
+
+  var computedProperties = {};
+  invocations = invocations.filter(function(invocation, index) {
+    var prop = functions[index].match(/function\s+compute(\w+)/)
+
+    if (prop) {
+      computedProperties['compute' + prefix + prop[1]] = 
+        new Function(
+          functions[index] + '\n'
+        + 'return function compute' + prefix + prop[1] + ' (index) {\n'
+        + 'var data = this.' + collection + ';\n'
+        + 'var start = index * ' + size + ';\n'
+        + 'if (!this.computed' + prefix + prop[1] + ') this.computed' + prefix + prop[1] + ' = {};\n' 
+        + 'return (this.computed' + prefix + prop[1] + '[index] || (this.computed' + prefix + prop[1] + '[index] = ' + invocation.split('=')[1] + '))'
+        + '}'
+        )()
+      computedProperties['recompute' + prefix + prop[1]] = 
+        new Function(
+          functions[index] + '\n'
+        + 'return function compute' + prefix + prop[1] + ' (index) {\n'
+        + 'var data = this.' + collection + ';\n'
+        + 'var start = index * ' + size + ';\n'
+        + 'if (!this.computed' + prefix + prop[1] + ') this.computed' + prefix + prop[1] + ' = {};\n' 
+        + 'return (this.computed' + prefix + prop[1] + '[index] = ' + invocation.split('=')[1] + ')'
+        + '}'
+        )()
+      return false
+    }
+    return true;
+  })
   var result = new Function( 
     // bake functions into local context
     functions.join('\n')
@@ -94,16 +135,26 @@ Simulation.prototype.compile = function(functions, properties, relations, name) 
         var type = self[object.charAt(0).toUpperCase() + object.substring(1)];
         var index = type.attributes[key]
         var size = type.size;
-        return 'simulation.' + relations[object] + '[' + object + ' * ' + size + ' + ' + index + ']'
+        return 'context.' + relations[object] + '[' + object + ' * ' + size + ' + ' + index + ']'
       }) + '\n'
 
     // 
-    + 'return (function ' + name + ' (key, index, ' + properties.join(',') + ') {\n'
-    + 'var data = this[key];'
+    + 'return function ' + name + ' (index, ' + properties.join(',') + ') {\n'
+    + 'var data = this.' + collection + ';\n'
     + 'var start = index * ' + size + ';\n'
     + invocations.join(';\n')
-    + '})')()
+    + '}')()
 
+  var that = this;
+  for (var attribute in attributes) (function(attribute, offset) {
+    var suffix = attribute.charAt(0).toUpperCase() + attribute.substring(1);
+    that['get' + prefix + suffix] = new Function('index',
+      'return this.' + collection + '[' + size + ' * index + ' + offset + ']'
+    )
+  })(attribute, attributes[attribute]);
+  for (var property in computedProperties) {
+    this[property] = computedProperties[property]
+  }
   result.size = size;
   result.attributes = attributes
   return result;

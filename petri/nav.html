@@ -5,16 +5,50 @@
 <canvas id="canvas" width="1500" height="1500"></canvas>
 <script src="../citygen/assets/js/bundle.js"></script>
 <script src="../src/City.js"></script>
-<script src="../vendor/hull.js"></script>
 <script src="../vendor/three.js"></script>
 <script src="../vendor/turf.js" type="text/javascript" charset="utf-8"></script>
 <script src="cdt2d.js"></script>
+<script src="geometry.js"></script>
 <script src="geo.js"></script>
+<script src="offset.js"></script>
 <script src="rbush.js"></script>
 <script src="rbush.viz.js"></script>
 <script src="navigation.js"></script>
 <script src="demo.js"></script>
 <script>
   
+  tree.compute(true)
+
+  tree.somePaths = []
+  tree.someFails = []
+  tree.someDots = []
+
+
+  //var points = Object.keys(tree.coordinates)
+  //for (var i = 0; i < 30; i++) {
+  //  var from = points[Math.floor(Math.random() * points.length)];
+  //  var to = points[Math.floor(Math.random() * points.length)]
+  //  var path = tree.getPath(from, to)
+  //  if (path.length > 2) {
+  //    tree.somePaths.push(path)
+  //  } else {
+  //    tree.someFails.push([from, to])
+  //  }
+  //}
+
+  var c = 0;
+  var points = Object.keys(tree.coordinates)
+  for (var c = 0; c < 5000; c++) {
+
+    var from = tree.points[Math.floor(Math.random() * points.length)];
+    var to = tree.points[Math.floor(Math.random() * points.length)]
+    var path = tree.getPath(from, to)
+    if (path.length >= 2 && path[path.length - 1] == to) {
+      tree.somePaths.push(path)
+    } else {
+      tree.someFails.push([from, to])
+    }
+  }
+
 draw()
 </script>

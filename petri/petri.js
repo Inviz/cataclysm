@@ -84,24 +84,34 @@ function Noise(vx, vy) {
 
   return 130 * ((gx * mx) + (gy * my) + (gz * mz));
 }
-Simulation.prototype.Area     = Simulation.prototype.compile(Game.Area, ['simulation'], {}, 'area');
-Simulation.prototype.Zone     = Simulation.prototype.compile(Game.Zone, ['simulation'], {area: 'areas'}, 'Zone');
-Simulation.prototype.Creature = Simulation.prototype.compile(Game.Creature, ['simulation'], {zone: 'zones', area: 'areas'}, 'Creature');
+Simulation.prototype.Area     = Simulation.prototype.compile(Game.Area, [], {}, 'area', 'areas');
+Simulation.prototype.Zone     = Simulation.prototype.compile(Game.Zone, [], {area: 'areas'}, 'Zone', 'zones');
+Simulation.prototype.Creature = Simulation.prototype.compile(Game.Creature, [], {zone: 'zones', area: 'areas'}, 'Creature', 'creatures');
 
-function Test() {
+function Sim() {
+  console.time('sim test')
   var state = new Simulation(0, 123)
   state.areas[0] = 10000
   state.areas[1] = 10000
   var states = [];
-  for (var x = 0; x < 10000; x++) {
+  for (var x = 0; x < 100; x++) {
     state = state.advance()
     states.push(state);
     if (states.length > 5)
       states.pop()
   }
   state.history = states
+  console.timeEnd('sim test')
   return state
 }
 
-var state = Test()
+function Gen() {
+  console.time('gen test')
+  var state = new Generation(0, 123)
+  var states = [];
+  state = state.advance.apply(state, arguments)
+  console.timeEnd('gen test')
+
+  return state
+}
 //console.log(state, Simulation.prototype.Creature)
