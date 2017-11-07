@@ -62,22 +62,30 @@ Generation.prototype.RoadBuilding = function(roadIndex, buildingIndex) {
 }
 
 Generation.prototype.BuildingRoom = function(buildingIndex) {
-  //for (var r = 0; r < polygon.properties.buildings.length; r++) {
-  //  var building = polygon.properties.buildings[r];
+  var roomIndex = this.Room.count;
     var roomIndex = buildingIndex//tree.map.buildings.indexOf(building);
-    this.Room(roomIndex, buildingIndex, 0,0,0)
-    if (!this.getRoomCollision(roomIndex)) {
-      this.BuildingRoomFurniture(buildingIndex, roomIndex)
+    var min = 1;
+    var max = 3;
+    var rooms = Math.floor(Math.random() * (max - min) + min)
+  placement: for (var i = 0; i < 1; i++) {
+    ++roomIndex
+    for (var attempt = 0; attempt < 3; attempt++) {
+      this.Room(roomIndex, buildingIndex, 0,0,0)
+      if (!this.getRoomCollision(roomIndex)) {
+        this.BuildingRoomFurniture(buildingIndex, roomIndex)
+        continue placement
+      }
     }
-  //}
+    --roomIndex
+  }
+  this.Room.count = roomIndex
 }
 
 Generation.prototype.BuildingRoomFurniture = function(buildingIndex, roomIndex) {
-  var building = this.computeRoomAnchorPoints(buildingIndex)
-  building = this.computeRoomSpinePoints(buildingIndex)
+  var building = this.computeRoomAnchorPoints(roomIndex)
+  building = this.computeRoomSpinePoints(roomIndex)
 
   if (building) {
-    debugger
     var furnitureIndex = this.Furniture.count;
     var bones = building.spinesShuffled;
     var max = Math.floor(this.random() * (bones.length - 1)) + 1

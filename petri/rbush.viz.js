@@ -272,11 +272,11 @@ function draw() {
        })
     })
 
-    Game.World.eachFurniture(function(index) {
-       var poly = this.computeFurniturePolygon(index)
+    Game.World.eachFurniture(function(f) {
+       var poly = this.computeFurniturePolygon(f)
        debugger
        poly.forEach(function(step, index) {
-         lines.push([(this.getFurnitureAnchor(index) & Game.ANCHORS.INWARDS) ? 'blue' : 'green', 3, [
+         lines.push([(this.getFurnitureAnchor(f) & Game.ANCHORS.INWARDS) ? 'blue' : 'green', 3, [
            scale(poly[index - 1] || poly[poly.length - 1]),
            scale(step)
            ]])

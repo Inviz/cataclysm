@@ -40,15 +40,25 @@ map.buildings.forEach(function(building) {
 
 var width = maxX - minX
 var height = maxY - minY
+var max = 3200;
 if (width > height) {
-  height = 1500 * (height / width)
-  width = 1500
+  height = max * (height / width)
+  width = max
 } else {
-  width = 1500 * (width / height)
-  height = 1500
+  width = max * (width / height)
+  height = max
 }
-var zoom = 3200 / (maxX - minX)
+canvas.width = width;
+canvas.height = height;
+var zoom = max / (maxX - minX)
 console.info(width, 'x', height)
+
+if (window.devicePixelRatio > 1) {
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
+    canvas.width = canvas.width * 2;
+    canvas.height = canvas.height * 2;
+}
 
 
 map.roads =[]

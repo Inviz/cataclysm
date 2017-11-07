@@ -104,7 +104,6 @@ Game.Generator = {
       return building;
     },
     function computePolygon(index, context) {
-      debugger
       return context.computeBuildingPolygon(context.getRoomBuilding(index))
     },
     function computeAnchorPoints(index, context) {
@@ -114,7 +113,7 @@ Game.Generator = {
       return context.computeSpinePoints(context.computeRoomPolygon(index))
     },
     function collide (collision) {
-      return collision;
+      return 0;
     },
   ],
 
@@ -176,8 +175,7 @@ Game.Generator = {
     },
     function collide (collision, x, y, width, height, room, building, index, context) {
       var polygon1 = context.recomputeFurniturePolygon(index)
-      var polygon0 = context.computeBuildingPolygon(room);
-      debugger
+      var polygon0 = context.computeRoomPolygon(room);
       if (checkGivenPolygonIntersection(polygon0, polygon1)
       || !intersectPolygon(polygon1[0], polygon0, 'x', 'y', 0)) {
         return 1;
