@@ -109,19 +109,19 @@ function drawTree(node, level) {
         //              {x: line[0], y: line[1]}
         //              ]])
         //})
-        polygon.properties.backbone.forEach(function(line, index) {
+        if (false) polygon.properties.backbone.forEach(function(line, index) {
           lines.push(['red', 1, [
               {x: line[0][0], y: line[0][1]},
               {x: line[1][0], y: line[1][1]}
             ]])
         })
-        polygon.properties.spines.forEach(function(line, index) {
+        if (false) polygon.properties.spines.forEach(function(line, index) {
           dots.push(['green', 2, [
                       {x: line[0], y: line[1]},
                       {x: line[0], y: line[1]}
                       ]])
         })
-        polygon.properties.paddingPoints.forEach(function(polyline) {
+        if (false) polygon.properties.paddingPoints.forEach(function(polyline) {
           polyline.forEach(function(line, index) {
 
           //  if (index > 0)
@@ -139,7 +139,7 @@ function drawTree(node, level) {
                       ]])
           })
         })
-        polygon.properties.marginPoints.forEach(function(polyline) {
+        if (false) polygon.properties.marginPoints.forEach(function(polyline) {
           polyline.forEach(function(line, index) {
 
           //if (index > 0)
@@ -183,16 +183,6 @@ function drawTree(node, level) {
         })
       })
       if (tree.things) {
-        if (tree.things.computedFurniturePolygon)
-        Object.keys(tree.things.computedFurniturePolygon).forEach(function(key) {
-          tree.things.computedFurniturePolygon[key].forEach(function(step, index) {
-            lines.push([(tree.things.getFurnitureAnchor(key) & Game.ANCHORS.INWARDS) ? 'blue' : 'green', 3, [
-              tree.things.computedFurniturePolygon[key][index - 1] ||
-              tree.things.computedFurniturePolygon[key][tree.things.computedFurniturePolygon[key].length - 1],
-              step
-              ]])
-          })
-        })
       }
       //for (var hash in tree.districtNetwork) {
       //  var n = parseInt(tree.districtNetwork[hash])
@@ -231,10 +221,6 @@ function drawTree(node, level) {
           ]])
       }
       
-      tree.roads.forEach(function(wall) {
-        lines.push(['black', wall[2].width / 2, wall])
-      })
-
       //for (var hash in tree.connections) {
       //  var n = parseInt(hash)
       //  var a = n % 100000000
@@ -264,7 +250,40 @@ function draw() {
     hulls = [];
     lines = [];
     dots = [];
-    drawTree(tree.data, 0);
+    var scale = function(p) {
+      return {
+        x: (p.x) * zoom,
+        y: (p.y) * zoom
+      }
+    }
+
+    Game.World.eachRoad(function(index) {
+      var poly = this.computeRoadPolygon(index)
+      var p = ['black', 3, poly.map(scale)]
+      polys.push(p)
+    })
+    Game.World.eachBuilding(function(index) {
+       var poly = this.computeBuildingPolygon(index)
+       poly.forEach(function(step, index) {
+         lines.push(['grey', 3, [
+           scale(poly[index - 1] || poly[poly.length - 1]),
+           scale(step)
+           ]])
+       })
+    })
+
+    Game.World.eachFurniture(function(index) {
+       var poly = this.computeFurniturePolygon(index)
+       debugger
+       poly.forEach(function(step, index) {
+         lines.push([(this.getFurnitureAnchor(index) & Game.ANCHORS.INWARDS) ? 'blue' : 'green', 3, [
+           scale(poly[index - 1] || poly[poly.length - 1]),
+           scale(step)
+           ]])
+       }, this)
+    })
+
+    //drawTree(tree.data, 0);
 
     ctx.clearRect(0, 0, W + 1, W + 1);
 

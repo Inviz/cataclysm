@@ -1,3 +1,4 @@
+
 var map = City();
 
 tree = rbush(4)
@@ -25,6 +26,7 @@ map.segments.forEach(function(wall) {
   if (pY < minY) minY = pY;
 
 })
+/*
 map.buildings.forEach(function(building) {
   for (var i = 0; i < 4; i++) {
     var pX = building.corners[i].x
@@ -34,7 +36,7 @@ map.buildings.forEach(function(building) {
     if (pY > maxY) maxY = pY;
     if (pY < minY) minY = pY;
   }
-})
+})*/
 
 var width = maxX - minX
 var height = maxY - minY
@@ -45,18 +47,26 @@ if (width > height) {
   width = 1500 * (width / height)
   height = 1500
 }
-var zoom = 1500 / (maxX - minX)
+var zoom = 3200 / (maxX - minX)
 console.info(width, 'x', height)
 
+
+map.roads =[]
 map.segments.forEach(function(wall) {
-  tree.roads.push([
-    {x: Math.floor((wall.r.start.x - minX) * zoom), 
-      y: Math.floor((wall.r.start.y - minY) * zoom)},
-    {x: Math.floor((wall.r.end.x - minX) * zoom), 
-      y: Math.floor((wall.r.end.y - minY) * zoom)},
-    wall
+  var x1 = wall.r.start.x - minX
+  var y1 = wall.r.start.y - minY
+  var x2 = wall.r.end.x - minX
+  var y2 = wall.r.end.y - minY
+  map.roads.push([
+    x1 + (x2 - x1) / 2,
+    y1 + (y2 - y1) / 2,
+    - wall.dir(),
+    wall.width * zoom,
+    Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2), 2),
+    wall.links.f.length
   ])
 })
+/*
 map.buildings.forEach(function(building, index) {
   
   var minXB =  Infinity
@@ -136,3 +146,4 @@ tree._leaves = function (node, result, height) {
     }
     return result;
 }
+*/

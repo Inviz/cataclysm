@@ -1842,7 +1842,7 @@ module.exports = Edge;
 
 },{}],16:[function(require,module,exports){
 var Edge     = require('./edge');
-var martinez = require('martinez-polygon-clipping');
+var martinez = window.martinez = require('martinez-polygon-clipping');
 var utils    = require('./utils');
 
 
@@ -2249,7 +2249,7 @@ Offset.prototype.offsetPoint = function(distance) {
 
 Offset.orientRings = orientRings;
 
-module.exports = Offset;
+window.Offset = module.exports = Offset;
 
 },{"./edge":15,"./utils":17,"martinez-polygon-clipping":5}],17:[function(require,module,exports){
 /**

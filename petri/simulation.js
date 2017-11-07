@@ -71,13 +71,14 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
       }
     })
     var name = fn.match(/function\s+(\w+)/)[1]
-    return prefix + attributes[args[0]] + suffix + ' = ' + name + '(' + args.map(function(arg, index) {
+    return prefix + attributes[args[0]] + suffix + ' = ' + name + '(' + args.map(function(arg, i) {
       if (arg === 'context')
         return 'this'
       if (changed.indexOf(arg) == -1) {
-        if (index == 0)
+        var computing = functions[index].match(/function\s+compute(\w+)/);
+        if (i == 0 && !computing)
           changed.push(arg)
-        if ((properties.indexOf(arg) > -1 && !functions[index].match(/function\s+compute(\w+)/)) || arg === 'index')
+        if ((properties.indexOf(arg) > -1 && !computing) || arg === 'index')
           return arg
       }
       return prefix + attributes[arg] + suffix 
@@ -90,6 +91,12 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     related = 'var ' + property + ' = this[' + relations[property] + ']' 
   if (!collection)
     collection = name;
+
+  this['each' + prefix] = function(callback) {
+    var count = this[prefix].count;
+    for (var index = 0; index < count; index++)
+      callback.call(this, index)
+  }
 
   var computedProperties = {};
   invocations = invocations.filter(function(invocation, index) {
@@ -155,6 +162,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
   for (var property in computedProperties) {
     this[property] = computedProperties[property]
   }
+  result.count = 0;
   result.size = size;
   result.attributes = attributes
   return result;

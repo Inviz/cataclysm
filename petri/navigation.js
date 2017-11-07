@@ -49,7 +49,34 @@ rbush.prototype.setXY = function(collection, value, x, y) {
   collection[value]
 }
 
-
+rbush.prototype.generateAnchorPointsForPolygon = function(points, context, segments, padding, margin) {
+  if (!segments) {
+    segments = points.map(function(p) { return [p.x, p.y]})
+    segments.push(segments[0])
+  }
+  if (padding == null)
+    padding = 10;
+  if (margin == null)
+    margin = 6;
+  context.padding = new Offset(segments, 0).padding(padding)
+  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)});
+  context.margin = new Offset(segments, 3).margin(5)
+  context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, margin)});
+  context.paddingPoints[0].forEach(function(spine) {
+    spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
+  })
+  context.paddingPointsShuffled = [shuffleArray(context.paddingPoints[0].slice())]
+  context.paddingStraightPointsShuffled = [context.paddingPointsShuffled[0].filter(function(point) {
+    return point[3] % Math.PI / 2 == 0
+  })]
+  context.marginPoints[0].forEach(function(spine) {
+    spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
+  })
+  context.marginPointsShuffled = [shuffleArray(context.marginPoints[0].slice())]
+  context.marginStraightPointsShuffled = [context.marginPointsShuffled[0].filter(function(spine) {
+    return Math.abs(angleToPolygon({x: spine[0], y: spine[1]}, points, true) % (Math.PI / 2)) < 0.01
+  })]
+}
 rbush.prototype.analyzePoints = function(node, points, solve) {
   
 
@@ -106,76 +133,7 @@ rbush.prototype.analyzePoints = function(node, points, solve) {
     var path = [];
     var segments = polygon.geometry.coordinates[0]
     
-    polygon.properties.padding = new Offset(segments, 0).padding(10)
-    polygon.properties.paddingPoints = polygon.properties.padding.map(function(p) { return equidistantPointsFromPolygon(p, null, true)});
-    polygon.properties.margin = new Offset(segments, 0).margin(5)
-    polygon.properties.marginPoints = polygon.properties.margin.map(function(p) { return equidistantPointsFromPolygon(p, null, true)});
-
-    polygon.geometry.coordinates[0].map(function(to, index) {
-      if (index == 0)
-        pather = new CompGeo.shapes.Pather(to)
-      else
-        pather.lineTo(to)
-    })
-
-    if (pather.path.isClockwise) {
-      polygon.geometry.coordinates[0].slice().reverse().map(function(to, index) {
-        if (index == 0)
-          pather = new CompGeo.shapes.Pather(to)
-        else
-          pather.lineTo(to)
-      })
-    }
-    pather.close();
-
-    var skeleton = new CompGeo.Skeleton( pather.path, Infinity );
-
-    polygon.properties.skeleton = skeleton
-    polygon.properties.bones = [];
-    polygon.properties.backbone = [];
-    //var skeletonPath = new CompGeo.shapes.Path( skeleton.spokes );
-    //var shape = new CompGeo.shapes.Shape( path.concat( skeletonPath ) ) 
-
-
-    var uniqueness = {};
-    var points = polygon.geometry.coordinates[0].map(function(p) { return {x: p[0], y: p[1]}});
-    skeleton.spokes.forEach(function(spoke) {
-      var key = Math.floor(spoke.end[0]) + 'x' + Math.floor(spoke.end[1]);
-      var start = {x: spoke.start[0], y: spoke.start[1]};
-      if (intersectPolygon(start, polygon.geometry.coordinates[0]) &&
-        distanceToPolygon(start, points) > 1) {
-        polygon.properties.backbone.push([spoke.start, spoke.end])
-      }
-      if (uniqueness[key]) {
-        return
-      } else {
-        uniqueness[key] = true;
-        polygon.properties.bones.push(spoke.end)
-      }
-    })
-    polygon.properties.spines = equidistantPointsFromSegments(polygon.properties.backbone, null, true);
-
-    polygon.properties.spines.forEach(function(spine) {
-      spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
-    })
-    polygon.properties.paddingPoints[0].forEach(function(spine) {
-      spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
-    })
-    polygon.properties.paddingPointsShuffled = [shuffleArray(polygon.properties.paddingPoints[0].slice())]
-    polygon.properties.marginPoints[0].forEach(function(spine) {
-      spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
-    })
-    polygon.properties.marginPointsShuffled = [shuffleArray(polygon.properties.marginPoints[0].slice())]
-    polygon.properties.spinesShuffled = shuffleArray(polygon.properties.spines.slice())
-    polygon.properties.buildings.forEach(function(building) {
-      building.spines = polygon.properties.spines.filter(function(spine) {
-        return intersectPolygon({x: spine[0], y: spine[1]}, building.points, 'x', 'y', 0)
-      })
-      building.paddingPointsShuffled = polygon.properties.paddingPointsShuffled[0].filter(function(spine) {
-        return intersectPolygon({x: spine[0], y: spine[1]}, building.points, 'x', 'y', 0)
-      })
-      building.spinesShuffled = shuffleArray(building.spines.slice())
-    })
+    
     tree.skeletons.push(skeleton)
 
 

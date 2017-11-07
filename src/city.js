@@ -50,35 +50,35 @@ function City(size) {
   Mapgen.config.mapGeneration.SEGMENT_COUNT_LIMIT = 100 + size * 200
   var map = Mapgen.generate(2)
 
-  var qTree = map.qTree
-  var buildings = []
-  var callback = function(){
-    return BuildGen.buildingFactory.fromProbability(new Date().getTime())
-  }
-  for (var i = 0; i < map.segments.length; i ++) {
-    var segment = map.segments[i]
-
-    if (i % 20 != 0 && segment.links.f.length && segment.links.f.length < 2) continue;
-
-    if (segment.links.f.length) {
-      var links = 3// + Math.floor(Math.random() * 5) 
-      var distance = 400;
-    } else {
-      var links = 3// + Math.floor(Math.random() * 5) 
-      var distance = 200;
-    }
-    var newBuildings = BuildGen.buildingFactory.aroundSegment(
-      callback,
-      segment, 
-      links, distance, qTree
-    )
-    newBuildings.forEach(function(building) {
-      qTree.insert(building.collider.limits())
-
-    })
-    buildings = buildings.concat(newBuildings)
-  }
-
-  map.buildings = buildings;
+   //var qTree = map.qTree
+   //var buildings = []
+   //var callback = function(){
+   //  return BuildGen.buildingFactory.fromProbability(new Date().getTime())
+   //}
+   //for (var i = 0; i < map.segments.length; i ++) {
+   //  var segment = map.segments[i]
+ //
+   //  if (i % 20 != 0 && segment.links.f.length && segment.links.f.length < 2) continue;
+ //
+   //  if (segment.links.f.length) {
+   //    var links = 3// + Math.floor(Math.random() * 5) 
+   //    var distance = 400;
+   //  } else {
+   //    var links = 3// + Math.floor(Math.random() * 5) 
+   //    var distance = 200;
+   //  }
+   //  var newBuildings = BuildGen.buildingFactory.aroundSegment(
+   //    callback,
+   //    segment, 
+   //    links, distance, qTree
+   //  )
+   //  newBuildings.forEach(function(building) {
+   //    qTree.insert(building.collider.limits())
+ //
+   //  })
+   //  buildings = buildings.concat(newBuildings)
+   //}
+ //
+   //map.buildings = buildings;
   return map
 };

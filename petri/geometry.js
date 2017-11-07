@@ -188,7 +188,7 @@ distanceToPolygon = function (point, poly) {
   return minDistance;
 }
 
-angleToPolygon = function (point, poly) {
+angleToPolygon = function (point, poly, relative) {
   var minDistance = Infinity;
   for (var i = 0; i < poly.length; i++) {
     var p1 = poly[i];
@@ -207,6 +207,8 @@ angleToPolygon = function (point, poly) {
                                c.x - point.x);
     var angle2 = Math.atan2(best1.y - best2.y,
                                best1.x - best2.x);
+    if (relative)
+      return angle2 - angle1
     return angle1;
   }
 }
@@ -225,7 +227,11 @@ equidistantPointsFromPolygon = function(poly, length, binary) {
     var x2 = p2[0]
     var y2 = p2[1]
     var L = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2), 2);
-    if (!L) continue
+    if (!L) {
+      if (!result.length)
+        result.push([x1, y1])
+      continue
+    }
     if (binary) {
       var d = Math.floor(L / length);
       target = L / (d || 1)
