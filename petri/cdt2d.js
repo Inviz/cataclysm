@@ -9070,6 +9070,26 @@ function cleanPSLG (points, edges, colors) {
     edges = augEdges
   }
 
+  var z = edges
+  for (var p = 0; p < points.length; p++) {
+    for (var i = 0; i < z.length; ++i) {
+      var e = z[i]
+      var p1 = points[e[0]]
+      var p2 = points[e[1]]
+
+      if (p == e[0] || p == e[1]) continue;
+      var t1 = points[p]
+      var c1 = closestOnLineArray(t1, p1, p2);
+      var d = Math.sqrt(Math.pow(c1[0] - t1[0], 2) + Math.pow(c1[1] - t1[1], 2), 2)
+      if (d <  1) {
+        edges.push([e[0], p])
+        edges.push([p, e[1]])
+        edges.splice(i--, 1)
+      }
+    }
+
+  }
+
   // First round: remove duplicate edges and points
   var modified = preRound(points, edges, !!colors)
 
@@ -9077,6 +9097,7 @@ function cleanPSLG (points, edges, colors) {
   while (snapRound(points, edges, !!colors)) {
     modified = true
   }
+
 
   // Strip color tags
   if (!!colors && modified) {

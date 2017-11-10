@@ -251,6 +251,11 @@ function draw() {
     lines = [];
     dots = [];
     var scale = function(p) {
+      if (p[0] != null)
+        return {
+          x: (p[0]) * zoom,
+          y: (p[1]) * zoom
+        }
       return {
         x: (p.x) * zoom,
         y: (p.y) * zoom
@@ -261,27 +266,60 @@ function draw() {
       var poly = this.computeRoadPolygon(index)
       var p = ['black', 3, poly.map(scale)]
       polys.push(p)
+          if (poly.marginPoints)
+            poly.marginPoints[0].forEach(function(line) {
+              var x2 = line[0] + Math.cos(line[3]) * 5
+              var y2 = line[1] + Math.sin(line[3]) * 5
+              lines.push(['blue', 3, [
+                          scale({x: line[0], y: line[1]}),
+                          scale({x: x2, y: y2})
+                          ]])
+              dots.push(['black', 2, [
+                          scale({x: x2, y: y2}),
+                          scale({x: x2, y: y2})
+                          ]])
+            })
     })
-    Game.World.eachBuilding(function(index) {
-       var poly = this.computeBuildingPolygon(index)
-       poly.forEach(function(step, index) {
-         lines.push(['grey', 3, [
-           scale(poly[index - 1] || poly[poly.length - 1]),
-           scale(step)
+    Game.World.eachBuilding(function(b) {
+       var pslg = this.computeBuildingPSLG(b)
+       var network = this.computeBuildingNavigationNetwork(b)
+       pslg.edges.forEach(function(edge, index) {
+         var p1 = pslg.points[edge[0]]
+         var p2 = pslg.points[edge[1]];
+         lines.push([pslg.points.length % 4 ? 'red' : 'grey', 3, [
+           scale(pslg.points[edge[0]]),
+           scale(pslg.points[edge[1]])
            ]])
-       })
+       }, this)
     })
-
-    Game.World.eachFurniture(function(f) {
-       var poly = this.computeFurniturePolygon(f)
-       debugger
+    //Game.World.eachRoom(function(r) {
+    //   var poly = this.computeRoomPolygon(r)
+    //   poly.forEach(function(step, index) {
+    //     lines.push([this.getRoomNumber(r) ? 'red' : 'grey', 3, [
+    //       scale(poly[index - 1] || poly[poly.length - 1]),
+    //       scale(step)
+    //       ]])
+    //   }, this)
+    //})
+    Game.World.Road.network.forEach(function(poly) {
+      debugger
        poly.forEach(function(step, index) {
-         lines.push([(this.getFurnitureAnchor(f) & Game.ANCHORS.INWARDS) ? 'blue' : 'green', 3, [
+         lines.push(['green', 3, [
            scale(poly[index - 1] || poly[poly.length - 1]),
            scale(step)
            ]])
        }, this)
     })
+
+   Game.World.eachFurniture(function(f) {
+      var poly = this.computeFurniturePolygon(f)
+      poly.forEach(function(step, index) {
+        lines.push([(this.getFurnitureAnchor(f) & Game.ANCHORS.INWARDS) ? 'blue' : 'green', 3, [
+          scale(poly[index - 1] || poly[poly.length - 1]),
+          scale(step)
+          ]])
+      }, this)
+   })
 
     //drawTree(tree.data, 0);
 

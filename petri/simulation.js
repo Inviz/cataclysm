@@ -107,6 +107,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
         new Function(
           functions[index] + '\n'
         + 'return function compute' + prefix + prop[1] + ' (index) {\n'
+        + 'if (isNaN(index) || Math.floor(index) !== index) throw "Incorrect index in \\"compute' + prefix + prop[1] +'\\"";'
         + 'var data = this.' + collection + ';\n'
         + 'var start = index * ' + size + ';\n'
         + 'if (!this.computed' + prefix + prop[1] + ') this.computed' + prefix + prop[1] + ' = {};\n' 
@@ -140,9 +141,15 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
         if (!relations[object])
           return m;
         var type = self[object.charAt(0).toUpperCase() + object.substring(1)];
-        var index = type.attributes[key]
-        var size = type.size;
-        return 'context.' + relations[object] + '[' + object + ' * ' + size + ' + ' + index + ']'
+        if (!type) {
+          var p = relations[object];
+          var index = attributes[key]
+          var osize = size;
+        } else {
+          var index = type.attributes[key]
+          var osize = type.size;
+        }
+        return 'context.' + relations[object] + '[' + object + ' * ' + osize + ' + ' + index + ']'
       }) + '\n'
 
     // 
@@ -153,12 +160,18 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     + '}')()
 
   var that = this;
+  var assignments = [];
   for (var attribute in attributes) (function(attribute, offset) {
     var suffix = attribute.charAt(0).toUpperCase() + attribute.substring(1);
     that['get' + prefix + suffix] = new Function('index',
       'return this.' + collection + '[' + size + ' * index + ' + offset + ']'
     )
+    assignments.push('this.' + collection + '[' + size + ' * to + ' + offset + '] = this.' + collection + '[' + size + ' * from + ' + offset + ']')
   })(attribute, attributes[attribute]);
+
+    that['move' + prefix] = new Function('from', 'to',
+      assignments.join(';\n')
+    )
   for (var property in computedProperties) {
     this[property] = computedProperties[property]
   }

@@ -142,56 +142,7 @@ rbush.prototype.analyzePoints = function(node, points, solve) {
   points = this.points
   this.totalPoints = length;
   if (!solve) return;
-  this.distances  = new Uint16Array(length * length);
-  this.transitions = new Uint16Array(length * length);
-
-  for (var i = 0; i < length * length; i++) {
-    this.distances[i] = 65535
-    this.transitions[i] = 65535
-  }
-  for (var i = 0; i < points.length; i++) {
-    var p1 = points[i];
-    this.distances[i * length + i] = 0
-    this.transitions[i * length + i] = i;
-
-    loop: for (var j = 0; j < i; j++) {
-
-      var p2 = points[j];
-      if (checkObstacleIntersection(p1, p2))
-        continue;
-      var d = Math.sqrt(
-        Math.pow(p1.x - p2.x, 2) +
-        Math.pow(p1.y - p2.y, 2)
-      , 2)
-      this.distances[i * length + j] = 
-      this.distances[j * length + i] = d
-      this.transitions[i * length + j] = i
-      this.transitions[j * length + i] = j;
-      /*
-      var b1 = p1.box && p1.box.building;
-      if (b1) {
-        tree.buildingsPoints[xyi] = b1;
-      }
-      else
-        var b1 = tree.buildingsPoints[xyi]
-      var b2 = p2.box && p2.box.building;
-      if (b2) {
-        tree.buildingsPoints[xyj] = b2;
-      }
-      else
-        var b2 = tree.buildingsPoints[xyj]
-
-      var register = false;
-        
-      if (b1 && b2) {
-        var distance = Math.sqrt(
-          Math.pow(p1.x - p2.x, 2) +
-          Math.pow(p1.y - p2.y, 2)
-        , 2)
-        this.connectBuildings(tree, node, xyi, xyj, b1, b2, a, distance)
-      }*/
-    }
-  }
+  
 }
 rbush.prototype.compute = function(solve) {
   tree.coordinates = {};

@@ -85,20 +85,6 @@ function Noise(vx, vy) {
   return 130 * ((gx * mx) + (gy * my) + (gz * mz));
 }
 
-function polygonFromRotatedRectangle (x, y, width, height, angle) {
-  var polygon = [];
-  for (var i = 0; i < 4; i++) {
-    var Ox = width * ((i > 1) ? .5 : -.5)
-    var Oy = height * ((i == 0 || i == 3) ? -.5 : .5)   
-    polygon.push({
-      x: x + (Ox  * Math.cos(angle)) - (Oy * Math.sin(angle)),
-      y: y + (Ox  * Math.sin(angle)) + (Oy * Math.cos(angle))
-    });
-  }
-  return polygon;
-
-  //The rotated position of this corner in world coordinates 
-}
 
 shuffleIndex.RAND_MASKS = [
   0x00000001, 0x00000003, 0x00000006, 0x0000000C, 0x00000014, 0x00000030,
@@ -147,8 +133,9 @@ function shuffleArray(array) {
 }
 
 
-
-function doPolygonsIntersect (a, b) {
+doPolygonsIntersect = (function() {
+  var normal = {};
+return function doPolygonsIntersect (a, b) {
     var polygons = [a, b];
     var minA, maxA, projected, i, i1, j, minB, maxB;
 
@@ -165,7 +152,8 @@ function doPolygonsIntersect (a, b) {
             var p2 = polygon[i2];
 
             // find the line perpendicular to this edge
-            var normal = { x: p2.y - p1.y, y: p1.x - p2.x };
+            normal.x = p2.y - p1.y
+            normal.y = p1.x - p2.x
 
             minA = maxA = undefined;
             // for each vertex in the first shape, project it onto the line perpendicular to the edge
@@ -202,3 +190,4 @@ function doPolygonsIntersect (a, b) {
     }
     return true;
 };
+})();

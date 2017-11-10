@@ -1,5 +1,5 @@
 var intersection = {}
-function checkIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+function checkIntersection(x1, y1, x2, y2, x3, y3, x4, y4, strict) {
   var denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
   var numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
   var numeB = ((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3));
@@ -23,6 +23,46 @@ function checkIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
 
   return;
 }
+function isOnLine(x, y, endx, endy, px, py) {
+    var f = function(somex) { return (endy - y) / (endx - x) * (somex - x) + y; };
+    return Math.abs(f(px) - py) < 1e-6 // tolerance, rounding errors
+        && px >= x && px <= endx;      // are they also on this segment?
+}
+function isOnLine2(initial_x, initial_y, endx, endy, pointx, pointy, tolerate) {
+     var slope = (endy-initial_y)/(endx-initial_x);
+     var y = slope * pointx + initial_y;
+
+     if((y <= pointy+tolerate && y >= pointy-tolerate) && (pointx >= initial_x+tolerate && pointx <= endx-tolerate)) {
+         return true;
+     }
+     return false;
+}
+    /*
+function getLineLineDistance(x1, y1, x2, y2, x3, y3, x4, y4) {
+  var denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
+  var numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
+  var numeB = ((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3));
+
+  if (denom == 0) {
+    if (numeA == 0 && numeB == 0) {
+      return ;
+    }
+    return ;
+  }
+
+  var uA = numeA / denom;
+  var uB = numeB / denom;
+
+  var iX = x1 + (uA * (x2 - x1))
+  var iY = y1 + (uA * (y2 - y1))
+  
+  // if lines intersect, distance is zero
+  if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+    return 0
+  }
+
+  return;
+}*/
 function checkGivenPolygonIntersection(polygon1, polygon2) {
   for (var k = 0; k < polygon1.length; k++) {
     var p1 = polygon1[k]
@@ -149,6 +189,25 @@ closestOnLine = function(pt0, pt1, pt2) {
       return pt2;
   
   return {x: pt1.x + t * (pt2.x - pt1.x), y: pt1.y + t * (pt2.y - pt1.y)};
+}
+
+closestOnLineArray = function(pt0, pt1, pt2) {
+  function dist2(pt1, pt2) { 
+      return Math.pow(pt1[0] - pt2[0], 2) + Math.pow(pt1[1] - pt2[1], 2);
+  }
+  
+  var l2 = dist2(pt1, pt2);
+  if (l2 == 0) 
+      return pt1;
+  
+  var t = ((pt0[0] - pt1[0]) * (pt2[0] - pt1[0]) + (pt0[1] - pt1[1]) * (pt2[1] - pt1[1])) / l2;
+  
+  if (t < 0) 
+      return pt1;
+  if (t > 1) 
+      return pt2;
+  
+  return [pt1[0] + t * (pt2[0] - pt1[0]), pt1[1] + t * (pt2[1] - pt1[1])];
 }
 
 
@@ -308,4 +367,55 @@ equidistantPointsFromSegments = function(segments, length, binary) {
 
   }
   return result;
+}
+
+
+//Converts a polygon to a planar straight line graph
+function polygonToPSLG(loops, options, X, Y) {
+  if(!Array.isArray(loops)) {
+    throw new Error('poly-to-pslg: Error, invalid polygon')
+  }
+  if(loops.length === 0) {
+    return {
+      points: [],
+      edges:  []
+    }
+  }
+
+  options = options || {}
+
+  var nested = true
+  if('nested' in options) {
+    nested = !!options.nested
+  } else if(loops[0].length === 2 && typeof loops[0][0] === 'number') {
+    //Hack:  If use doesn't pass in a loop, then try to guess if it is nested
+    nested = false
+  }
+  if(!nested) {
+    loops = [loops]
+  }
+
+  //First we just unroll all the points in the dumb/obvious way
+  var points = []
+  var edges = []
+  for(var i=0; i<loops.length; ++i) {
+    var loop = loops[i]
+    var offset = points.length
+    for(var j=0; j<loop.length; ++j) {
+      points.push([loop[j][X], loop[j][Y]])
+      edges.push([ offset+j, offset+(j+1)%loop.length ])
+    }
+  }
+
+  //Then we run snap rounding to clean up self intersections and duplicate verts
+  var clean = 'clean' in options ? true : !!options.clean
+  if(clean) {
+    cleanpslg(points, edges)
+  }
+
+  //Finally, we return the resulting PSLG
+  return {
+    points: points,
+    edges:  edges
+  }
 }

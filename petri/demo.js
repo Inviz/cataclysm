@@ -26,6 +26,8 @@ map.segments.forEach(function(wall) {
   if (pY < minY) minY = pY;
 
 })
+minX -= 1000
+minY -= 1000
 /*
 map.buildings.forEach(function(building) {
   for (var i = 0; i < 4; i++) {

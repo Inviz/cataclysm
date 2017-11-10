@@ -30,41 +30,49 @@ Game.Generator = {
       else
         return 100;
     },
-    function computePolygon(x, y, width, height, angle) {
-      return polygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
+    function computeVector(x, y, height, angle, context) {
+      return context.computeVectorFromSegment(x, y, height, angle * (Math.PI / 180))
+    },
+    function computePolygon(x, y, width, height, angle, context) {
+      return context.computePolygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
     },
     function computeAnchorPoints(index, context) {
-      return context.computeAnchorPoints(context.computeRoadPolygon(), 10, 10)
+      return context.computeAnchorPoints(context.computeRoadPolygon(index), 5, 40)
     }
   ],
   Building: [
-    function setOffsetAngle(offsetAngle) {
-      return 360 * Math.random()
+    function setWidth(width) {
+      return 60 + Math.random() * 20
     },
-    function setOffsetDistance(offsetDistance, road) {
-      return road.range * Math.random()
+    function setHeight(height) {
+      return 50 + Math.random() * 50
+    },
+    function setOffsetAngle(offsetAngle, road) {
+      return ((Math.PI) + offsetAngle) * (180 / Math.PI)//360 * Math.random()
+    },
+    function setOffsetDistance(offsetDistance, width, height, road) {
+      return width / 2//100// * Math.random()
     },
     function setX (x, road, offsetDistance, offsetAngle) {
-      return road.x + Math.cos(offsetAngle * (Math.PI / 180)) * (offsetDistance);
+      if (x == null)
+        x = road.x;
+      return x + Math.cos(offsetAngle * (Math.PI / 180)) * (offsetDistance);
     },
     function setY (y, road, offsetDistance, offsetAngle) {
-      return road.y + Math.sin(offsetAngle * (Math.PI / 180)) * (offsetDistance);
+      
+      if (y == null)
+        y = road.y;
+      return y + Math.sin(offsetAngle * (Math.PI / 180)) * (offsetDistance);
     },
     function setAngle (angle, road) {
       return road.angle
     },
-    function setWidth(width) {
-      return 60
-    },
-    function setHeight(height) {
-      return 100
-    },
-    function collide (collision, x, y, width, height, room, building, index, context) {
+    function collide (collision, x, y, width, height, building, index, context) {
       // collide previously generated buildings
       var polygon1 = context.recomputeBuildingPolygon(index)
-      for (var i = 0; i < index; i++) {
-        if (!context.getBuildingCollision(i)) {
-          var polygon2 = context.computeBuildingPolygon(i)
+      for (var i = 0; i < context.Room.count; i++) {
+        if (!context.getRoomCollision(i)) {
+          var polygon2 = context.computeRoomPolygon(i)
           if (doPolygonsIntersect(polygon1, polygon2)) {
             return i + 1;
           }
@@ -79,8 +87,27 @@ Game.Generator = {
       }
       return 0;
     },
-    function computePolygon(x, y, width, height, angle) {
-      return polygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
+    function computePolygon(x, y, width, height, angle, context) {
+      return context.computePolygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
+    },
+    function computeShape(index, context) {
+      var loops = [];
+      context.eachRoom(function(room) {
+
+        if (context.getRoomBuilding(room) == index ) {
+          debugger
+          loops.push(context.computeRoomPolygon(room).map(function(pt) {
+            return [pt.x, pt.y]//[Math.floor(pt.x * 1) / 1, Math.floor(pt.y * 1) / 1]
+          }))
+        }
+      })
+      return loops;
+    },
+    function computePSLG(index, context) {
+      return context.computePSLG(context.computeBuildingShape(index))
+    },
+    function computeNavigationNetwork(index, context) {
+      return context.computeNavigationNetwork(context.computeBuildingPSLG(index))
     },
     function computeAnchorPoints(index, context) {
       return context.computeAnchorPoints(context.computeBuildingPolygon(index))
@@ -91,20 +118,85 @@ Game.Generator = {
   ],
 
   Room: [
-    function setX (x) {
-      return x;
+    function setNumber (number) {
+      return number;
     },
-    function setY (y) {
-      return y;
+    function setOrigin (origin, number) {
+      return origin;
     },
-    function setAngle (angle) {
-      return angle;
+    function setAngle (angle, building) {
+      return building.angle;
+    },
+    function setOrientation (orientation) {
+      return Math.random() > 0.5 ? 1 : -1
+    },
+    function setPlacement (placement) {
+      return Math.random() > 0.5 ? 1 : 0
+    },
+    function setOffset (offset, number) {
+      if (number == 0 || Math.random() > 0.3)
+        return 0
+      return Math.floor(Math.random() * 3) / 3
+    },
+    function setWidth (width, number, building, placement) {
+      if (number == 0 || !placement)
+        return building.width;
+      else
+        return building.width * (2 + (Math.random() * 3)) / 3
+      return width;
+    },
+    function setHeight (height, number, building, placement) {
+      if (number == 0 || placement)
+        return building.height;
+      else
+        return building.height * (2 + (Math.random() * 3)) / 3
+      return height;
+    },
+    function setX (x, number, building, origin, angle, orientation, placement, width, height, offset) {
+      if (number == 0)
+        return building.x;
+      x = origin.x
+
+      if (placement) {
+        var distance = (origin.width + width) / 2;
+        var offsetDistance = offset * origin.height
+      } else {
+        angle += 90;
+        var distance = (origin.height + height) / 2;
+        var offsetDistance = offset * origin.width
+      }
+
+      var angleShift = Math.cos(angle * (Math.PI / 180)) * (distance + .1);
+      var offsetShift = Math.cos((angle - 90) * (Math.PI / 180)) * (offsetDistance);
+      return x + (angleShift) * orientation + offsetShift
+      //if (number == 0)
+    },
+    function setY (y, number, building, origin, angle, orientation, placement, width, height, offset) {
+      if (number == 0)
+        return building.y;
+      y = origin.y
+
+      if (placement) {
+        var distance = (origin.width + width) / 2;
+        var offsetDistance = offset * origin.height
+      } else {
+        angle += 90;
+        var distance = (origin.height + height) / 2;
+        var offsetDistance = offset * origin.width
+      }
+
+      var angleShift = Math.sin(angle * (Math.PI / 180)) * (distance + .1);
+      var offsetShift = Math.sin((angle - 90) * (Math.PI / 180)) * (offsetDistance);
+      return y + (angleShift) * orientation + offsetShift
     },
     function setBuilding (building) {
       return building;
     },
-    function computePolygon(index, context) {
-      return context.computeBuildingPolygon(context.getRoomBuilding(index))
+    function setDistance (distance, x, y, building) {
+      return Math.sqrt(Math.pow(x - building.x, 2) + Math.pow(y - building.y, 2), 2);
+    },
+    function computePolygon(x, y, width, height, angle, context) {
+      return context.computePolygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
     },
     function computeAnchorPoints(index, context) {
       return context.computeAnchorPoints(context.computeRoomPolygon(index))
@@ -112,8 +204,25 @@ Game.Generator = {
     function computeSpinePoints(index, context) {
       return context.computeSpinePoints(context.computeRoomPolygon(index))
     },
-    function collide (collision) {
-      return 0;
+    function collide (collision, x, y, width, height, building, index, context, number) {
+      // collide previously generated buildings
+      var polygon1 = context.recomputeRoomPolygon(index)
+      for (var i = 0; i < index; i++) {
+        if (!context.getRoomCollision(i) && (context.getRoomNumber(i) !== number || context.getRoomBuilding(i) !== building)) {
+          var polygon2 = context.computeRoomPolygon(i)
+          if (doPolygonsIntersect(polygon1, polygon2)) {
+            return i + 1;
+          }
+        }
+      }
+      // collide with road polygons
+      for (var i = 0; i < context.Road.count; i++) {
+        var polygon2 = context.computeRoadPolygon(i)
+        if (doPolygonsIntersect(polygon1, polygon2)) {
+          return i + 1;
+        }
+      }
+      return 0
     },
   ],
 
@@ -180,7 +289,7 @@ Game.Generator = {
       || !intersectPolygon(polygon1[0], polygon0, 'x', 'y', 0)) {
         return 1;
       }
-      for (var i = 0; i < index; i++) {
+      for (var i = Math.max(0, index - 50); i < index; i++) {
         if (context.getFurnitureRoom(i) == room && !context.getFurnitureCollision(i)) {
           var polygon2 = context.computeFurniturePolygon(i)
           if (doPolygonsIntersect(polygon1, polygon2)) {
@@ -191,9 +300,16 @@ Game.Generator = {
       return 0
     },
 
-    function computePolygon(x, y, width, height, angle) {
-      return polygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
-    }
+    function computePolygon(x, y, width, height, angle, context) {
+      return context.computePolygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
+    },
+
+    function computeAnchorPoints(index, context) {
+      return context.computeAnchorPoints(context.computeFurniturePolygon(index), 4)
+    },
+    function computeSpinePoints(index, context) {
+      return context.computeSpinePoints(context.computeFurniturePolygon(index))
+    },
   ],
   
   Equipment: [

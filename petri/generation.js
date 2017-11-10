@@ -12,8 +12,8 @@ Generation = function(seed, step, previous) {
 Generation.prototype = Object.create(Simulation.prototype)
 
 Generation.prototype.Road      = Generation.prototype.compile(Game.Generator.Road,      ['x', 'y', 'angle', 'width', 'height', 'connectivity'], {}, 'road', 'roads');
-Generation.prototype.Building  = Generation.prototype.compile(Game.Generator.Building,  ['road'], {road: 'roads'}, 'building', 'buildings');
-Generation.prototype.Room      = Generation.prototype.compile(Game.Generator.Room,      ['building', 'x', 'y', 'angle'], {building: 'buildings'}, 'room', 'rooms');
+Generation.prototype.Building  = Generation.prototype.compile(Game.Generator.Building,  ['road', 'x', 'y', 'offsetAngle'], {road: 'roads'}, 'building', 'buildings');
+Generation.prototype.Room      = Generation.prototype.compile(Game.Generator.Room,      ['building', 'number', 'origin'], {building: 'buildings', origin: 'rooms'}, 'room', 'rooms');
 Generation.prototype.Furniture = Generation.prototype.compile(Game.Generator.Furniture, ['room', 'building', 'x', 'y', 'angle', 'anchor'], {building: 'buildings', room: 'rooms'}, 'furniture');
 Generation.prototype.Equipment = Generation.prototype.compile(Game.Generator.Equipment, ['room', 'building', 'furniture'], {}, 'equipment');
 /*
@@ -40,43 +40,61 @@ Generation.prototype.Equipment = Generation.prototype.compile(Game.Generator.Equ
     })
     buildings = buildings.concat(newBuildings)
   }*/
-Generation.prototype.RoadBuilding = function(roadIndex, buildingIndex) {
+Generation.prototype.RoadBuilding = function(roadIndex) {
   var distance = this.getRoadRange(roadIndex)
-  var count = 3;
-
+  var count = 13;
+  var buildingIndex = this.Building.count;
+  var polygon = this.computeRoadPolygon(roadIndex)
+  var polygon = this.computeRoadAnchorPoints(roadIndex)
   placement: for (var i = 0; i < count; i++) {
-    ++buildingIndex
+
+    var point = polygon.marginPointsShuffled[0][i % polygon.marginPointsShuffled[0].length];
     for (var attempt = 0; attempt < 3; attempt++) {
       
-      this.Building(buildingIndex, roadIndex)
+      this.Building(buildingIndex, roadIndex, point[0], point[1], point[3])
 
       if (!this.getBuildingCollision(buildingIndex)) {
         this.BuildingRoom(buildingIndex)
+        buildingIndex++
         continue placement;
       }
     }
-    --buildingIndex
   }
 
-  return buildingIndex
+  this.Building.count = buildingIndex
 }
 
 Generation.prototype.BuildingRoom = function(buildingIndex) {
   var roomIndex = this.Room.count;
-    var roomIndex = buildingIndex//tree.map.buildings.indexOf(building);
-    var min = 1;
-    var max = 3;
-    var rooms = Math.floor(Math.random() * (max - min) + min)
-  placement: for (var i = 0; i < 1; i++) {
-    ++roomIndex
-    for (var attempt = 0; attempt < 3; attempt++) {
-      this.Room(roomIndex, buildingIndex, 0,0,0)
+  var min = 1;
+  var max = 4;
+  var rooms = 3//Math.floor(Math.random() * (max - min) + min)
+  var first = roomIndex;
+  placement: for (var i = 0; i < rooms; i++) {
+    var candidateIndex = roomIndex;
+    var minDistance = Infinity;
+    var bestPlacement = null;
+    for (var attempt = 0; attempt < 5; attempt++) {
+      this.Room(roomIndex, buildingIndex, i, first + Math.floor(Math.random() * (i)))
       if (!this.getRoomCollision(roomIndex)) {
-        this.BuildingRoomFurniture(buildingIndex, roomIndex)
-        continue placement
+        var distance = this.getRoomDistance(roomIndex);
+        if (distance < minDistance) {
+          minDistance = distance;
+          bestPlacement = roomIndex;
+          ++roomIndex
+        } else console.log('long distance', distance, minDistance)
       }
     }
-    --roomIndex
+    
+    if (bestPlacement != null) {
+      this.moveRoom(bestPlacement, candidateIndex);
+      this.recomputeRoomPolygon(candidateIndex)
+      this.BuildingRoomFurniture(buildingIndex, candidateIndex)
+      roomIndex = candidateIndex + 1;
+    } else {
+      roomIndex = candidateIndex
+      break
+    }
   }
   this.Room.count = roomIndex
 }
@@ -94,7 +112,7 @@ Generation.prototype.BuildingRoomFurniture = function(buildingIndex, roomIndex) 
     placements: for (var p = 0; p < max; p++) {
       var bone = bones[p];
       furnitureIndex++;
-      for (var attempt = 0; attempt < 21; attempt++) {
+      for (var attempt = 0; attempt < 3; attempt++) {
         this.Furniture(furnitureIndex, roomIndex, buildingIndex, bone[0], bone[1], bone[3] || 0, Game.ANCHORS.INSIDE_CENTER)
         
         if (!this.getFurnitureCollision(furnitureIndex)) {
@@ -127,7 +145,7 @@ Generation.prototype.BuildingRoomFurniture = function(buildingIndex, roomIndex) 
 }
 Generation.prototype.BuildingRoomFurnitureFurniture = function(buildingIndex, roomIndex, furnitureIndex) {
   var polygon = this.recomputeFurniturePolygon(furnitureIndex);
-  tree.generateAnchorPointsForPolygon(polygon, polygon, null, 4)
+  var polygon = this.recomputeFurnitureAnchorPoints(furnitureIndex);
   var slots = polygon.marginStraightPointsShuffled[0];
   var maxS = Math.floor(this.random() * (slots.length - 1)) + 1
   slots: for (var p = 0; p < maxS; p++) {
@@ -146,11 +164,13 @@ Generation.prototype.BuildingRoomFurnitureFurniture = function(buildingIndex, ro
 Generation.prototype.advance = function(polygons, segments) {
   var step = this.step = this.step + 1;
   var furnitureIndex = -1;
-  var roomIndex = -1;
-  var buildingIndex = -1;
+  var roads = [];
   for (var roadIndex = 0; roadIndex < map.roads.length; roadIndex ++) {
     var segment = map.roads[roadIndex]
     this.Road(roadIndex, segment[0], segment[1], segment[2], segment[3], segment[4], segment[5])
+    roads.push(this.computeRoadVector(roadIndex).map(function(p) {
+      return [p.x, p.y]
+    }))
   }
   this.Road.count = roadIndex;
 
@@ -159,12 +179,44 @@ Generation.prototype.advance = function(polygons, segments) {
 
     if (roadIndex % 20 != 0 && segment.links.f.length && segment.links.f.length < 2) continue;
 
-    buildingIndex = this.RoadBuilding(roadIndex, buildingIndex)
+    this.RoadBuilding(roadIndex)
   }
-  this.Building.count = buildingIndex
+
+  this.Road.network = [];
+  //this.Road.network = new Offset(roads, 3).margin(40);
+
+  //roads: for (var i = 0; i < roads.length; i++) {
+  //  debugger
+  //  this.Road.network = martinez.union([roads[i]], this.Road.network)
+  //}
   return this;
 }
 
+Generation.prototype.computePolygonFromRotatedRectangle = function(x, y, width, height, angle) {
+  var polygon = [];
+  for (var i = 0; i < 4; i++) {
+    var Ox = width * ((i > 1) ? .5 : -.5)
+    var Oy = height * ((i == 0 || i == 3) ? -.5 : .5)   
+    polygon.push({
+      x: x + (Ox  * Math.cos(angle)) - (Oy * Math.sin(angle)),
+      y: y + (Ox  * Math.sin(angle)) + (Oy * Math.cos(angle))
+    });
+  }
+  return polygon;
+}
+
+Generation.prototype.computeVectorFromSegment = function(x, y, distance, angle) {
+  var v2 = [];
+  for (var i = 0; i < 2; i++) {
+    var Ox = 0
+    var Oy = distance * ((i) ? .5 : -.5)//height * ((i == 0 || i == 3) ? -.5 : .5)   
+    v2.push({
+      x: x + (Ox  * Math.cos(angle)) - (Oy * Math.sin(angle)),
+      y: y + (Ox  * Math.sin(angle)) + (Oy * Math.cos(angle))
+    });
+  }
+  return v2;
+}
 
 Generation.prototype.computeAnchorPoints = function(points, padding, margin, context, segments) {
   if (!context)
@@ -179,7 +231,7 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
     margin = 6;
   context.padding = new Offset(segments, 0).padding(padding)
   context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)});
-  context.margin = new Offset(segments, 3).margin(5)
+  context.margin = new Offset(segments, 3).margin(6)
   context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, margin)});
   context.paddingPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
@@ -199,7 +251,100 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
   return context
 }
 
+Generation.prototype.computePSLG = function(polygons) {
+  return polygonToPSLG(polygons, {clean: true}, 0, 1);
+}
+Generation.prototype.getConnectivity = function(a, b, pslg) {
+  for (var i = 0; i < pslg.edges.length; i++)
+    if (pslg.edges[i][0] == a && pslg.edges[i][1] == b
+     || pslg.edges[i][1] == a && pslg.edges[i][0] == b)
+      return true;
+}
+Generation.prototype.computeNavigationNetwork = function(pslg, callback) {
+  var points = pslg.points;
+  var length = points.length;
+  var network = {};
+  network.distances  = new Uint16Array(length * length);
+  network.transitions = new Uint16Array(length * length);
+  if (callback == null)
+    callback = this.getConnectivity;
 
+  for (var i = 0; i < length * length; i++) {
+    network.distances[i] = 65535
+    network.transitions[i] = 65535
+  }
+  for (var i = 0; i < points.length; i++) {
+    var p1 = points[i];
+    network.distances[i * length + i] = 0
+    network.transitions[i * length + i] = i;
+
+    loop: for (var j = 0; j < i; j++) {
+
+      var p2 = points[j];
+      if (!callback(i, j, pslg, this))
+        continue;
+      var d = Math.sqrt(
+        Math.pow(p1[0] - p2[0], 2) +
+        Math.pow(p1[1] - p2[1], 2)
+      , 2)
+      network.distances[i * length + j] = 
+      network.distances[j * length + i] = d
+      network.transitions[i * length + j] = i
+      network.transitions[j * length + i] = j;
+    }
+  }
+  return network
+}
+
+Generation.prototype.computeDistances = function() {
+    var length = this.totalPoints
+    var i,j,k,d
+    for (k = 0; k < length; ++k) {
+      for (i = 0; i < length; ++i) {
+        for (j = 0; j < length; ++j) {
+          var il = i * length;
+          var kj = distances[k * length + j];
+          if (distances[il + j] > distances[il + k] + kj) {
+            distances[il + j] = distances[il + k] + kj
+            transitions[il + j] = transitions[k * length + j]
+          }
+        }
+      }
+    }
+}
+
+Generation.prototype.computePathPoints = function(points, padding, margin, context, segments) {
+  if (!context)
+    context = points
+  if (!segments) {
+    segments = points.map(function(p) { return [p.x, p.y]})
+    segments.push(segments[0])
+  }
+  if (padding == null)
+    padding = 10;
+  if (margin == null)
+    margin = 6;
+  context.padding = new Offset(segments, 0).padding(padding)
+  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)});
+  context.margin = new Offset(segments, 3).margin(6)
+  context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, margin)});
+  context.paddingPoints[0].forEach(function(spine) {
+    spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
+  })
+  context.paddingPointsShuffled = [shuffleArray(context.paddingPoints[0].slice())]
+  context.paddingStraightPointsShuffled = [context.paddingPointsShuffled[0].filter(function(point) {
+    return point[3] % Math.PI / 2 == 0
+  })]
+  context.marginPoints[0].forEach(function(spine) {
+    spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
+  })
+  context.marginPointsShuffled = [shuffleArray(context.marginPoints[0].slice())]
+  context.marginStraightPointsShuffled = [context.marginPointsShuffled[0].filter(function(spine) {
+    return Math.abs(angleToPolygon({x: spine[0], y: spine[1]}, points, true) % (Math.PI / 2)) < 0.01
+  })]
+
+  return context
+}
 Generation.prototype.computeSpinePoints = function(points, context, segments) {
   if (!context)
     context = points
@@ -253,3 +398,32 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
   context.spinesShuffled = shuffleArray(context.bones)
   return context
 }
+/*
+Generation.prototype.computeBoundingBox = function(polygon, box) {
+  if (!box)
+    var box = {min: [Infinity, Infinity], max: [-Infinity, -Infinity]};
+  for (var i = 0; i < polygon.length; i++) {
+    var p = polygon[i];
+    if (box.min[0] > p.x)
+      box.min[0] = p.x;
+    if (box.min[1] > p.y)
+      box.min[1] = p.y;
+    if (box.max[0] < p.x)
+      box.max[0] = p.x;
+    if (box.max[1] < p.y)
+      box.max[1] = p.y;
+  }
+  return box;
+}
+Generation.prototype.computeBoundingBoxDiff = function(polygon, box) {
+  if (!box)
+    var box = {min: [Infinity, Infinity], max: [-Infinity, -Infinity]};
+  var diff = 0;
+  for (var i = 0; i < polygon.length; i++) {
+    diff = Math.max(0, box.min[0] - p.x)
+           + Math.max(0, box.min[1] - p.y)
+           + Math.max(0, p.x - box.max[0])
+           + Math.max(0, p.y - box.max[1])
+  }
+  return diff;
+}*/
