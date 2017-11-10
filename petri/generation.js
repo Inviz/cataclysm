@@ -82,7 +82,7 @@ Generation.prototype.BuildingRoom = function(buildingIndex) {
           minDistance = distance;
           bestPlacement = roomIndex;
           ++roomIndex
-        } else console.log('long distance', distance, minDistance)
+        }
       }
     }
     
@@ -164,14 +164,28 @@ Generation.prototype.BuildingRoomFurnitureFurniture = function(buildingIndex, ro
 Generation.prototype.advance = function(polygons, segments) {
   var step = this.step = this.step + 1;
   var furnitureIndex = -1;
-  var roads = [];
+  var roads = null;
+  var sourceRoads = [];
+  var layers = [];
   for (var roadIndex = 0; roadIndex < map.roads.length; roadIndex ++) {
     var segment = map.roads[roadIndex]
     this.Road(roadIndex, segment[0], segment[1], segment[2], segment[3], segment[4], segment[5])
-    roads.push(this.computeRoadVector(roadIndex).map(function(p) {
-      return [p.x, p.y]
-    }))
+    var p = this.computeRoadOuterPolygon(roadIndex)
+    p = p.map(function(p) {
+      return [Math.floor(p.x), Math.floor(p.y)]
+    })
+    sourceRoads.push(p.concat([p[0]]))
+    //p = new Offset([p.concat([p[0]])], 3).padding(15)[0]
+    var layer = this.getRoadLayer(roadIndex);
+    if (!layers[layer])
+      layers[layer] = [];
+    layers[layer].push(p)
+    //roads.push(this.computeRoadVector(roadIndex).map(function(p) {
+    //  return [p.x, p.y]
+    //}))
   }
+
+
   this.Road.count = roadIndex;
 
   for (var roadIndex = 0; roadIndex < map.roads.length; roadIndex ++) {
@@ -182,13 +196,93 @@ Generation.prototype.advance = function(polygons, segments) {
     this.RoadBuilding(roadIndex)
   }
 
-  this.Road.network = [];
+
+  var buildingsByRoad = {};
+  this.eachBuilding(function(building) {
+    var road = this.getBuildingRoad(building);
+    this.eachRoom(function(room) {
+      if (this.getRoomBuilding(room) == building) {
+        if (!buildingsByRoad[road])
+          buildingsByRoad[road] = [];
+        buildingsByRoad[road].push.apply(buildingsByRoad[road], this.computeRoomPolygon(room))
+      }
+    })
+  })
+  debugger
+
+  this.allDistricts = [];
+  for (var road in buildingsByRoad) {
+    this.allDistricts.push(
+      concaveman(buildingsByRoad[road].map(function(point) {
+        return [point.x, point.y]
+      }), 3,30)
+    )
+  }
+  this.allPoints = [];
+  roads: for (var i = 0; i < this.allDistricts.length; i++) {
+    var road = this.allDistricts[i]
+    //for (var j = 0; j < this.allPoints.length; j++) {
+    //  var union = martinez.union(road, this.allPoints[j]);
+    //  if (union.length == 1) {
+    //    road = union[0]
+    //    this.allPoints.splice(j--, 1)
+    //  }
+    //}
+      var offset = new Offset(road, 5).padding(15)[0];
+      //offset = new Offset(offset, 5).margin(5)[0];
+
+      this.allPoints.push(offset)
+  }
+
+  layers.forEach(function(loops, layer) {
+    var p = this.computePSLG(loops)
+    if (roads == null)
+      roads = p
+    else {
+      roads = overlayPSLG(p.points, p.edges, roads.points, roads.edges, 'or')
+      roads.edges = roads.red.concat(roads.blue)
+    }
+
+  }, this);
+
+
+  //var pslg = this.computePSLG(this.allPoints)
+  //this.districtPSLG = overlayPSLG(pslg.points, pslg.edges, roads.points, roads.edges, 'sub')
+  //this.districtPolygon = this.districtPolygon
+
+  console.timeEnd('pslg');
+  debugger
+  this.Road.network = PSLGToPoly(roads.points, roads.edges).map(function(loop, index) {
+    loop = loop.concat([loop[0]])
+    if (index == 0)
+      return loop;
+    return loop//new Offset(loop.reverse(), 5).margin(100)
+  })
+  debugger
+
+   network = []//this.Road.network = network
+/*
   //this.Road.network = new Offset(roads, 3).margin(40);
 
-  //roads: for (var i = 0; i < roads.length; i++) {
-  //  debugger
-  //  this.Road.network = martinez.union([roads[i]], this.Road.network)
-  //}
+  this.Road.sidewalks = [];
+  roads: for (var i = 0; i < sidewalks.length; i++) {
+    var road = sidewalks[i]
+    for (var j = 0; j < network.length; j++) {
+      var union = martinez.union(road, network[j]);
+      if (union.length == 1) {
+        road = union[0]
+        network.splice(j--, 1)
+      }
+    }
+    this.Road.sidewalks.push(road)
+  }*/
+  //this.Road.network = new Offset(network.slice(), 5).margin(12);
+  //this.Road.sidewalks = new Offset(network.slice(), 5).margin(15);
+
+  //var pslg = this.computePSLG(this.Road.network);
+  //debugger
+  //this.Road.network = this.computeCleanPolygon(pslg)
+  this.Road.sidewalks = []
   return this;
 }
 
@@ -253,6 +347,9 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
 
 Generation.prototype.computePSLG = function(polygons) {
   return polygonToPSLG(polygons, {clean: true}, 0, 1);
+}
+Generation.prototype.computeCleanPolygon = function(pslg) {
+  return PSLGToPoly(pslg.points, pslg.edges);
 }
 Generation.prototype.getConnectivity = function(a, b, pslg) {
   for (var i = 0; i < pslg.edges.length; i++)

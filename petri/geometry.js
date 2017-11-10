@@ -410,7 +410,7 @@ function polygonToPSLG(loops, options, X, Y) {
   //Then we run snap rounding to clean up self intersections and duplicate verts
   var clean = 'clean' in options ? true : !!options.clean
   if(clean) {
-    cleanpslg(points, edges)
+    cleanPSLG(points, edges)
   }
 
   //Finally, we return the resulting PSLG

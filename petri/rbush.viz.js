@@ -58,7 +58,7 @@ function drawTree(node, level) {
       }
     } else if (node.points && node.parent && node.parent.leaf) {
       rect.push(node.building.points)
-      polys.push(rect);
+      polys.push([rect]);
     } else {
       rect.push([
           Math.round(node.minX),
@@ -263,21 +263,21 @@ function draw() {
     }
 
     Game.World.eachRoad(function(index) {
-      var poly = this.computeRoadPolygon(index)
+      var poly = this.computeRoadOuterPolygon(index)
       var p = ['black', 3, poly.map(scale)]
-      polys.push(p)
+      //polys.push(p)
           if (poly.marginPoints)
             poly.marginPoints[0].forEach(function(line) {
               var x2 = line[0] + Math.cos(line[3]) * 5
               var y2 = line[1] + Math.sin(line[3]) * 5
-              lines.push(['blue', 3, [
-                          scale({x: line[0], y: line[1]}),
-                          scale({x: x2, y: y2})
-                          ]])
-              dots.push(['black', 2, [
-                          scale({x: x2, y: y2}),
-                          scale({x: x2, y: y2})
-                          ]])
+              //lines.push(['blue', 3, [
+              //            scale({x: line[0], y: line[1]}),
+              //            scale({x: x2, y: y2})
+              //            ]])
+              //dots.push(['black', 2, [
+              //            scale({x: x2, y: y2}),
+              //            scale({x: x2, y: y2})
+              //            ]])
             })
     })
     Game.World.eachBuilding(function(b) {
@@ -301,14 +301,24 @@ function draw() {
     //       ]])
     //   }, this)
     //})
-    Game.World.Road.network.forEach(function(poly) {
-      debugger
-       poly.forEach(function(step, index) {
-         lines.push(['green', 3, [
-           scale(poly[index - 1] || poly[poly.length - 1]),
-           scale(step)
-           ]])
-       }, this)
+    var blocks = [];
+    var sidewalks = [];
+    polys.push(['black', 3, Game.World.Road.network.map(function(poly, index) {
+      if (index > 0) {
+        var padded = new Offset(poly, 5).padding(20)
+        padded.forEach(function(loop) {
+          return blocks.push(loop.map(scale))
+        })
+        new Offset(padded, 5).margin(10).forEach(function(loop) {
+          return sidewalks.push(loop.map(scale))
+        })
+      }
+       return poly.map(scale)
+    })])
+    debugger
+
+    Game.World.Road.sidewalks.forEach(function(poly) {
+       hulls.push(['lightgrey', 3, poly.map(scale)])
     })
 
    Game.World.eachFurniture(function(f) {
@@ -322,27 +332,12 @@ function draw() {
    })
 
     //drawTree(tree.data, 0);
-
+    Game.World.allPoints.forEach(function(path) {
+      
+    hulls.push(['black', 3, path.map(scale)])
+    })
     ctx.clearRect(0, 0, W + 1, W + 1);
 
-    for (var i = rects.length - 1; i >= 0; i--) {
-        ctx.strokeStyle = rects[i][0];
-        ctx.globalAlpha = rects[i][1];
-        ctx.strokeRect.apply(ctx, rects[i][2].map(function(p) {
-          return p * window.devicePixelRatio
-        }));
-    }
-    for (var i = polys.length - 1; i >= 0; i--) {
-      ctx.beginPath();
-        ctx.fillStyle = 'grey'
-        ctx.globalAlpha = 0.1;
-      ctx.moveTo(polys[i][2][0].x * window.devicePixelRatio, polys[i][2][0].y * window.devicePixelRatio);
-      ctx.lineTo(polys[i][2][1].x * window.devicePixelRatio, polys[i][2][1].y * window.devicePixelRatio);
-      ctx.lineTo(polys[i][2][2].x * window.devicePixelRatio, polys[i][2][2].y * window.devicePixelRatio);
-      ctx.lineTo(polys[i][2][3].x * window.devicePixelRatio, polys[i][2][3].y * window.devicePixelRatio);
-      ctx.closePath()
-      ctx.fill()
-    }
     var r = 0;
     for (var i = hulls.length - 1; i >= 0; i--) {
       ctx.beginPath();
@@ -375,6 +370,44 @@ function draw() {
       ctx.moveTo(dots[i][2][0].x * window.devicePixelRatio - dots[i][1] / 2 , dots[i][2][0].y * window.devicePixelRatio) - dots[i][1] / 2;
       ctx.lineTo(dots[i][2][1].x * window.devicePixelRatio + dots[i][1] / 2,  dots[i][2][1].y * window.devicePixelRatio) + dots[i][1] / 2;
       ctx.stroke()
+    }
+
+    for (var i = rects.length - 1; i >= 0; i--) {
+        ctx.strokeStyle = rects[i][0];
+        ctx.globalAlpha = rects[i][1];
+        ctx.strokeRect.apply(ctx, rects[i][2].map(function(p) {
+          return p * window.devicePixelRatio
+        }));
+    }
+    for (var i = polys.length - 1; i >= 0; i--) {
+      var poly = polys[i][2];
+      ctx.beginPath();
+        ctx.fillStyle = 'grey'
+        ctx.globalAlpha = 0.1;
+      for (var j = 0; j < poly.length; j++) {
+        ctx.moveTo(poly[j][0].x * window.devicePixelRatio, poly[j][0].y * window.devicePixelRatio);
+        for (var p = 0; p < poly[j].length; p++) {
+          var pp = p ? p - 1 : poly[j].length - 1;
+          ctx.lineTo(poly[j][p].x * window.devicePixelRatio, poly[j][p].y * window.devicePixelRatio);
+        }      
+      }
+
+      ctx.closePath()
+      ctx.fill()
+    }
+    for (var i = sidewalks.length - 1; i >= 0; i--) {
+      debugger
+      var poly = sidewalks[i];
+      ctx.beginPath();
+        ctx.fillStyle = 'green'
+        ctx.globalAlpha = 0.05;
+      ctx.moveTo(poly[0].x * window.devicePixelRatio, poly[0].y * window.devicePixelRatio);
+      for (var j = 0; j < poly.length; j++) {
+          ctx.lineTo(poly[j].x * window.devicePixelRatio, poly[j].y * window.devicePixelRatio);
+      }
+
+      ctx.closePath()
+      ctx.fill()
     }
 }
 

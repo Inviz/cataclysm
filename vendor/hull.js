@@ -1429,7 +1429,7 @@ var Queue = require('tinyqueue');
 var pointInPolygon = require('point-in-polygon');
 var orient = require('robust-orientation')[3];
 
-module.exports = concaveman;
+window.concaveman = module.exports = concaveman;
 module.exports.default = concaveman;
 
 function concaveman(points, concavity, lengthThreshold) {
@@ -2004,5 +2004,6 @@ function transformSVGPath(pathStr) {
 }
 }
 
+require('concaveman')
 var $d3g = {};
 d3threeD($d3g);

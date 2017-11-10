@@ -47,7 +47,7 @@ function City(size) {
     Mapgen.config.mapGeneration.DEBUG = false
 
   var size = 0.25//Math.random();
-  Mapgen.config.mapGeneration.SEGMENT_COUNT_LIMIT = 30//100 + size * 200
+  Mapgen.config.mapGeneration.SEGMENT_COUNT_LIMIT = 100 + size * 200
   var map = Mapgen.generate(2)
 
    //var qTree = map.qTree

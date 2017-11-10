@@ -1,6 +1,9 @@
 
 
 Game.Generator = {
+  City: [
+
+  ],
   Road: [
     function setX (x) {
       return x;
@@ -30,14 +33,39 @@ Game.Generator = {
       else
         return 100;
     },
+    function setLayer(layer, index, context) {
+      var polygon1 = context.computeRoadOuterPolygon(index);
+      groups: for (var group = 0; group < 5; group++) {
+        for (var i = 0; i < index; i++) {
+          var layer = context.getRoadLayer(i)
+          if (layer == group) {
+            var polygon2 = context.computeRoadOuterPolygon(i)
+            if (doPolygonsIntersect(polygon1, polygon2)) {
+              continue groups
+            }
+          }
+        }
+        break;;
+      }
+      return group
+    },
+    function computePSLG(index, context) {
+      return context.computePSLG([context.computeRoadPolygon(index)])
+    },
     function computeVector(x, y, height, angle, context) {
       return context.computeVectorFromSegment(x, y, height, angle * (Math.PI / 180))
     },
     function computePolygon(x, y, width, height, angle, context) {
       return context.computePolygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
     },
+    function computeOuterPolygon(x, y, width, height, angle, context) {
+      return context.computePolygonFromRotatedRectangle(x, y, width + 20, height + 20, angle * (Math.PI / 180))
+    },
+    function computeSurroundingPolygon(x, y, width, height, angle, context) {
+      return context.computePolygonFromRotatedRectangle(x, y, width + 50, height + 50, angle * (Math.PI / 180))
+    },
     function computeAnchorPoints(index, context) {
-      return context.computeAnchorPoints(context.computeRoadPolygon(index), 5, 40)
+      return context.computeAnchorPoints(context.computeRoadSurroundingPolygon(index), 5, 40)
     }
   ],
   Building: [
@@ -67,6 +95,9 @@ Game.Generator = {
     function setAngle (angle, road) {
       return road.angle
     },
+    function setRoad (road) {
+      return road
+    },
     function collide (collision, x, y, width, height, building, index, context) {
       // collide previously generated buildings
       var polygon1 = context.recomputeBuildingPolygon(index)
@@ -80,7 +111,7 @@ Game.Generator = {
       }
       // collide with road polygons
       for (var i = 0; i < context.Road.count; i++) {
-        var polygon2 = context.computeRoadPolygon(i)
+        var polygon2 = context.computeRoadSurroundingPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }
@@ -95,7 +126,6 @@ Game.Generator = {
       context.eachRoom(function(room) {
 
         if (context.getRoomBuilding(room) == index ) {
-          debugger
           loops.push(context.computeRoomPolygon(room).map(function(pt) {
             return [pt.x, pt.y]//[Math.floor(pt.x * 1) / 1, Math.floor(pt.y * 1) / 1]
           }))
@@ -217,7 +247,7 @@ Game.Generator = {
       }
       // collide with road polygons
       for (var i = 0; i < context.Road.count; i++) {
-        var polygon2 = context.computeRoadPolygon(i)
+        var polygon2 = context.computeRoadOuterPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }
