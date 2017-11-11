@@ -135,9 +135,13 @@ function shuffleArray(array) {
 
 doPolygonsIntersect = (function() {
   var normal = {};
-return function doPolygonsIntersect (a, b) {
+return function doPolygonsIntersect (a, b, X, Y) {
     var polygons = [a, b];
     var minA, maxA, projected, i, i1, j, minB, maxB;
+    if (X == null)
+      X = 'x'
+    if (Y == null)
+      Y = 'y'
 
     for (i = 0; i < polygons.length; i++) {
 
@@ -152,14 +156,14 @@ return function doPolygonsIntersect (a, b) {
             var p2 = polygon[i2];
 
             // find the line perpendicular to this edge
-            normal.x = p2.y - p1.y
-            normal.y = p1.x - p2.x
+            normal.x = p2[Y] - p1[Y]
+            normal.y = p1[X] - p2[X]
 
             minA = maxA = undefined;
             // for each vertex in the first shape, project it onto the line perpendicular to the edge
             // and keep track of the min and max of these values
             for (j = 0; j < a.length; j++) {
-                projected = normal.x * a[j].x + normal.y * a[j].y;
+                projected = normal.x * a[j][X] + normal.y * a[j][Y];
                 if ((minA === undefined) || projected < minA) {
                     minA = projected;
                 }
@@ -172,7 +176,7 @@ return function doPolygonsIntersect (a, b) {
             // and keep track of the min and max of these values
             minB = maxB = undefined;
             for (j = 0; j < b.length; j++) {
-                projected = normal.x * b[j].x + normal.y * b[j].y;
+                projected = normal.x * b[j][X] + normal.y * b[j][Y];
                 if ((minB === undefined) || projected < minB) {
                     minB = projected;
                 }

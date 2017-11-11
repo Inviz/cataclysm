@@ -2153,8 +2153,8 @@ Offset.prototype.padding = function(dist) {
 
   var union = this.offsetLines(this._distance);
   var diff = martinez.diff(this.vertices, union);
-  if (!diff.length)
-    return this.vertices
+  if (diff.length == 0)
+    return []
   return orientRings(diff);
 };
 

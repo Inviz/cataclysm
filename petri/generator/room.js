@@ -62,7 +62,10 @@ Game.Generator = {
       return context.computePolygonFromRotatedRectangle(x, y, width + 20, height + 20, angle * (Math.PI / 180))
     },
     function computeSurroundingPolygon(x, y, width, height, angle, context) {
-      return context.computePolygonFromRotatedRectangle(x, y, width + 50, height + 50, angle * (Math.PI / 180))
+      return context.computePolygonFromRotatedRectangle(x, y, width + 40, height + 40, angle * (Math.PI / 180))
+    },
+    function computeSplittingPolygon(x, y, width, height, angle, context) {
+      return context.computePolygonFromRotatedRectangle(x, y, width + 40, height + 40, angle * (Math.PI / 180))
     },
     function computeAnchorPoints(index, context) {
       return context.computeAnchorPoints(context.computeRoadSurroundingPolygon(index), 5, 40)
@@ -101,9 +104,9 @@ Game.Generator = {
     function collide (collision, x, y, width, height, building, index, context) {
       // collide previously generated buildings
       var polygon1 = context.recomputeBuildingPolygon(index)
-      for (var i = 0; i < context.Room.count; i++) {
-        if (!context.getRoomCollision(i)) {
-          var polygon2 = context.computeRoomPolygon(i)
+      for (var i = 0; i < index; i++) {
+        if (!context.getBuildingCollision(i)) {
+          var polygon2 = context.computeBuildingPolygon(i)
           if (doPolygonsIntersect(polygon1, polygon2)) {
             return i + 1;
           }

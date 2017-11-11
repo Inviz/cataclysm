@@ -44,13 +44,12 @@ Generation.prototype.RoadBuilding = function(roadIndex) {
   var distance = this.getRoadRange(roadIndex)
   var count = 13;
   var buildingIndex = this.Building.count;
-  var polygon = this.computeRoadPolygon(roadIndex)
+  var polygon = this.computeRoadSurroundingPolygon(roadIndex)
   var polygon = this.computeRoadAnchorPoints(roadIndex)
   placement: for (var i = 0; i < count; i++) {
 
     var point = polygon.marginPointsShuffled[0][i % polygon.marginPointsShuffled[0].length];
     for (var attempt = 0; attempt < 3; attempt++) {
-      
       this.Building(buildingIndex, roadIndex, point[0], point[1], point[3])
 
       if (!this.getBuildingCollision(buildingIndex)) {
@@ -197,44 +196,21 @@ Generation.prototype.advance = function(polygons, segments) {
   }
 
 
-  var buildingsByRoad = {};
-  this.eachBuilding(function(building) {
-    var road = this.getBuildingRoad(building);
-    this.eachRoom(function(room) {
-      if (this.getRoomBuilding(room) == building) {
-        if (!buildingsByRoad[road])
-          buildingsByRoad[road] = [];
-        buildingsByRoad[road].push.apply(buildingsByRoad[road], this.computeRoomPolygon(room))
-      }
-    })
-  })
-  debugger
-
-  this.allDistricts = [];
-  for (var road in buildingsByRoad) {
-    this.allDistricts.push(
-      concaveman(buildingsByRoad[road].map(function(point) {
-        return [point.x, point.y]
-      }), 3,30)
-    )
-  }
-  this.allPoints = [];
-  roads: for (var i = 0; i < this.allDistricts.length; i++) {
-    var road = this.allDistricts[i]
-    //for (var j = 0; j < this.allPoints.length; j++) {
-    //  var union = martinez.union(road, this.allPoints[j]);
-    //  if (union.length == 1) {
-    //    road = union[0]
-    //    this.allPoints.splice(j--, 1)
-    //  }
-    //}
-      var offset = new Offset(road, 5).padding(15)[0];
-      //offset = new Offset(offset, 5).margin(5)[0];
-
-      this.allPoints.push(offset)
-  }
-
+  console.time('pslg');
   layers.forEach(function(loops, layer) {
+    loops = loops.map(function(loop) {
+      return loop.filter(function(point, index) {
+        var prev = loop[index - 1];
+        var next = loop[index + 1];
+        if (prev == null || next == null)
+          return true;
+
+        var angle1 = Math.round(Math.atan2(point[1] - prev[1], point[0] - prev[0]) * 180 /Math.PI)
+        var angle2 = Math.round(Math.atan2(next[1] - prev[1], next[0] - prev[0]) * 180 /Math.PI)
+
+        return Math.abs(Math.abs(angle1) - Math.abs(angle2)) > 0.01
+      }, this)
+    })
     var p = this.computePSLG(loops)
     if (roads == null)
       roads = p
@@ -250,15 +226,120 @@ Generation.prototype.advance = function(polygons, segments) {
   //this.districtPSLG = overlayPSLG(pslg.points, pslg.edges, roads.points, roads.edges, 'sub')
   //this.districtPolygon = this.districtPolygon
 
-  console.timeEnd('pslg');
-  debugger
   this.Road.network = PSLGToPoly(roads.points, roads.edges).map(function(loop, index) {
     loop = loop.concat([loop[0]])
     if (index == 0)
       return loop;
     return loop//new Offset(loop.reverse(), 5).margin(100)
   })
-  debugger
+
+  this.Road.insideDistricts = this.Road.network.slice(1)
+  console.timeEnd('pslg');
+
+
+  var buildingsByRoad = {};
+  this.eachBuilding(function(building) {
+    var road = this.getBuildingRoad(building);
+    var roadVector = this.computeRoadVector(road)
+    if (!buildingsByRoad[road])
+      buildingsByRoad[road] = [];
+
+    var x = this.getBuildingX(building);
+    var y = this.getBuildingY(building)
+    var xy = {x: x, y: y}
+    for (var d = 0; d < this.Road.insideDistricts.length; d++)
+      if (intersectPolygon(xy, this.Road.insideDistricts[d]))
+        return;
+    
+
+    var index = isPointAboveLine(roadVector[0].x, roadVector[0].y, 
+                                 roadVector[1].x, roadVector[1].y, 
+                                 x, y) ? 1 : 0
+    var collection = buildingsByRoad[road][index] || (buildingsByRoad[road][index] = [])
+    this.eachRoom(function(room) {
+      if (this.getRoomBuilding(room) == building) {
+
+        collection.push.apply(collection, this.computeRoomPolygon(room))
+      }
+    })
+  })
+  console.time('district gen');
+  this.allRoadDistricts = [];
+  this.allOriginalPoints = [];
+  for (var road in buildingsByRoad) {
+    // compute hull of all buildings around road segment
+    buildingsByRoad[road].forEach(function(group) {
+      if (!group.length) return;
+      var hull = simplifyColinearLines(equidistantPointsFromPolygon(concaveman(group.map(function(point) {
+        return [point.x, point.y]
+      }), 3,10), 10))
+
+      try {
+        var extension = simplifyColinearLines(equidistantPointsFromPolygon(new Offset(hull, 3).margin(25)[0], 10));
+      } catch(e) {
+        var extension = hull
+        console.log('fail')
+      }
+      this.allOriginalPoints.push(extension)
+      this.allRoadDistricts.push([
+        parseInt(road),
+        hull,
+        extension
+      ])
+    }, this)
+  }
+
+  this.allDistricts = this.allRoadDistricts.slice();
+  for (var i = 0; i < this.allDistricts.length; i++) {
+    for (var j = 0; j < i; j++) {
+      var poly1 = this.allDistricts[i][2];
+      var poly2 = this.allDistricts[j][2];
+      if (doPolygonsIntersect(poly1, poly2, 0, 1)) {
+        var union = martinez.union(poly1, poly2);
+        if (union.length > 1) {
+          union = [simplifyColinearLines(concaveman(poly1.concat(poly2), 2.2,10))]
+        }
+        this.allDistricts[i][2] = union[0]
+        this.allDistricts.splice(j--, 1);
+        i--;
+      }
+    } 
+  }
+  console.time('network padding')
+  this.Road.networkPadding = new Offset(this.Road.network[0].slice(0), 5).margin(15)[0]
+
+  console.timeEnd('network padding')
+
+
+
+  this.allPoints = [];
+  roads: for (var i = 0; i < this.allDistricts.length; i++) {
+    var road = this.allDistricts[i][2]
+
+    road = simplifyColinearLines(equidistantPointsFromPolygon(concaveman((road),3,15), 20))
+    road = martinez.diff(road, this.Road.networkPadding)[0]
+    //road = new Offset(simplifyColinearLines(road), 3).padding(10)[0];
+    //road = new Offset(simplifyColinearLines(equidistantPointsFromPolygon(road, 5)), 5).margin(10)[0];
+    //for (var j = 0; j < this.allPoints.length; j++) {
+    //  var union = martinez.union(road, this.allPoints[j]);
+    //  if (union.length == 1) {
+    //    road = union[0]
+    //    this.allPoints.splice(j--, 1)
+    //  }
+    //}
+//      road = new Offset([road], 5).padding(15)[0];
+
+      //road = simplifyColinearLines(equidistantPointsFromPolygon(road, 15))
+    //var pslg = this.computePSLG(road);
+      //road = PSLGToPoly(pslg.points, pslg.edges)[0]
+      //var offset = new Offset([road], 5).margin(15)[0];
+
+      this.allPoints.push(road)
+  }
+  console.timeEnd('district gen');
+
+
+
 
    network = []//this.Road.network = network
 /*
@@ -323,9 +404,9 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
     padding = 10;
   if (margin == null)
     margin = 6;
-  context.padding = new Offset(segments, 0).padding(padding)
+  context.padding = new Offset([segments], 0).padding(padding)
   context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)});
-  context.margin = new Offset(segments, 3).margin(6)
+  context.margin = new Offset([segments], 3).margin(6)
   context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, margin)});
   context.paddingPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)

@@ -280,6 +280,14 @@ function draw() {
               //            ]])
             })
     })
+    //Game.World.allOriginalPoints.forEach(function(line) {
+    //  line.forEach(function(point) {
+    //    dots.push(['black', 6, [
+    //                scale(point),
+    //                scale(point)
+    //                ]])
+    //  });
+    //})
     Game.World.eachBuilding(function(b) {
        var pslg = this.computeBuildingPSLG(b)
        var network = this.computeBuildingNavigationNetwork(b)
@@ -309,13 +317,13 @@ function draw() {
         padded.forEach(function(loop) {
           return blocks.push(loop.map(scale))
         })
-        new Offset(padded, 5).margin(10).forEach(function(loop) {
+        if (padded.length)
+        new Offset([padded], 5).margin(10).forEach(function(loop) {
           return sidewalks.push(loop.map(scale))
         })
       }
        return poly.map(scale)
     })])
-    debugger
 
     Game.World.Road.sidewalks.forEach(function(poly) {
        hulls.push(['lightgrey', 3, poly.map(scale)])
@@ -331,10 +339,11 @@ function draw() {
       }, this)
    })
 
+   hulls.push(['black', 2, Game.World.Road.networkPadding.map(scale)])
     //drawTree(tree.data, 0);
     Game.World.allPoints.forEach(function(path) {
-      
-    hulls.push(['black', 3, path.map(scale)])
+
+    polys.push(['black', 3, [path.map(scale)]])
     })
     ctx.clearRect(0, 0, W + 1, W + 1);
 
@@ -363,6 +372,7 @@ function draw() {
       ctx.stroke()
     }
     for (var i = dots.length - 1; i >= 0; i--) {
+      debugger
       ctx.beginPath();
         ctx.strokeStyle = dots[i][0]
         ctx.globalAlpha = 1;
@@ -396,7 +406,6 @@ function draw() {
       ctx.fill()
     }
     for (var i = sidewalks.length - 1; i >= 0; i--) {
-      debugger
       var poly = sidewalks[i];
       ctx.beginPath();
         ctx.fillStyle = 'green'
