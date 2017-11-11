@@ -312,18 +312,12 @@ function draw() {
     var blocks = [];
     var sidewalks = [];
     polys.push(['black', 3, Game.World.Road.network.map(function(poly, index) {
-      if (index > 0) {
-        var padded = new Offset(poly, 5).padding(20)
-        padded.forEach(function(loop) {
-          return blocks.push(loop.map(scale))
-        })
-        if (padded.length)
-        new Offset([padded], 5).margin(10).forEach(function(loop) {
-          return sidewalks.push(loop.map(scale))
-        })
-      }
+
        return poly.map(scale)
     })])
+    Game.World.Road.sidewalks.forEach(function(poly, index) {
+      sidewalks.push(poly.map(scale))
+    })
 
     Game.World.Road.sidewalks.forEach(function(poly) {
        hulls.push(['lightgrey', 3, poly.map(scale)])
@@ -339,7 +333,7 @@ function draw() {
       }, this)
    })
 
-   hulls.push(['black', 2, Game.World.Road.networkPadding.map(scale)])
+   hulls.push(['lightgrey', 2, Game.World.Road.networkPadding.map(scale)])
     //drawTree(tree.data, 0);
     Game.World.allPoints.forEach(function(path) {
 
@@ -372,7 +366,6 @@ function draw() {
       ctx.stroke()
     }
     for (var i = dots.length - 1; i >= 0; i--) {
-      debugger
       ctx.beginPath();
         ctx.strokeStyle = dots[i][0]
         ctx.globalAlpha = 1;

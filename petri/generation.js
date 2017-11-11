@@ -306,10 +306,23 @@ Generation.prototype.advance = function(polygons, segments) {
     } 
   }
   console.time('network padding')
-  this.Road.networkPadding = new Offset(this.Road.network[0].slice(0), 5).margin(15)[0]
+  var paths = this.Road.network.map(function(pp) {
+    return pp.map(function(p) {
+      return {x: p[0], y: p[1]}
+    })
+  })
+  this.Road.network = paths.map(function(p, index) {
+    if (index)
+      return p//this.computePolygonOffset([p], 0, -10)[0]
+    else
+      return this.computePolygonOffset([p], 20, -10)[0]
 
+  }, this)
+  this.Road.sidewalks = this.Road.network.slice(1).map(function(p, index) {
+    return this.computePolygonOffset([p], -20, 10)[0]
+  }, this).filter(function(a) { return a})
+  this.Road.networkPadding = this.computePolygonOffset([this.Road.network[0]], 20, -10)[0]
   console.timeEnd('network padding')
-
 
 
   this.allPoints = [];
@@ -317,7 +330,7 @@ Generation.prototype.advance = function(polygons, segments) {
     var road = this.allDistricts[i][2]
 
     road = simplifyColinearLines(equidistantPointsFromPolygon(concaveman((road),3,15), 20))
-    road = martinez.diff(road, this.Road.networkPadding)[0]
+    //road = martinez.diff(road, this.Road.networkPadding)[0]
     //road = new Offset(simplifyColinearLines(road), 3).padding(10)[0];
     //road = new Offset(simplifyColinearLines(equidistantPointsFromPolygon(road, 5)), 5).margin(10)[0];
     //for (var j = 0; j < this.allPoints.length; j++) {
@@ -340,30 +353,6 @@ Generation.prototype.advance = function(polygons, segments) {
 
 
 
-
-   network = []//this.Road.network = network
-/*
-  //this.Road.network = new Offset(roads, 3).margin(40);
-
-  this.Road.sidewalks = [];
-  roads: for (var i = 0; i < sidewalks.length; i++) {
-    var road = sidewalks[i]
-    for (var j = 0; j < network.length; j++) {
-      var union = martinez.union(road, network[j]);
-      if (union.length == 1) {
-        road = union[0]
-        network.splice(j--, 1)
-      }
-    }
-    this.Road.sidewalks.push(road)
-  }*/
-  //this.Road.network = new Offset(network.slice(), 5).margin(12);
-  //this.Road.sidewalks = new Offset(network.slice(), 5).margin(15);
-
-  //var pslg = this.computePSLG(this.Road.network);
-  //debugger
-  //this.Road.network = this.computeCleanPolygon(pslg)
-  this.Road.sidewalks = []
   return this;
 }
 
@@ -472,6 +461,47 @@ Generation.prototype.computeNavigationNetwork = function(pslg, callback) {
     }
   }
   return network
+}
+
+Generation.prototype.computePolygonOffset = function(paths, padding, margin) {
+  //var off_result = ClipperLib.Clipper.SimplifyPolygons(paths, 0)
+  if (margin) {
+    var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
+    var offsetted_paths = new ClipperLib.Paths(); // empty solution
+    co.AddPaths(paths, 1, ClipperLib.EndType.etClosedPolygon);
+    co.Execute(offsetted_paths, padding);
+  } else {
+    var offsetted_paths = paths;
+  }
+  if (padding) {
+    var padded_paths = new ClipperLib.Paths(); // empty solution
+    var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
+    co.AddPaths(offsetted_paths, 1, ClipperLib.EndType.etClosedPolygon);
+    co.Execute(padded_paths, margin);
+    padded_paths.sort(function(a, b) {
+      return b.length - a.length
+    })
+    return padded_paths;
+  }
+
+  return padded_paths;
+}
+
+Generation.prototype.computePolygonOffset = function(paths, padding, margin) {
+  //var off_result = ClipperLib.Clipper.SimplifyPolygons(paths, 0)
+  var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
+  var offsetted_paths = new ClipperLib.Paths(); // empty solution
+  co.AddPaths(paths, 1, ClipperLib.EndType.etClosedPolygon);
+  co.Execute(offsetted_paths, padding);
+  var padded_paths = new ClipperLib.Paths(); // empty solution
+  var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
+  co.AddPaths(offsetted_paths, 1, ClipperLib.EndType.etClosedPolygon);
+  co.Execute(padded_paths, margin);
+  padded_paths.sort(function(a, b) {
+    return b.length - a.length
+  })
+
+  return padded_paths;
 }
 
 Generation.prototype.computeDistances = function() {
