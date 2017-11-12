@@ -48,7 +48,13 @@ function City(size) {
 
   var size = 0.25//Math.random();
   Mapgen.config.mapGeneration.SEGMENT_COUNT_LIMIT = 100 + size * 200
-  var map = Mapgen.generate(2)
+  var seed = 2;
+  if (location.search.indexOf('random') > -1)
+    seed = Math.random()
+  var seed = location.search.match(/seed=([^&]+)/);
+  if (seed)
+    seed = parseFloat(seed[1])
+  var map = Mapgen.generate(seed)
 
    //var qTree = map.qTree
    //var buildings = []

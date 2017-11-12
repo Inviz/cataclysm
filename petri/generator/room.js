@@ -33,22 +33,6 @@ Game.Generator = {
       else
         return 100;
     },
-    function setLayer(layer, index, context) {
-      var polygon1 = context.computeRoadOuterPolygon(index);
-      groups: for (var group = 0; group < 5; group++) {
-        for (var i = 0; i < index; i++) {
-          var layer = context.getRoadLayer(i)
-          if (layer == group) {
-            var polygon2 = context.computeRoadOuterPolygon(i)
-            if (doPolygonsIntersect(polygon1, polygon2)) {
-              continue groups
-            }
-          }
-        }
-        break;;
-      }
-      return group
-    },
     function computePSLG(index, context) {
       return context.computePSLG([context.computeRoadPolygon(index)])
     },
@@ -112,6 +96,7 @@ Game.Generator = {
       // collide with road polygons
       for (var i = 0; i < context.Road.count; i++) {
         var polygon2 = context.computeRoadSurroundingPolygon(i)
+        debugger
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }

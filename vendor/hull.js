@@ -1441,6 +1441,8 @@ function concaveman(points, concavity, lengthThreshold) {
 
     // start with a convex hull of the points
     var hull = fastConvexHull(points);
+    if (concavity == 0)
+        return hull;
     
     // index the points with an R-tree
     var tree = rbush(16, ['[0]', '[1]', '[0]', '[1]']).load(points);

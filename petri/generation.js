@@ -196,7 +196,6 @@ Generation.prototype.advance = function(polygons, segments) {
 
 
   this.Road.network = this.computePolygonOffset(this.Road.network, 0, 2, 2)
-
   this.Road.insideDistricts = this.Road.network.slice(1)
 
 
@@ -209,11 +208,6 @@ Generation.prototype.advance = function(polygons, segments) {
 
     var x = this.getBuildingX(building);
     var y = this.getBuildingY(building)
-    var xy = {x: x, y: y}
-    for (var d = 0; d < this.Road.insideDistricts.length; d++)
-      if (intersectPolygon(xy, this.Road.insideDistricts[d]))
-        return;
-    
 
     var index = isPointAboveLine(roadVector[0].x, roadVector[0].y, 
                                  roadVector[1].x, roadVector[1].y, 
@@ -231,7 +225,7 @@ Generation.prototype.advance = function(polygons, segments) {
   this.allOriginalPoints = [];
   for (var road in buildingsByRoad) {
     buildingsByRoad[road].forEach(function(group) {
-      this.allRoadDistricts.push.apply(this.allRoadDistricts, this.computePolygonOffset(group, 0, 25, 2))
+      this.allRoadDistricts.push.apply(this.allRoadDistricts, this.computePolygonOffset(group, 0, 30, 2))
     }, this)
   }
 
@@ -245,10 +239,13 @@ Generation.prototype.advance = function(polygons, segments) {
       return p//this.computePolygonOffset([p], 20, -10)[0]
 
   }, this)
-  this.Road.sidewalks = this.Road.network.slice(1).map(function(p, index) {
-    return this.computePolygonOffset([p], -20, 10, 0)[0]
-  }, this).filter(function(a) { return a})
-  this.Road.networkPadding = this.computePolygonOffset([this.Road.network[0]], 20, -10, 0)[0]
+  this.Road.sidewalks = [];
+  this.Road.network.slice(1).map(function(p, index) {
+    var shrunk = this.computePolygonOffset([p], -20, 10, 0);
+    if (shrunk.length)
+      this.Road.sidewalks.push.apply(this.Road.sidewalks, shrunk) 
+  }, this)
+  this.Road.networkPadding = this.computePolygonOffset(this.Road.network, 20, -10, 0)
   console.timeEnd('network padding')
 
 
@@ -259,10 +256,8 @@ Generation.prototype.advance = function(polygons, segments) {
     var poly = this.computePolygonHull(d, 4, 20)
     return poly//this.computePolygonOffset([poly], 100, 0, 2)[0]
   }, this)
-  this.allDistricts = this.computePolygonSimplification(this.allDistricts, 20)
-  //this.allVoronoi = this.hull = [
-  //  this.computePolygonHull(this.allDistricts, 3, 20)
-  //]
+  this.allDistricts = this.computePolygonSimplification(this.allDistricts, 10)
+  this.allVoronoi = this.Road.networkPadding
 
   //for (var i = 0; i < 1; i++) {
   //  var expansion = [];
@@ -285,31 +280,39 @@ Generation.prototype.advance = function(polygons, segments) {
 
   // grow districts and join them into outline
   this.outline = this.computePolygonOffset(this.allDistricts, 135, 0, 0)
-  this.outline = this.computePolygonSimplification(this.outline, 50)
 
   // subtract road network first time
-  this.outline = this.computePolygonBinary(this.outline, [this.Road.networkPadding], ClipperLib.ClipType.ctDifference)
+  this.outline = this.computePolygonBinary(this.outline, this.Road.networkPadding, ClipperLib.ClipType.ctDifference)
     
   // detect corners and small cutouts created by intersection of road network
   this.diff =   this.computePolygonBinary(this.outline, this.computePolygonOffset(
-    this.allPoints, 2, 0, 2
+    this.allPoints, 4, 0, 2
   ), ClipperLib.ClipType.ctDifference)
   this.smallShapes = this.diff.filter(function(shape) {
     return shape.length < 15
   })
-
-
   this.allPoints =  this.computePolygonBinary(this.allPoints, this.computePolygonOffset(
-    this.smallShapes, 5, 0, 2
+    this.smallShapes, 10, 0, 2
   ))
-  this.allPoints = this.computePolygonBinary(this.allPoints, [this.Road.networkPadding], ClipperLib.ClipType.ctDifference)
-    
- // this.allPoints = this.computePolygonSimplification(this.allPoints, 2)
-  this.allPoints = this.computePolygonOffset(this.allPoints, 0, -10, 0)
+  this.allPoints = this.allPoints.map(function(loop) {
+    return this.computePolygonHull(loop,0, 2)
+  }, this)
+  this.allPoints = this.allPoints.filter(function(loop) {
+    return Math.abs(ClipperLib.Clipper.Area(loop)) > 100 * 100
+  })
+  this.allPoints = this.computePolygonBinary(this.allPoints, this.Road.networkPadding, ClipperLib.ClipType.ctDifference)
+  
+  this.allPoints = this.computePolygonBinary(this.allPoints, this.Road.insideDistricts, ClipperLib.ClipType.ctDifference)
+  
+  this.allPoints = this.computePolygonOffset(this.allPoints, 10, -10, 0)
+  this.allPoints = this.computePolygonBinary(this.allPoints, this.Road.networkPadding, ClipperLib.ClipType.ctDifference)
+  
+  
+
+
   //this.allPoints = this.computePolygonBinary(this.allPoints, [this.Road.networkPadding], ClipperLib.ClipType.ctDifference)
     
   console.timeEnd('outline computation')
-  debugger
     /*
   this.allLines = [];
   console.time('pslg')
