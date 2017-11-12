@@ -17,8 +17,8 @@ function City(size) {
     Mapgen.config.mapGeneration.BUILDING_PLACEMENT_LOOP_LIMIT = 3
     Mapgen.config.mapGeneration.DEFAULT_SEGMENT_LENGTH = 300
     Mapgen.config.mapGeneration.HIGHWAY_SEGMENT_LENGTH = 250
-    Mapgen.config.mapGeneration.DEFAULT_SEGMENT_WIDTH = 30
-    Mapgen.config.mapGeneration.HIGHWAY_SEGMENT_WIDTH = 60
+    Mapgen.config.mapGeneration.DEFAULT_SEGMENT_WIDTH = 50
+    Mapgen.config.mapGeneration.HIGHWAY_SEGMENT_WIDTH = 80
     Mapgen.config.mapGeneration.RANDOM_BRANCH_ANGLE = function() {
       return randomAngle(branchAngleDev);
     },

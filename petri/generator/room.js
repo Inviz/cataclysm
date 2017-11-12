@@ -62,10 +62,7 @@ Game.Generator = {
       return context.computePolygonFromRotatedRectangle(x, y, width + 20, height + 20, angle * (Math.PI / 180))
     },
     function computeSurroundingPolygon(x, y, width, height, angle, context) {
-      return context.computePolygonFromRotatedRectangle(x, y, width + 40, height + 40, angle * (Math.PI / 180))
-    },
-    function computeSplittingPolygon(x, y, width, height, angle, context) {
-      return context.computePolygonFromRotatedRectangle(x, y, width + 40, height + 40, angle * (Math.PI / 180))
+      return context.computePolygonFromRotatedRectangle(x, y, width + 60, height + 60, angle * (Math.PI / 180))
     },
     function computeAnchorPoints(index, context) {
       return context.computeAnchorPoints(context.computeRoadSurroundingPolygon(index), 5, 40)
@@ -250,7 +247,7 @@ Game.Generator = {
       }
       // collide with road polygons
       for (var i = 0; i < context.Road.count; i++) {
-        var polygon2 = context.computeRoadOuterPolygon(i)
+        var polygon2 = context.computeRoadSurroundingPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }

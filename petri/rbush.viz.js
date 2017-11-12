@@ -333,11 +333,25 @@ function draw() {
       }, this)
    })
 
-   hulls.push(['lightgrey', 2, Game.World.Road.networkPadding.map(scale)])
+  // hulls.push(['lightgrey', 2, Game.World.Road.networkPadding.map(scale)])
     //drawTree(tree.data, 0);
-    Game.World.allPoints.forEach(function(path) {
+    sidewalks.push.apply(sidewalks, Game.World.allPoints.map(function(pp) {
+      return pp.map(scale)
+    }))
+    if ( Game.World.allLines)
+    Game.World.allLines.forEach(function(loop) {
+      lines.push(['green', 3, [
+        scale(loop[0]),
+        scale(loop[1])
+        ]])
+    }, this)
+    if (Game.World.allVoronoi)
+    Game.World.allVoronoi.forEach(function(loop) {
+      hulls.push(['lightgrey', 2, loop.map(scale)])
+    })
+    Game.World.allPoints.forEach(function(loop) {
 
-    polys.push(['black', 3, [path.map(scale)]])
+   hulls.push(['lightgrey', 2, loop.map(scale)])
     })
     ctx.clearRect(0, 0, W + 1, W + 1);
 
@@ -346,7 +360,7 @@ function draw() {
       ctx.beginPath();
         ctx.strokeStyle = hulls[i][0]
         ctx.globalAlpha = 0.7
-        ctx.lineWidth = 2
+        ctx.lineWidth = 1
       ctx.moveTo(hulls[i][2][0].x * window.devicePixelRatio, hulls[i][2][0].y * window.devicePixelRatio);
       for (var p = 0; p < hulls[i][2].length; p++) {
         var pp = p ? p - 1 : hulls[i][2].length - 1;

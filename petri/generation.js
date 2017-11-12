@@ -45,7 +45,7 @@ Generation.prototype.RoadBuilding = function(roadIndex) {
   var count = 13;
   var buildingIndex = this.Building.count;
   var polygon = this.computeRoadSurroundingPolygon(roadIndex)
-  var polygon = this.computeRoadAnchorPoints(roadIndex)
+  var polygon = this.computeAnchorPoints(polygon)
   placement: for (var i = 0; i < count; i++) {
 
     var point = polygon.marginPointsShuffled[0][i % polygon.marginPointsShuffled[0].length];
@@ -166,24 +166,23 @@ Generation.prototype.advance = function(polygons, segments) {
   var roads = null;
   var sourceRoads = [];
   var layers = [];
+  var network = [];
+  console.time('roads');
+
+  this.Road.network = []
+  var polygons = [];
   for (var roadIndex = 0; roadIndex < map.roads.length; roadIndex ++) {
     var segment = map.roads[roadIndex]
     this.Road(roadIndex, segment[0], segment[1], segment[2], segment[3], segment[4], segment[5])
-    var p = this.computeRoadOuterPolygon(roadIndex)
-    p = p.map(function(p) {
-      return [Math.floor(p.x), Math.floor(p.y)]
-    })
-    sourceRoads.push(p.concat([p[0]]))
-    //p = new Offset([p.concat([p[0]])], 3).padding(15)[0]
-    var layer = this.getRoadLayer(roadIndex);
-    if (!layers[layer])
-      layers[layer] = [];
-    layers[layer].push(p)
+    var p = this.computeRoadPolygon(roadIndex)
+    polygons.push(p)
     //roads.push(this.computeRoadVector(roadIndex).map(function(p) {
     //  return [p.x, p.y]
     //}))
   }
+    this.Road.network = this.computePolygonBinary(this.Road.network, polygons);
 
+  console.timeEnd('roads');
 
   this.Road.count = roadIndex;
 
@@ -196,45 +195,9 @@ Generation.prototype.advance = function(polygons, segments) {
   }
 
 
-  console.time('pslg');
-  layers.forEach(function(loops, layer) {
-    loops = loops.map(function(loop) {
-      return loop.filter(function(point, index) {
-        var prev = loop[index - 1];
-        var next = loop[index + 1];
-        if (prev == null || next == null)
-          return true;
-
-        var angle1 = Math.round(Math.atan2(point[1] - prev[1], point[0] - prev[0]) * 180 /Math.PI)
-        var angle2 = Math.round(Math.atan2(next[1] - prev[1], next[0] - prev[0]) * 180 /Math.PI)
-
-        return Math.abs(Math.abs(angle1) - Math.abs(angle2)) > 0.01
-      }, this)
-    })
-    var p = this.computePSLG(loops)
-    if (roads == null)
-      roads = p
-    else {
-      roads = overlayPSLG(p.points, p.edges, roads.points, roads.edges, 'or')
-      roads.edges = roads.red.concat(roads.blue)
-    }
-
-  }, this);
-
-
-  //var pslg = this.computePSLG(this.allPoints)
-  //this.districtPSLG = overlayPSLG(pslg.points, pslg.edges, roads.points, roads.edges, 'sub')
-  //this.districtPolygon = this.districtPolygon
-
-  this.Road.network = PSLGToPoly(roads.points, roads.edges).map(function(loop, index) {
-    loop = loop.concat([loop[0]])
-    if (index == 0)
-      return loop;
-    return loop//new Offset(loop.reverse(), 5).margin(100)
-  })
+  this.Road.network = this.computePolygonOffset(this.Road.network, 0, 2, 2)
 
   this.Road.insideDistricts = this.Road.network.slice(1)
-  console.timeEnd('pslg');
 
 
   var buildingsByRoad = {};
@@ -259,7 +222,7 @@ Generation.prototype.advance = function(polygons, segments) {
     this.eachRoom(function(room) {
       if (this.getRoomBuilding(room) == building) {
 
-        collection.push.apply(collection, this.computeRoomPolygon(room))
+        collection.push(this.computeRoomPolygon(room))
       }
     })
   })
@@ -267,92 +230,106 @@ Generation.prototype.advance = function(polygons, segments) {
   this.allRoadDistricts = [];
   this.allOriginalPoints = [];
   for (var road in buildingsByRoad) {
-    // compute hull of all buildings around road segment
     buildingsByRoad[road].forEach(function(group) {
-      if (!group.length) return;
-      var hull = simplifyColinearLines(equidistantPointsFromPolygon(concaveman(group.map(function(point) {
-        return [point.x, point.y]
-      }), 3,10), 10))
-
-      try {
-        var extension = simplifyColinearLines(equidistantPointsFromPolygon(new Offset(hull, 3).margin(25)[0], 10));
-      } catch(e) {
-        var extension = hull
-        console.log('fail')
-      }
-      this.allOriginalPoints.push(extension)
-      this.allRoadDistricts.push([
-        parseInt(road),
-        hull,
-        extension
-      ])
+      this.allRoadDistricts.push.apply(this.allRoadDistricts, this.computePolygonOffset(group, 0, 25, 2))
     }, this)
   }
 
-  this.allDistricts = this.allRoadDistricts.slice();
-  for (var i = 0; i < this.allDistricts.length; i++) {
-    for (var j = 0; j < i; j++) {
-      var poly1 = this.allDistricts[i][2];
-      var poly2 = this.allDistricts[j][2];
-      if (doPolygonsIntersect(poly1, poly2, 0, 1)) {
-        var union = martinez.union(poly1, poly2);
-        if (union.length > 1) {
-          union = [simplifyColinearLines(concaveman(poly1.concat(poly2), 2.2,10))]
-        }
-        this.allDistricts[i][2] = union[0]
-        this.allDistricts.splice(j--, 1);
-        i--;
-      }
-    } 
-  }
+  this.allDistricts = this.computePolygonBinary([], this.allRoadDistricts)
+  console.timeEnd('district gen');
   console.time('network padding')
-  var paths = this.Road.network.map(function(pp) {
-    return pp.map(function(p) {
-      return {x: p[0], y: p[1]}
-    })
-  })
-  this.Road.network = paths.map(function(p, index) {
+  this.Road.network = this.Road.network.map(function(p, index) {
     if (index)
       return p//this.computePolygonOffset([p], 0, -10)[0]
     else
-      return this.computePolygonOffset([p], 20, -10)[0]
+      return p//this.computePolygonOffset([p], 20, -10)[0]
 
   }, this)
   this.Road.sidewalks = this.Road.network.slice(1).map(function(p, index) {
-    return this.computePolygonOffset([p], -20, 10)[0]
+    return this.computePolygonOffset([p], -20, 10, 0)[0]
   }, this).filter(function(a) { return a})
-  this.Road.networkPadding = this.computePolygonOffset([this.Road.network[0]], 20, -10)[0]
+  this.Road.networkPadding = this.computePolygonOffset([this.Road.network[0]], 20, -10, 0)[0]
   console.timeEnd('network padding')
 
 
+  console.time('district manipulation')
   this.allPoints = [];
-  roads: for (var i = 0; i < this.allDistricts.length; i++) {
-    var road = this.allDistricts[i][2]
+  this.allDistricts = this.allDistricts.map(function(d) {
 
-    road = simplifyColinearLines(equidistantPointsFromPolygon(concaveman((road),3,15), 20))
-    //road = martinez.diff(road, this.Road.networkPadding)[0]
-    //road = new Offset(simplifyColinearLines(road), 3).padding(10)[0];
-    //road = new Offset(simplifyColinearLines(equidistantPointsFromPolygon(road, 5)), 5).margin(10)[0];
-    //for (var j = 0; j < this.allPoints.length; j++) {
-    //  var union = martinez.union(road, this.allPoints[j]);
-    //  if (union.length == 1) {
-    //    road = union[0]
-    //    this.allPoints.splice(j--, 1)
-    //  }
-    //}
-//      road = new Offset([road], 5).padding(15)[0];
+    var poly = this.computePolygonHull(d, 4, 20)
+    return poly//this.computePolygonOffset([poly], 100, 0, 2)[0]
+  }, this)
+  this.allDistricts = this.computePolygonSimplification(this.allDistricts, 20)
+  //this.allVoronoi = this.hull = [
+  //  this.computePolygonHull(this.allDistricts, 3, 20)
+  //]
 
-      //road = simplifyColinearLines(equidistantPointsFromPolygon(road, 15))
-    //var pslg = this.computePSLG(road);
-      //road = PSLGToPoly(pslg.points, pslg.edges)[0]
-      //var offset = new Offset([road], 5).margin(15)[0];
+  //for (var i = 0; i < 1; i++) {
+  //  var expansion = [];
+  //  this.allPoints = this.allPoints.map(function(district, index, array) {
+  //    var expanded = this.computePolygonOffset([district], 130, 0, 2);
+  //    expanded = this.computePolygonBinary(expanded, this.allDistricts, ClipperLib.ClipType.ctDifference)
+  //    expanded = this.computePolygonBinary(expanded, expansion, ClipperLib.ClipType.ctDifference)
+  //    expanded = this.computePolygonOffset(expanded, -10, 0, 2);
+  //    if (expanded[0])
+  //    expansion.push(expanded[0])
+  //    return expanded[0]
+  //  }, this).filter(function(d) { return d})
+  //}
+  console.timeEnd('district manipulation')
+  console.time('outline computation')
 
-      this.allPoints.push(road)
-  }
-  console.timeEnd('district gen');
+ // this.allDistricts = this.computePolygonBinary(this.allDistricts, [this.Road.networkPadding], ClipperLib.ClipType.ctDifference)
+    
+  this.allPoints = this.allDistricts
+
+  // grow districts and join them into outline
+  this.outline = this.computePolygonOffset(this.allDistricts, 135, 0, 0)
+  this.outline = this.computePolygonSimplification(this.outline, 50)
+
+  // subtract road network first time
+  this.outline = this.computePolygonBinary(this.outline, [this.Road.networkPadding], ClipperLib.ClipType.ctDifference)
+    
+  // detect corners and small cutouts created by intersection of road network
+  this.diff =   this.computePolygonBinary(this.outline, this.computePolygonOffset(
+    this.allPoints, 2, 0, 2
+  ), ClipperLib.ClipType.ctDifference)
+  this.smallShapes = this.diff.filter(function(shape) {
+    return shape.length < 15
+  })
 
 
-
+  this.allPoints =  this.computePolygonBinary(this.allPoints, this.computePolygonOffset(
+    this.smallShapes, 5, 0, 2
+  ))
+  this.allPoints = this.computePolygonBinary(this.allPoints, [this.Road.networkPadding], ClipperLib.ClipType.ctDifference)
+    
+ // this.allPoints = this.computePolygonSimplification(this.allPoints, 2)
+  this.allPoints = this.computePolygonOffset(this.allPoints, 0, -10, 0)
+  //this.allPoints = this.computePolygonBinary(this.allPoints, [this.Road.networkPadding], ClipperLib.ClipType.ctDifference)
+    
+  console.timeEnd('outline computation')
+  debugger
+    /*
+  this.allLines = [];
+  console.time('pslg')
+  var pslg = polygonToPSLG(this.allDistricts.concat(this.Road.network.slice(1)), {nested: true}, 'x', 'y')
+  var triangles = cdt2d(pslg.points, pslg.edges, {interior: false})
+  triangles.forEach(function(triangle) {
+    this.allLines.push([pslg.points[triangle[0]], pslg.points[triangle[1]]])
+    this.allLines.push([pslg.points[triangle[1]], pslg.points[triangle[2]]])
+    this.allLines.push([pslg.points[triangle[2]], pslg.points[triangle[0]]])
+  }, this)
+  var voronoi = voronoiDiagram(pslg.points)
+  this.allVoronoi = voronoi.cells.filter(function(cell) {
+    return cell.indexOf(-1) == -1
+  }).map(function(cell) {
+    return cell.map(function(index) {
+      return voronoi.positions[index]
+    })
+  })
+  debugger
+  console.timeEnd('pslg')*/
   return this;
 }
 
@@ -381,40 +358,6 @@ Generation.prototype.computeVectorFromSegment = function(x, y, distance, angle) 
   }
   return v2;
 }
-
-Generation.prototype.computeAnchorPoints = function(points, padding, margin, context, segments) {
-  if (!context)
-    context = points
-  if (!segments) {
-    segments = points.map(function(p) { return [p.x, p.y]})
-    segments.push(segments[0])
-  }
-  if (padding == null)
-    padding = 10;
-  if (margin == null)
-    margin = 6;
-  context.padding = new Offset([segments], 0).padding(padding)
-  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)});
-  context.margin = new Offset([segments], 3).margin(6)
-  context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, margin)});
-  context.paddingPoints[0].forEach(function(spine) {
-    spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
-  })
-  context.paddingPointsShuffled = [shuffleArray(context.paddingPoints[0].slice())]
-  context.paddingStraightPointsShuffled = [context.paddingPointsShuffled[0].filter(function(point) {
-    return point[3] % Math.PI / 2 == 0
-  })]
-  context.marginPoints[0].forEach(function(spine) {
-    spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
-  })
-  context.marginPointsShuffled = [shuffleArray(context.marginPoints[0].slice())]
-  context.marginStraightPointsShuffled = [context.marginPointsShuffled[0].filter(function(spine) {
-    return Math.abs(angleToPolygon({x: spine[0], y: spine[1]}, points, true) % (Math.PI / 2)) < 0.01
-  })]
-
-  return context
-}
-
 Generation.prototype.computePSLG = function(polygons) {
   return polygonToPSLG(polygons, {clean: true}, 0, 1);
 }
@@ -463,45 +406,61 @@ Generation.prototype.computeNavigationNetwork = function(pslg, callback) {
   return network
 }
 
-Generation.prototype.computePolygonOffset = function(paths, padding, margin) {
+Generation.prototype.computePolygonOffset = function(paths, margin, padding, type) {
+  if (type == null)
+    type = 1;
   //var off_result = ClipperLib.Clipper.SimplifyPolygons(paths, 0)
   if (margin) {
     var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
     var offsetted_paths = new ClipperLib.Paths(); // empty solution
-    co.AddPaths(paths, 1, ClipperLib.EndType.etClosedPolygon);
-    co.Execute(offsetted_paths, padding);
+    co.AddPaths(paths, type, ClipperLib.EndType.etClosedPolygon);
+    co.Execute(offsetted_paths, margin);
   } else {
     var offsetted_paths = paths;
   }
   if (padding) {
     var padded_paths = new ClipperLib.Paths(); // empty solution
     var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
-    co.AddPaths(offsetted_paths, 1, ClipperLib.EndType.etClosedPolygon);
-    co.Execute(padded_paths, margin);
+    co.AddPaths(offsetted_paths, type, ClipperLib.EndType.etClosedPolygon);
+    co.Execute(padded_paths, padding);
     padded_paths.sort(function(a, b) {
       return b.length - a.length
     })
     return padded_paths;
   }
 
-  return padded_paths;
+  return offsetted_paths;
+}
+Generation.prototype.computePolygonSimplification = function(polygon, distance) {
+  var simplified_path = new ClipperLib.Paths(); // empty solution
+  simplified_path = ClipperLib.JS.Lighten(polygon, distance || 2);
+  return simplified_path
+}
+Generation.prototype.computePolygonBinary = function(subj_paths, clip_paths, type) {
+  //var off_result = ClipperLib.Clipper.SimplifyPolygons(paths, 0)
+  if (type == null)
+    type = ClipperLib.ClipType.ctUnion
+
+  var cpr = new ClipperLib.Clipper();
+  cpr.AddPaths(subj_paths, ClipperLib.PolyType.ptSubject, true);  // true means closed path
+  cpr.AddPaths(clip_paths, ClipperLib.PolyType.ptClip, true);
+
+  var solution_paths = new ClipperLib.Paths();
+  var succeeded = cpr.Execute(type, solution_paths, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+  
+  return solution_paths;
 }
 
-Generation.prototype.computePolygonOffset = function(paths, padding, margin) {
-  //var off_result = ClipperLib.Clipper.SimplifyPolygons(paths, 0)
-  var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
-  var offsetted_paths = new ClipperLib.Paths(); // empty solution
-  co.AddPaths(paths, 1, ClipperLib.EndType.etClosedPolygon);
-  co.Execute(offsetted_paths, padding);
-  var padded_paths = new ClipperLib.Paths(); // empty solution
-  var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
-  co.AddPaths(offsetted_paths, 1, ClipperLib.EndType.etClosedPolygon);
-  co.Execute(padded_paths, margin);
-  padded_paths.sort(function(a, b) {
-    return b.length - a.length
-  })
-
-  return padded_paths;
+Generation.prototype.computePolygonHull = function(polygon, concavity, distance) {
+  if (polygon[0][0])
+    var points = [].concat.apply([], polygon)
+  else
+    var points = [].concat(polygon);
+  return concaveman(points.map(function(p) {
+        return [p.x, p.y]
+      }), concavity, distance).map(function(p) {
+        return {x: p[0], y: p[1]}
+      });
 }
 
 Generation.prototype.computeDistances = function() {
@@ -521,7 +480,9 @@ Generation.prototype.computeDistances = function() {
     }
 }
 
-Generation.prototype.computePathPoints = function(points, padding, margin, context, segments) {
+
+Generation.prototype.computeAnchorPoints = function(points, padding, margin, context, segments) {
+
   if (!context)
     context = points
   if (!segments) {
@@ -532,10 +493,20 @@ Generation.prototype.computePathPoints = function(points, padding, margin, conte
     padding = 10;
   if (margin == null)
     margin = 6;
-  context.padding = new Offset(segments, 0).padding(padding)
+  context.padding = this.computePolygonOffset([points], 0, -padding, 2).map(function(pp) {
+    return pp.map(function(p) {
+      return [p.x, p.y]
+    })
+  })
   context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)});
-  context.margin = new Offset(segments, 3).margin(6)
+
+  context.margin = this.computePolygonOffset([points], margin, 0, 2).map(function(pp) {
+    return pp.map(function(p) {
+      return [p.x, p.y]
+    })
+  })
   context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, margin)});
+
   context.paddingPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
   })
@@ -553,6 +524,7 @@ Generation.prototype.computePathPoints = function(points, padding, margin, conte
 
   return context
 }
+
 Generation.prototype.computeSpinePoints = function(points, context, segments) {
   if (!context)
     context = points
