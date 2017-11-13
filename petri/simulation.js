@@ -157,6 +157,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     + 'var data = this.' + collection + ';\n'
     + 'var start = index * ' + size + ';\n'
     + invocations.join(';\n')
+    + '\nreturn index;\n'
     + '}')()
 
   var that = this;

@@ -1,68 +1,13 @@
 
-var map = City();
 
 tree = rbush(4)
-
-var minX =  Infinity
-var maxX = -Infinity
-var minY =  Infinity
-var maxY = -Infinity
 
 
 tree.roads = [];
 tree.polygons = [];
-map.segments.forEach(function(wall) {
-  var pX = wall.r.start.x
-  var pY = wall.r.start.y
-  if (pX > maxX) maxX = pX;
-  if (pX < minX) minX = pX;
-  if (pY > maxY) maxY = pY;
-  if (pY < minY) minY = pY;
-  var pX = wall.r.end.x
-  var pY = wall.r.end.y
-  if (pX > maxX) maxX = pX;
-  if (pX < minX) minX = pX;
-  if (pY > maxY) maxY = pY;
-  if (pY < minY) minY = pY;
 
-})
-minX -= 1000
-minY -= 1000
+
 /*
-map.buildings.forEach(function(building) {
-  for (var i = 0; i < 4; i++) {
-    var pX = building.corners[i].x
-    var pY = building.corners[i].y
-    if (pX > maxX) maxX = pX;
-    if (pX < minX) minX = pX;
-    if (pY > maxY) maxY = pY;
-    if (pY < minY) minY = pY;
-  }
-})*/
-
-var width = maxX - minX
-var height = maxY - minY
-var max = 3200;
-if (width > height) {
-  height = max * (height / width)
-  width = max
-} else {
-  width = max * (width / height)
-  height = max
-}
-canvas.width = width;
-canvas.height = height;
-var zoom = max / (maxX - minX)
-console.info(width, 'x', height)
-
-if (window.devicePixelRatio > 1) {
-    canvas.style.width = canvas.width + 'px';
-    canvas.style.height = canvas.height + 'px';
-    canvas.width = canvas.width * 2;
-    canvas.height = canvas.height * 2;
-}
-
-
 map.roads =[]
 map.segments.forEach(function(wall) {
   var x1 = (wall.r.start.x - minX) * 1.2
@@ -77,7 +22,7 @@ map.segments.forEach(function(wall) {
     Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2), 2),
     wall.links.f.length
   ])
-})
+})*/
 /*
 map.buildings.forEach(function(building, index) {
   

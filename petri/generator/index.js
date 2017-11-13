@@ -1,11 +1,30 @@
 Game.Generator = function(seed, step, previous) {
   Generation.call(this, seed, step, previous);
   if (!this.Road) {
-    Game.Generator.prototype.Road      = this.compile(Game.Struct.Road,      ['x', 'y', 'angle', 'width', 'height', 'connectivity'], {}, 'road', 'roads');
-    Game.Generator.prototype.Building  = this.compile(Game.Struct.Building,  ['road', 'x', 'y', 'offsetAngle'], {road: 'roads'}, 'building', 'buildings');
-    Game.Generator.prototype.Room      = this.compile(Game.Struct.Room,      ['building', 'number', 'origin'], {building: 'buildings', origin: 'rooms'}, 'room', 'rooms');
-    Game.Generator.prototype.Furniture = this.compile(Game.Struct.Furniture, ['room', 'building', 'x', 'y', 'angle', 'anchor'], {building: 'buildings', room: 'rooms'}, 'furniture');
-    Game.Generator.prototype.Equipment = this.compile(Game.Struct.Equipment, ['room', 'building', 'furniture'], {}, 'equipment');
+    Game.Generator.prototype.Road = this.compile(
+      Game.Struct.Road,      
+      ['previous', 'angle', 'type', 'x', 'y'], 
+      {previous: 'roads'}, 'road', 'roads');
+
+    Game.Generator.prototype.Building = this.compile(
+      Game.Struct.Building,  
+      ['road', 'x', 'y', 'offsetAngle'], 
+      {road: 'roads'}, 'building', 'buildings');
+
+    Game.Generator.prototype.Room = this.compile(
+      Game.Struct.Room,      
+      ['building', 'number', 'origin'], 
+      {building: 'buildings', origin: 'rooms'}, 'room', 'rooms');
+
+    Game.Generator.prototype.Furniture = this.compile(
+      Game.Struct.Furniture, 
+      ['room', 'building', 'x', 'y', 'angle', 'anchor'], 
+      {building: 'buildings', room: 'rooms'}, 'furniture');
+
+    Game.Generator.prototype.Equipment = this.compile(
+      Game.Struct.Equipment, 
+      ['room', 'building', 'furniture'], 
+      {}, 'equipment');
   }
   this.roads     = new Float64Array(previous ? previous.roads     : this.Road.size * 10000);
   this.buildings = new Float64Array(previous ? previous.buildings : this.Building.size * 10000);
@@ -28,14 +47,14 @@ Game.Generator.prototype.advance = function(polygons, segments) {
 
   this.Road.network = []
   var polygons = [];
-  for (var roadIndex = 0; roadIndex < map.roads.length; roadIndex ++) {
-    var segment = map.roads[roadIndex]
-    this.Road(roadIndex, segment[0], segment[1], segment[2], segment[3], segment[4], segment[5])
+  this.CityRoad(0)
+  for (var roadIndex = 0; roadIndex < this.Road.count; roadIndex ++) {
     var p = this.computeScaledPolygon(this.computeRoadPolygon(roadIndex))
     polygons.push(p)
     //roads.push(this.computeRoadVector(roadIndex).map(function(p) {
     //  return [p.x, p.y]
     //}))
+    this.RoadBuilding(roadIndex)
   }
     this.Road.network = this.computePolygonBinary(this.Road.network, polygons);
 
@@ -43,13 +62,13 @@ Game.Generator.prototype.advance = function(polygons, segments) {
 
   this.Road.count = roadIndex;
 
-  for (var roadIndex = 0; roadIndex < map.roads.length; roadIndex ++) {
-    var segment = map.segments[roadIndex]
-
-    if (roadIndex % 20 != 0 && segment.links.f.length && segment.links.f.length < 2) continue;
-
-    this.RoadBuilding(roadIndex)
-  }
+//  for (var roadIndex = 0; roadIndex < map.roads.length; roadIndex ++) {
+//    var segment = map.segments[roadIndex]
+//
+//    if (roadIndex % 20 != 0 && segment.links.f.length && segment.links.f.length < 2) continue;
+//
+//    this.RoadBuilding(roadIndex)
+//  }
 
   this.processRoadsAndDistricts();
 

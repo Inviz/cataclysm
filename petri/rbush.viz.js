@@ -245,6 +245,19 @@ function drawTree(node, level) {
 }
 
 function draw() {
+      /*var angle = 90;
+      ctx.beginPath();
+      ctx.strokeStyle = 'red'
+        ctx.lineWidth = 2
+      ctx.moveTo(1500, 1500)
+      ctx.lineTo(1500 + Math.cos(angle * (Math.PI / 180)) * 500, 1500 + Math.sin(angle * (Math.PI / 180)) * 500)
+      
+      ctx.stroke()
+      ctx.beginPath();
+      ctx.strokeStyle = 'blue'
+      ctx.moveTo(1510, 1500)
+      ctx.lineTo(1510 + Math.cos(angle * (Math.PI / 180)) * 400, 1500 + Math.sin(angle * (Math.PI / 180)) * 400)
+      ctx.stroke()*/
     rects = [];
     polys = [];
     hulls = [];
@@ -265,6 +278,14 @@ function draw() {
     Game.World.eachRoad(function(index) {
       var poly = this.computeRoadOuterPolygon(index)
       var p = ['black', 3, poly.map(scale)]
+      //dots.push(['black', 50, [
+      //            scale({x: this.getRoadEx(index), y: this.getRoadEy(index)}),
+      //            scale({x: this.getRoadEx(index), y: this.getRoadEy(index)})
+      //            ]])
+      //dots.push(['green', 50, [
+      //            scale({x: this.getRoadX(index), y: this.getRoadY(index)}),
+      //            scale({x: this.getRoadX(index), y: this.getRoadY(index)})
+      //            ]])
       //polys.push(p)
           if (poly.marginPoints)
             poly.marginPoints[0].forEach(function(line) {

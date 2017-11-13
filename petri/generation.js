@@ -290,6 +290,14 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
   context.spinesShuffled = shuffleArray(context.bones)
   return context
 }
+
+Generation.prototype.computeTripleNoise = function(x, y) {
+  var value1, value2, value3;
+  value1 = (Noise(x / 10000, y / 10000) + 1) / 2;
+  value2 = (Noise(x / 20000 + 500, y / 20000 + 500) + 1) / 2;
+  value3 = (Noise(x / 20000 + 1000, y / 20000 + 1000) + 1) / 2;
+  return Math.pow((value1 * value2 + value3) / 2, 2);
+}
 /*
 Generation.prototype.computeBoundingBox = function(polygon, box) {
   if (!box)
