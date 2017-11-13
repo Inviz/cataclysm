@@ -1,4 +1,4 @@
-Game.Generator.Building = [
+Game.Struct.Building = [
   function setWidth(width) {
     return 60 + Math.random() * 20
   },
@@ -76,3 +76,25 @@ Game.Generator.Building = [
     return context.computeSpinePoints(context.computeBuildingPolygon(index))
   }
 ]
+Game.Generator.prototype.RoadBuilding = function(roadIndex) {
+  var distance = this.getRoadRange(roadIndex)
+  var count = 13;
+  var buildingIndex = this.Building.count;
+  var polygon = this.computeRoadSurroundingPolygon(roadIndex)
+  var polygon = this.computeAnchorPoints(polygon)
+  placement: for (var i = 0; i < count; i++) {
+
+    var point = polygon.marginPointsShuffled[0][i % polygon.marginPointsShuffled[0].length];
+    for (var attempt = 0; attempt < 3; attempt++) {
+      this.Building(buildingIndex, roadIndex, point[0], point[1], point[3])
+
+      if (!this.getBuildingCollision(buildingIndex)) {
+        this.BuildingRoom(buildingIndex)
+        buildingIndex++
+        continue placement;
+      }
+    }
+  }
+
+  this.Building.count = buildingIndex
+}

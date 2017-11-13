@@ -1,4 +1,4 @@
-Game.Generator.Room = [
+Game.Struct.Room = [
   function setNumber (number) {
     return number;
   },
@@ -106,3 +106,38 @@ Game.Generator.Room = [
     return 0
   },
 ]
+
+Game.Generator.prototype.BuildingRoom = function(buildingIndex) {
+  var roomIndex = this.Room.count;
+  var min = 1;
+  var max = 4;
+  var rooms = 3//Math.floor(Math.random() * (max - min) + min)
+  var first = roomIndex;
+  placement: for (var i = 0; i < rooms; i++) {
+    var candidateIndex = roomIndex;
+    var minDistance = Infinity;
+    var bestPlacement = null;
+    for (var attempt = 0; attempt < 5; attempt++) {
+      this.Room(roomIndex, buildingIndex, i, first + Math.floor(Math.random() * (i)))
+      if (!this.getRoomCollision(roomIndex)) {
+        var distance = this.getRoomDistance(roomIndex);
+        if (distance < minDistance) {
+          minDistance = distance;
+          bestPlacement = roomIndex;
+          ++roomIndex
+        }
+      }
+    }
+    
+    if (bestPlacement != null) {
+      this.moveRoom(bestPlacement, candidateIndex);
+      this.recomputeRoomPolygon(candidateIndex)
+      this.BuildingRoomFurniture(buildingIndex, candidateIndex)
+      roomIndex = candidateIndex + 1;
+    } else {
+      roomIndex = candidateIndex
+      break
+    }
+  }
+  this.Room.count = roomIndex
+}

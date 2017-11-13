@@ -1,0 +1,3 @@
+Game.Struct.City = [
+
+]

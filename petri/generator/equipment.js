@@ -1,4 +1,4 @@
-Game.Generator.Equipment = [
+Game.Struct.Equipment = [
   function angle (angle) {
     return angle;
   }

@@ -1,4 +1,4 @@
-Game.Generator.Furniture = [
+Game.Struct.Furniture = [
   function setAnchor (anchor) {
     return anchor;
   },
@@ -83,3 +83,66 @@ Game.Generator.Furniture = [
     return context.computeSpinePoints(context.computeFurniturePolygon(index))
   },
 ]
+
+Game.Generator.prototype.BuildingRoomFurniture = function(buildingIndex, roomIndex) {
+  var building = this.computeRoomAnchorPoints(roomIndex)
+  building = this.computeRoomSpinePoints(roomIndex)
+
+  if (building) {
+    var furnitureIndex = this.Furniture.count;
+    var bones = building.spinesShuffled;
+    var max = Math.floor(this.random() * (bones.length - 1)) + 1
+
+    // center points
+    placements: for (var p = 0; p < max; p++) {
+      var bone = bones[p];
+      furnitureIndex++;
+      for (var attempt = 0; attempt < 3; attempt++) {
+        this.Furniture(furnitureIndex, roomIndex, buildingIndex, bone[0], bone[1], bone[3] || 0, Game.ANCHORS.INSIDE_CENTER)
+        
+        if (!this.getFurnitureCollision(furnitureIndex)) {
+          furnitureIndex = this.BuildingRoomFurnitureFurniture(buildingIndex, roomIndex, furnitureIndex)
+          
+          continue placements;
+        }
+      }
+      furnitureIndex--
+    }
+
+    // wall points
+    var bones = building.paddingPointsShuffled[0];
+    var max = Math.floor(this.random() * (bones.length - 1)) + 1
+    placements: for (var p = 0; p < max; p++) {
+      var bone = bones[p];
+      furnitureIndex++;
+      for (var attempt = 0; attempt < 21; attempt++) {
+        this.Furniture(furnitureIndex, roomIndex, buildingIndex, bone[0], bone[1], bone[3] || 0, Game.ANCHORS.INSIDE_INWARDS)
+        if (!this.getFurnitureCollision(furnitureIndex)) {
+          continue placements
+        }
+      }
+      furnitureIndex--
+    }
+    this.Furniture.count = furnitureIndex;
+  }
+  return furnitureIndex;
+
+}
+Game.Generator.prototype.BuildingRoomFurnitureFurniture = function(buildingIndex, roomIndex, furnitureIndex) {
+  var polygon = this.recomputeFurniturePolygon(furnitureIndex);
+  var polygon = this.recomputeFurnitureAnchorPoints(furnitureIndex);
+  var slots = polygon.marginStraightPointsShuffled[0];
+  var maxS = Math.floor(this.random() * (slots.length - 1)) + 1
+  slots: for (var p = 0; p < maxS; p++) {
+    var slot = slots[p];
+    furnitureIndex++;
+    for (var attempt = 0; attempt < 21; attempt++) {
+      this.Furniture(furnitureIndex, roomIndex, buildingIndex, slot[0], slot[1], slot[3] ||0, Game.ANCHORS.OUTSIDE_INWARDS)
+      if (!this.getFurnitureCollision(furnitureIndex)) {
+        continue slots
+      }
+    }
+    furnitureIndex--
+  }
+  return furnitureIndex
+}

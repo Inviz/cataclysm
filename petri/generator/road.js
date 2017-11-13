@@ -1,4 +1,4 @@
-Game.Generator.Road = [
+Game.Struct.Road = [
   function setX (x) {
     return x;
   },

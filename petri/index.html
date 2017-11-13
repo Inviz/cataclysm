@@ -11,6 +11,8 @@
 <script src="martinez.js"></script>
 <script src="offset.js"></script>
 <script src="geometry.js"></script>
+<script src="simulation.js"></script>
+<script src="generation.js"></script>
 <script src="generator/index.js"></script>
 <script src="generator/room.js"></script>
 <script src="generator/road.js"></script>
@@ -18,8 +20,6 @@
 <script src="generator/city.js"></script>
 <script src="generator/furniture.js"></script>
 <script src="generator/equipment.js"></script>
-<script src="simulation.js"></script>
-<script src="generation.js"></script>
 <script src="nets/area.js"></script>
 <script src="nets/zone.js"></script>
 <script src="nets/creature.js"></script>
@@ -52,7 +52,7 @@
 
   function Gen() {
     console.time('gen test')
-    var state = new Generation(0, 123)
+    var state = new Game.Generator(0, 123)
     var states = [];
     state = state.advance.apply(state, arguments)
     console.timeEnd('gen test')
