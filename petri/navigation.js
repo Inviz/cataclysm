@@ -65,14 +65,14 @@ rbush.prototype.generateAnchorPointsForPolygon = function(points, context, segme
   context.paddingPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
   })
-  context.paddingPointsShuffled = [shuffleArray(context.paddingPoints[0].slice())]
+  context.paddingPointsShuffled = [this.shuffleArray(context.paddingPoints[0].slice())]
   context.paddingStraightPointsShuffled = [context.paddingPointsShuffled[0].filter(function(point) {
     return point[3] % Math.PI / 2 == 0
   })]
   context.marginPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
   })
-  context.marginPointsShuffled = [shuffleArray(context.marginPoints[0].slice())]
+  context.marginPointsShuffled = [this.shuffleArray(context.marginPoints[0].slice())]
   context.marginStraightPointsShuffled = [context.marginPointsShuffled[0].filter(function(spine) {
     return Math.abs(angleToPolygon({x: spine[0], y: spine[1]}, points, true) % (Math.PI / 2)) < 0.01
   })]

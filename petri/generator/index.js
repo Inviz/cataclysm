@@ -49,6 +49,8 @@ Game.Generator.prototype.advance = function(polygons, segments) {
   var polygons = [];
   this.CityRoad(0)
   for (var roadIndex = 0; roadIndex < this.Road.count; roadIndex ++) {
+
+    if (this.getRoadCollision(roadIndex) > 9) continue
     var p = this.computeScaledPolygon(this.computeRoadPolygon(roadIndex))
     polygons.push(p)
     //roads.push(this.computeRoadVector(roadIndex).map(function(p) {

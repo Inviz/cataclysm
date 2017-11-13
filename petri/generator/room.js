@@ -8,29 +8,29 @@ Game.Struct.Room = [
   function setAngle (angle, building) {
     return building.angle;
   },
-  function setOrientation (orientation) {
-    return Math.random() > 0.5 ? 1 : -1
+  function setOrientation (orientation, context) {
+    return context.random() > 0.5 ? 1 : -1
   },
-  function setPlacement (placement) {
-    return Math.random() > 0.5 ? 1 : 0
+  function setPlacement (placement, context) {
+    return context.random() > 0.5 ? 1 : 0
   },
-  function setOffset (offset, number) {
-    if (number == 0 || Math.random() > 0.3)
+  function setOffset (offset, number, context) {
+    if (number == 0 || context.random() > 0.3)
       return 0
-    return Math.floor(Math.random() * 3) / 3
+    return Math.floor(context.random() * 3) / 3
   },
-  function setWidth (width, number, building, placement) {
+  function setWidth (width, number, building, placement, context) {
     if (number == 0 || !placement)
       return building.width;
     else
-      return building.width * (2 + (Math.random() * 3)) / 3
+      return building.width * (2 + (context.random() * 3)) / 3
     return width;
   },
-  function setHeight (height, number, building, placement) {
+  function setHeight (height, number, building, placement, context) {
     if (number == 0 || placement)
       return building.height;
     else
-      return building.height * (2 + (Math.random() * 3)) / 3
+      return building.height * (2 + (context.random() * 3)) / 3
     return height;
   },
   function setX (x, number, building, origin, angle, orientation, placement, width, height, offset) {
@@ -118,7 +118,7 @@ Game.Generator.prototype.BuildingRoom = function(buildingIndex) {
     var minDistance = Infinity;
     var bestPlacement = null;
     for (var attempt = 0; attempt < 5; attempt++) {
-      this.Room(roomIndex, buildingIndex, i, first + Math.floor(Math.random() * (i)))
+      this.Room(roomIndex, buildingIndex, i, first + Math.floor(this.random() * (i)))
       if (!this.getRoomCollision(roomIndex)) {
         var distance = this.getRoomDistance(roomIndex);
         if (distance < minDistance) {

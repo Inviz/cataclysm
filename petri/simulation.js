@@ -167,6 +167,9 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     that['get' + prefix + suffix] = new Function('index',
       'return this.' + collection + '[' + size + ' * index + ' + offset + ']'
     )
+    that['set' + prefix + suffix] = new Function('index', 'value',
+      'return this.' + collection + '[' + size + ' * index + ' + offset + '] = value;'
+    )
     assignments.push('this.' + collection + '[' + size + ' * to + ' + offset + '] = this.' + collection + '[' + size + ' * from + ' + offset + ']')
   })(attribute, attributes[attribute]);
 

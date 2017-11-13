@@ -222,14 +222,14 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
   context.paddingPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
   })
-  context.paddingPointsShuffled = [shuffleArray(context.paddingPoints[0].slice())]
+  context.paddingPointsShuffled = [this.shuffleArray(context.paddingPoints[0].slice())]
   context.paddingStraightPointsShuffled = [context.paddingPointsShuffled[0].filter(function(point) {
     return point[3] % Math.PI / 2 == 0
   })]
   context.marginPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
   })
-  context.marginPointsShuffled = [shuffleArray(context.marginPoints[0].slice())]
+  context.marginPointsShuffled = [this.shuffleArray(context.marginPoints[0].slice())]
   context.marginStraightPointsShuffled = [context.marginPointsShuffled[0].filter(function(spine) {
     return Math.abs(angleToPolygon({x: spine[0], y: spine[1]}, points, true) % (Math.PI / 2)) < 0.01
   })]
@@ -287,7 +287,7 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
     }
   })
 
-  context.spinesShuffled = shuffleArray(context.bones)
+  context.spinesShuffled = this.shuffleArray(context.bones)
   return context
 }
 
@@ -298,6 +298,17 @@ Generation.prototype.computeTripleNoise = function(x, y) {
   value3 = (Noise(x / 20000 + 1000, y / 20000 + 1000) + 1) / 2;
   return Math.pow((value1 * value2 + value3) / 2, 2);
 }
+
+Generation.prototype.shuffleArray = function(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(this.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array
+}
+
 /*
 Generation.prototype.computeBoundingBox = function(polygon, box) {
   if (!box)

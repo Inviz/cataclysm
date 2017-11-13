@@ -2,29 +2,29 @@ Game.Struct.Furniture = [
   function setAnchor (anchor) {
     return anchor;
   },
-  function setWidth (width, anchor) {
+  function setWidth (width, anchor, context) {
     if (anchor == Game.ANCHORS.INSIDE_INWARDS || anchor == Game.ANCHORS.OUTSIDE_INWARDS) {
       return 5
     } else {
-      return 10 + 10 * Math.random()//width;
+      return 10 + 10 * context.random()//width;
 
     }
   },
-  function setHeight (height, width, anchor) {
+  function setHeight (height, width, anchor, context) {
     if (anchor == Game.ANCHORS.OUTSIDE_INWARDS) {
       return 5;
     } else {
-      return 10 + 5 * Math.random()//height;
+      return 10 + 5 * context.random()//height;
     }
   },
-  function setAngle (angle, room, anchor) {
+  function setAngle (angle, room, anchor, context) {
     angle = Math.floor((Math.PI  + angle) * (180 / Math.PI))
-    if (anchor == Game.ANCHORS.INSIDE_CENTER && Math.random() > 0.8)
-      return angle += Math.floor(Math.random() * 8) * 3
+    if (anchor == Game.ANCHORS.INSIDE_CENTER && context.random() > 0.8)
+      return angle += Math.floor(context.random() * 8) * 3
     return angle// + Math.floor(Math.random() * 8) * 2// + room.angle//angle;
   },
-  function setX (x, anchor, angle, width) {
-    var x1 = x + Math.random() * 6 - 3;;
+  function setX (x, anchor, angle, width, context) {
+    var x1 = x + context.random() * 6 - 3;;
 
     if (anchor == Game.ANCHORS.INSIDE_INWARDS) {
       return x + Math.cos(angle * (Math.PI / 180)) * (width / 2 - 10 + 1)
@@ -32,8 +32,8 @@ Game.Struct.Furniture = [
     return x
   },
 
-  function setY (y, anchor, angle, width) {
-    var y1 = y + Math.random() * 6 - 3;;
+  function setY (y, anchor, angle, width, context) {
+    var y1 = y + context.random() * 6 - 3;;
 
 
     if (anchor == Game.ANCHORS.INSIDE_INWARDS) {
@@ -44,9 +44,9 @@ Game.Struct.Furniture = [
   function setRoom (room) {
     return room;
   },
-  function setType(type) {
+  function setType(type, context) {
     if (type == 0) {
-      var number = Math.random();
+      var number = context.random();
       if (number > 0.5) {
         return 1
       } else {

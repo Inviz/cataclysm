@@ -276,17 +276,18 @@ function draw() {
     }
 
     Game.World.eachRoad(function(index) {
+      if (this.getRoadCollision(index) > 10) return;
       var poly = this.computeRoadOuterPolygon(index)
       var p = ['black', 3, poly.map(scale)]
-      //dots.push(['black', 50, [
-      //            scale({x: this.getRoadEx(index), y: this.getRoadEy(index)}),
-      //            scale({x: this.getRoadEx(index), y: this.getRoadEy(index)})
-      //            ]])
-      //dots.push(['green', 50, [
-      //            scale({x: this.getRoadX(index), y: this.getRoadY(index)}),
-      //            scale({x: this.getRoadX(index), y: this.getRoadY(index)})
-      //            ]])
-      //polys.push(p)
+      dots.push(['black', 5, [
+                  scale({x: this.getRoadEx(index), y: this.getRoadEy(index)}),
+                  scale({x: this.getRoadEx(index), y: this.getRoadEy(index)})
+                  ]])
+      dots.push(['green', 5, [
+                  scale({x: this.getRoadX(index), y: this.getRoadY(index)}),
+                  scale({x: this.getRoadX(index), y: this.getRoadY(index)})
+                  ]])
+      polys.push(p)
           if (poly.marginPoints)
             poly.marginPoints[0].forEach(function(line) {
               var x2 = line[0] + Math.cos(line[3]) * 5

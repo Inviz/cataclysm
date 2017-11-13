@@ -1,9 +1,9 @@
 Game.Struct.Building = [
-  function setWidth(width) {
-    return 60 + Math.random() * 20
+  function setWidth(width, context) {
+    return 60 + context.random() * 20
   },
-  function setHeight(height) {
-    return 50 + Math.random() * 50
+  function setHeight(height, context) {
+    return 50 + context.random() * 50
   },
   function setOffsetAngle(offsetAngle, road) {
     return ((Math.PI) + offsetAngle) * (180 / Math.PI)//360 * Math.random()

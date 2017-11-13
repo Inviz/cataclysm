@@ -191,6 +191,25 @@ closestOnLine = function(pt0, pt1, pt2) {
   return {x: pt1.x + t * (pt2.x - pt1.x), y: pt1.y + t * (pt2.y - pt1.y)};
 }
 
+
+closestOnLineXY = function(pt0x, pt0y, pt1x, pt1y, pt2x, pt2y) {
+  var l2 = Math.pow(pt1x - pt2x, 2) + Math.pow(pt1y - pt2y, 2)
+  var t = ((pt0x - pt1x) * (pt2x - pt1x) + (pt0y - pt1y) * (pt2y - pt1y)) / l2;
+  
+  if (t < 0 || l2 == 0) {
+    closestOnLineXY.r.x = pt1x
+    closestOnLineXY.r.y = pt1y
+  } else if (t > 1) {
+    closestOnLineXY.r.x = pt2x
+    closestOnLineXY.r.y = pt2y
+  } else {
+    closestOnLineXY.r.x = pt1x + t * (pt2x - pt1x)
+    closestOnLineXY.r.y = pt1y + t * (pt2y - pt1y)
+  }
+  return closestOnLineXY.r;
+}
+closestOnLineXY.r = {};
+
 closestOnLineArray = function(pt0, pt1, pt2) {
   function dist2(pt1, pt2) { 
       return Math.pow(pt1[0] - pt2[0], 2) + Math.pow(pt1[1] - pt2[1], 2);
