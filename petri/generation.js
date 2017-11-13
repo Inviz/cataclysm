@@ -168,13 +168,14 @@ Generation.prototype.advance = function(polygons, segments) {
   var layers = [];
   var network = [];
   console.time('roads');
+  var scale = 10;
 
   this.Road.network = []
   var polygons = [];
   for (var roadIndex = 0; roadIndex < map.roads.length; roadIndex ++) {
     var segment = map.roads[roadIndex]
     this.Road(roadIndex, segment[0], segment[1], segment[2], segment[3], segment[4], segment[5])
-    var p = this.computeRoadPolygon(roadIndex)
+    var p = this.computeScaledPolygon(this.computeRoadPolygon(roadIndex))
     polygons.push(p)
     //roads.push(this.computeRoadVector(roadIndex).map(function(p) {
     //  return [p.x, p.y]
@@ -194,8 +195,10 @@ Generation.prototype.advance = function(polygons, segments) {
     this.RoadBuilding(roadIndex)
   }
 
+  // fill spaces between road segments
+  this.Road.network = this.computePolygonOffset(this.Road.network, 0, 3 * scale, 2)
 
-  this.Road.network = this.computePolygonOffset(this.Road.network, 0, 2, 2)
+  // holes are districts
   this.Road.insideDistricts = this.Road.network.slice(1)
 
 
@@ -216,7 +219,7 @@ Generation.prototype.advance = function(polygons, segments) {
     this.eachRoom(function(room) {
       if (this.getRoomBuilding(room) == building) {
 
-        collection.push(this.computeRoomPolygon(room))
+        collection.push(this.computeScaledPolygon(this.computeRoomPolygon(room)))
       }
     })
   })
@@ -225,27 +228,20 @@ Generation.prototype.advance = function(polygons, segments) {
   this.allOriginalPoints = [];
   for (var road in buildingsByRoad) {
     buildingsByRoad[road].forEach(function(group) {
-      this.allRoadDistricts.push.apply(this.allRoadDistricts, this.computePolygonOffset(group, 0, 30, 2))
+      this.allRoadDistricts.push.apply(this.allRoadDistricts, this.computePolygonOffset(group, 0, 30 * scale, 2))
     }, this)
   }
 
   this.allDistricts = this.computePolygonBinary([], this.allRoadDistricts)
   console.timeEnd('district gen');
   console.time('network padding')
-  this.Road.network = this.Road.network.map(function(p, index) {
-    if (index)
-      return p//this.computePolygonOffset([p], 0, -10)[0]
-    else
-      return p//this.computePolygonOffset([p], 20, -10)[0]
-
-  }, this)
   this.Road.sidewalks = [];
   this.Road.network.slice(1).map(function(p, index) {
-    var shrunk = this.computePolygonOffset([p], -20, 10, 0);
+    var shrunk = this.computePolygonOffset([p], -20 * scale, 10 * scale, 0);
     if (shrunk.length)
       this.Road.sidewalks.push.apply(this.Road.sidewalks, shrunk) 
   }, this)
-  this.Road.networkPadding = this.computePolygonOffset(this.Road.network, 20, -10, 0)
+  this.Road.networkPadding = this.computePolygonOffset(this.Road.network, 20 * scale, -10 * scale, 0)
   console.timeEnd('network padding')
 
 
@@ -253,10 +249,10 @@ Generation.prototype.advance = function(polygons, segments) {
   this.allPoints = [];
   this.allDistricts = this.allDistricts.map(function(d) {
 
-    var poly = this.computePolygonHull(d, 4, 20)
+    var poly = this.computePolygonHull(d, 4, 20 * scale)
     return poly//this.computePolygonOffset([poly], 100, 0, 2)[0]
   }, this)
-  this.allDistricts = this.computePolygonSimplification(this.allDistricts, 10)
+  this.allDistricts = this.computePolygonSimplification(this.allDistricts, 10 * scale)
   this.allVoronoi = this.Road.networkPadding
 
   //for (var i = 0; i < 1; i++) {
@@ -278,37 +274,58 @@ Generation.prototype.advance = function(polygons, segments) {
     
   this.allPoints = this.allDistricts
 
+  this.allPoints = this.computePolygonOffset(this.allPoints, 10 * scale, 0, 2)
   // grow districts and join them into outline
-  this.outline = this.computePolygonOffset(this.allDistricts, 135, 0, 0)
+  this.outline = this.computePolygonOffset(this.allDistricts, 135 * scale, 0, 2)
+  this.outline = [this.computePolygonHull([].concat.apply([], this.outline),1, 2 * scale)]
 
   // subtract road network first time
-  this.outline = this.computePolygonBinary(this.outline, this.Road.networkPadding, ClipperLib.ClipType.ctDifference)
-    
-  // detect corners and small cutouts created by intersection of road network
-  this.diff =   this.computePolygonBinary(this.outline, this.computePolygonOffset(
-    this.allPoints, 4, 0, 2
-  ), ClipperLib.ClipType.ctDifference)
-  this.smallShapes = this.diff.filter(function(shape) {
-    return shape.length < 15
-  })
-  this.allPoints =  this.computePolygonBinary(this.allPoints, this.computePolygonOffset(
-    this.smallShapes, 10, 0, 2
-  ))
-  this.allPoints = this.allPoints.map(function(loop) {
-    return this.computePolygonHull(loop,0, 2)
-  }, this)
-  this.allPoints = this.allPoints.filter(function(loop) {
-    return Math.abs(ClipperLib.Clipper.Area(loop)) > 100 * 100
-  })
-  this.allPoints = this.computePolygonBinary(this.allPoints, this.Road.networkPadding, ClipperLib.ClipType.ctDifference)
+  this.outline = this.computePolygonBinary(this.outline, this.Road.networkPadding, ClipperLib.ClipType.ctDifference);
   
+    // detect corners and small cutouts created by intersection of road network
+  [1,].forEach(function(d) {
+    this.diff =   this.computePolygonBinary(this.outline, this.computePolygonOffset(
+      this.allPoints, d * scale, 0, 2
+    ), ClipperLib.ClipType.ctDifference)
+    this.smallShapes = this.diff.filter(function(shape) {
+      return shape.length < 18
+    }, this)
+    this.allPoints =  this.computePolygonBinary(this.allPoints, this.computePolygonOffset(
+      this.smallShapes, 10 * scale, 0, 2
+    ))
+
+    // filter out small kinks
+    this.allPoints = this.allPoints.filter(function(loop) {
+      return Math.abs(ClipperLib.Clipper.Area(loop)) > (100 * scale) * (100 * scale)
+    })
+    this.allPoints = this.computePolygonBinary(this.allPoints, this.Road.networkPadding, ClipperLib.ClipType.ctDifference)
+  }, this)
+
+  this.allPoints = this.allPoints.map(function(loop) {
+    var hull = this.computePolygonHull(loop,0, 10 * scale)
+    var diff = this.computePolygonBinary([hull], [loop], ClipperLib.ClipType.ctDifference)
+    var intersection = this.computePolygonBinary(this.allPoints, diff, ClipperLib.ClipType.ctIntersection);
+    if (!intersection.length || Math.abs(ClipperLib.Clipper.Area(intersection[0])) < (5 * scale) * (5 * scale))
+      return hull
+    //var hull = this.computePolygonHull(loop,1.8, 30 * scale);
+    //var diff = this.computePolygonBinary([hull], [loop], ClipperLib.ClipType.ctDifference)
+    //var intersection = this.computePolygonBinary(this.allPoints, diff, ClipperLib.ClipType.ctIntersection);
+    //if (!intersection.length || Math.abs(ClipperLib.Clipper.Area(intersection[0])) < (5 * scale) * (5 * scale))
+    //  return hull 
+    
+    return loop//this.computePolygonHull(loop,1.8, 30 * scale);
+  }, this)
   this.allPoints = this.computePolygonBinary(this.allPoints, this.Road.insideDistricts, ClipperLib.ClipType.ctDifference)
   
-  this.allPoints = this.computePolygonOffset(this.allPoints, 10, -10, 0)
   this.allPoints = this.computePolygonBinary(this.allPoints, this.Road.networkPadding, ClipperLib.ClipType.ctDifference)
   
+  //this.allPoints = this.computePolygonOffset(this.allPoints, -10 * scale, 10 * scale, 0)
+  this.Road.network = this.computePolygonOffset(this.Road.network, 15 * scale, -15 * scale, 0)
   
-
+  this.allPoints = this.computeScaledPolygon(this.allPoints, 0.1);
+  this.allVoronoi = this.computeScaledPolygon(this.Road.networkPadding, 0.1);
+  this.Road.network = this.computeScaledPolygon(this.Road.network, 0.1);
+  this.Road.sidewalks = this.computeScaledPolygon(this.Road.sidewalks, 0.1);
 
   //this.allPoints = this.computePolygonBinary(this.allPoints, [this.Road.networkPadding], ClipperLib.ClipType.ctDifference)
     
@@ -438,6 +455,21 @@ Generation.prototype.computePolygonSimplification = function(polygon, distance) 
   var simplified_path = new ClipperLib.Paths(); // empty solution
   simplified_path = ClipperLib.JS.Lighten(polygon, distance || 2);
   return simplified_path
+}
+Generation.prototype.computeScaledPolygon = function(poly, scale) {
+  if (scale == null || scale === true)
+    scale = 10;
+  else if (scale === false)
+    scale = 0.1
+  return poly.map(function(loop) {
+    if (loop[0] && loop[0])
+      return loop.map(function(p) {
+        return {x: scale * p.x, y: scale * p.y}
+      })
+    else
+      return {x: scale * loop.x, y: scale * loop.y}
+
+  })
 }
 Generation.prototype.computePolygonBinary = function(subj_paths, clip_paths, type) {
   //var off_result = ClipperLib.Clipper.SimplifyPolygons(paths, 0)

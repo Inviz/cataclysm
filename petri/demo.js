@@ -65,10 +65,10 @@ if (window.devicePixelRatio > 1) {
 
 map.roads =[]
 map.segments.forEach(function(wall) {
-  var x1 = wall.r.start.x - minX
-  var y1 = wall.r.start.y - minY
-  var x2 = wall.r.end.x - minX
-  var y2 = wall.r.end.y - minY
+  var x1 = (wall.r.start.x - minX) * 1.2
+  var y1 = (wall.r.start.y - minY) * 1.2
+  var x2 = (wall.r.end.x - minX) * 1.2
+  var y2 = (wall.r.end.y - minY) * 1.2
   map.roads.push([
     x1 + (x2 - x1) / 2,
     y1 + (y2 - y1) / 2,
