@@ -277,13 +277,12 @@ function draw() {
     }
 
     Game.World.eachRoad(function(index) {
-      if (this.getRoadCollision(index) > 10) return;
       var poly = this.computeRoadOuterPolygon(index)
       var p = ['black', 3, poly.map(scale)]
       if (index > times && times)
         return
       var noise = this.getRoadPopulation(index)
-      var color = 'rgb(0, ' + Math.floor((noise * 4) * 255) + ',0)'
+      var color = 'rgb(0, ' + Math.floor((noise) * 255) + ',0)'
       dots.push(['black', 2, [
                   scale({x: this.getRoadEx(index), y: this.getRoadEy(index)}),
                   scale({x: this.getRoadEx(index), y: this.getRoadEy(index)})
@@ -398,11 +397,11 @@ function draw() {
         ctx.globalAlpha = 1
         ctx.beginPath()
         ctx.moveTo(p.x * window.devicePixelRatio, p.y * window.devicePixelRatio)
-        ctx.lineTo((p.x + 50) * window.devicePixelRatio, p.y * window.devicePixelRatio);
-        ctx.lineTo((p.x + 50) * window.devicePixelRatio, (p.y + 50) * window.devicePixelRatio);
-        ctx.lineTo(p.x * window.devicePixelRatio, (p.y + 50) * window.devicePixelRatio);
+        ctx.lineTo((p.x + 100) * window.devicePixelRatio, p.y * window.devicePixelRatio);
+        ctx.lineTo((p.x + 100) * window.devicePixelRatio, (p.y + 100) * window.devicePixelRatio);
+        ctx.lineTo(p.x * window.devicePixelRatio, (p.y + 100) * window.devicePixelRatio);
         ctx.closePath()
-        ctx.fillStyle = 'rgb(0, ' + Math.floor((noise * 4) * 255) + ',0)'
+        ctx.fillStyle = 'rgb(0, ' + Math.floor((noise) * 255) + ',0)'
         ctx.fill()
       }
     for (var i = dots.length - 1; i >= 0; i--) {

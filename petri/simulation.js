@@ -173,9 +173,25 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     assignments.push('this.' + collection + '[' + size + ' * to + ' + offset + '] = this.' + collection + '[' + size + ' * from + ' + offset + ']')
   })(attribute, attributes[attribute]);
 
-    that['move' + prefix] = new Function('from', 'to',
-      assignments.join(';\n')
-    )
+  that['move' + prefix] = new Function('from', 'to',
+    assignments.join(';\n')
+  )
+
+  that['filter' + prefix] = new Function('callback', '\
+    var remap = {};\n\
+    var count = 0;\n\
+    for (var index = 0; index < this.' + prefix + '.count; index++) {\n\
+      if (callback.call(this, index)) {\n\
+        remap[index] = count;\n\
+        this.move' + prefix + '(index, count)\n\
+        count++;\n\
+      }\n\
+    }\n\
+    for (var index = 0; index < this.count; i++) \n\
+      this.set' + prefix + 'Previous(index, remap[this.get' + prefix + 'Previous(index)])\n\
+    this.' + prefix + '.count = count;\n\
+  ')
+
   for (var property in computedProperties) {
     this[property] = computedProperties[property]
   }

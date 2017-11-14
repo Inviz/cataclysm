@@ -14,8 +14,8 @@ Game.Struct.Road = [
   function setWidth (width, type, context) {
     return type === 0 ? context.HIGHWAY_SEGMENT_WIDTH : context.DEFAULT_SEGMENT_WIDTH;
   },
-  function setLength (length, type, context, angle, ex, ey, previous) {
-    if (ex != null) {
+  function setLength (length, type, context, angle, ex, ey, previous, index) {
+    if (ex != null && index > 2) {
       return Math.sqrt(Math.pow(previous.ex - ex, 2) + Math.pow(previous.ey - ey, 2), 2)
     }
     return type === 0 ? context.HIGHWAY_SEGMENT_LENGTH : context.DEFAULT_SEGMENT_LENGTH;
@@ -123,11 +123,6 @@ Game.Struct.Road = [
     }
     switch (type) {
       case 0: case 1: case 3: 
-        minDegreeDifference = function(d1, d2) {
-          var diff;
-          diff = Math.abs(d1 - d2) % 180;
-          return Math.min(diff, Math.abs(diff - 180));
-        }
         // split other path at the point
         var angleDiff = Math.abs(((context.getRoadAngle(index) % 180) + 180) - ((context.getRoadAngle(target) % 180) + 180))
         if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) 
@@ -170,17 +165,21 @@ Game.Struct.Road = [
 
 Game.Generator.prototype.CityRoad = function(city) {
   var queue = [];
-  var centerX = 2000;
-  var centerY = 1500;
   var roadIndex = 1;
+  do {
+    var centerX = Math.floor(this.random() * 100000 - 50000);
+    var centerY = Math.floor(this.random() * 100000 - 50000); 
+    var value = this.computeTripleNoise(centerX, centerY);
+  } while (value < 0.3 || value > 0.5)
   // create two opposite directed segments linked to each other
   queue.push(0, this.Road(0, 1, 0, 0, centerX + this.HIGHWAY_SEGMENT_LENGTH / 2, centerY))
-   queue.push(0, this.Road(1, 0, 180, 0, centerX - this.HIGHWAY_SEGMENT_LENGTH / 2, centerY))
+  queue.push(0, this.Road(1, 0, 180, 0, centerX - this.HIGHWAY_SEGMENT_LENGTH / 2, centerY))
+
 
   var roadIndex = 2; 
   var count = 0;
   this.Road.count = 2;
-  while (count < 150) {
+  while (count < 100) {
     if (!queue.length) {
       break
     }
@@ -206,6 +205,12 @@ Game.Generator.prototype.CityRoad = function(city) {
         this.CityRoadRoad(city, roadIndex, queue, minT + 1)
     }
   }
+
+  var roadCount = this.Road.count;
+  this.filterRoad(function(road) {
+    return this.getRoadCollision(road) < 10
+  })
+  console.log('new count', this.Road.count, roadCount)
 }
 
 Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
@@ -264,17 +269,19 @@ Game.Generator.prototype.DEFAULT_SEGMENT_WIDTH = 6
 Game.Generator.prototype.HIGHWAY_SEGMENT_WIDTH = 16
 Game.Generator.prototype.SEGMENT_COUNT_LIMIT = 100
 
-Game.Generator.prototype.ROAD_SNAP_DISTANCE = 100
+Game.Generator.prototype.ROAD_SNAP_DISTANCE = 70
 // global goals
 Game.Generator.prototype.HIGHWAY_BRANCH_POPULATION_THRESHOLD = 0.1;
 Game.Generator.prototype.HIGHWAY_BRANCH_PROBABILITY = 0.05;
 Game.Generator.prototype.NORMAL_BRANCH_TIME_DELAY_FROM_HIGHWAY = 5;
 Game.Generator.prototype.NORMAL_BRANCH_POPULATION_THRESHOLD = 0.1;
-Game.Generator.prototype.DEFAULT_BRANCH_PROBABILITY = 0.3,
+Game.Generator.prototype.DEFAULT_BRANCH_PROBABILITY = 0.4,
       
 Game.Generator.prototype.MINIMUM_INTERSECTION_DEVIATION = 30,
 
 Game.Generator.prototype.RANDOM_BRANCH_ANGLE = function() {
+  if (this.random() > 0.5)
+    return 0
   return this.randomAngle(3);
 }
 Game.Generator.prototype.RANDOM_STRAIGHT_ANGLE= function() {

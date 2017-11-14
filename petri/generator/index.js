@@ -57,7 +57,7 @@ Game.Generator.prototype.advance = function(polygons, segments) {
     //roads.push(this.computeRoadVector(roadIndex).map(function(p) {
     //  return [p.x, p.y]
     //}))
-    //if (count % 45 == 0)
+    if (count % 5 == 0)
       this.RoadBuilding(roadIndex)
   }
     this.Road.network = this.computePolygonBinary(this.Road.network, polygons);
@@ -190,6 +190,7 @@ Game.Generator.prototype.processRoadsAndDistricts = function() {
   this.outline = this.computePolygonOffset(this.allDistricts, 135 * scale, 0, 2)
   this.outline = [this.computePolygonHull([].concat.apply([], this.outline),1, 2 * scale)]
 
+  /*
   // subtract road network first time
   this.outline = this.computePolygonBinary(this.outline, this.Road.networkPadding, ClipperLib.ClipType.ctDifference);
   
@@ -210,7 +211,7 @@ Game.Generator.prototype.processRoadsAndDistricts = function() {
       return Math.abs(ClipperLib.Clipper.Area(loop)) > (100 * scale) * (100 * scale)
     })
     this.allPoints = this.computePolygonBinary(this.allPoints, this.Road.networkPadding, ClipperLib.ClipType.ctDifference)
-  }, this)
+  }, this)*/
 
   this.allPoints = this.allPoints.map(function(loop) {
     var hull = this.computePolygonHull(loop,0, 10 * scale)

@@ -27,7 +27,7 @@ Game.Struct.Furniture = [
     var x1 = x + context.random() * 6 - 3;;
 
     if (anchor == Game.ANCHORS.INSIDE_INWARDS) {
-      return x + Math.cos(angle * (Math.PI / 180)) * (width / 2 - 10 + 1)
+      return x + Math.cos(angle) * (width / 2 - 10 + 1)
     } 
     return x
   },
@@ -37,7 +37,7 @@ Game.Struct.Furniture = [
 
 
     if (anchor == Game.ANCHORS.INSIDE_INWARDS) {
-      return y + Math.sin(angle * (Math.PI / 180)) * (width / 2 - 10 + 1)
+      return y + Math.sin(angle) * (width / 2 - 10 + 1)
     } 
     return y
   },
@@ -73,7 +73,7 @@ Game.Struct.Furniture = [
   },
 
   function computePolygon(x, y, width, height, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
+    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
   },
 
   function computeAnchorPoints(index, context) {
