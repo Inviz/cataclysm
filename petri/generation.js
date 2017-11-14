@@ -2,6 +2,7 @@ Generation = function(seed, step, previous) {
   this.seed = seed;
   this.setSeed(previous ? Math.floor(previous.random() * 100000000) : seed)
   this.step      = step;
+  noise.seed(this.random())
 }
 Generation.prototype = Object.create(Simulation.prototype);
 
@@ -205,14 +206,16 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
     padding = 10;
   if (margin == null)
     margin = 6;
-  context.padding = this.computePolygonOffset([points], 0, -padding, 2).map(function(pp) {
+  context.padding = this.computePolygonOffset([points], 0, -10, 2).map(function(pp) {
     return pp.map(function(p) {
       return [p.x, p.y]
     })
   })
-  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)});
+  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)}) 
+  if (!context.paddingPoints.length)
+    context.paddingPoints = [[]]
 
-  context.margin = this.computePolygonOffset([points], margin, 0, 2).map(function(pp) {
+  context.margin = this.computePolygonOffset([points], 6, 0, 2).map(function(pp) {
     return pp.map(function(p) {
       return [p.x, p.y]
     })
@@ -293,9 +296,9 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
 
 Generation.prototype.computeTripleNoise = function(x, y) {
   var value1, value2, value3;
-  value1 = (Noise(x / 10000, y / 10000) + 1) / 2;
-  value2 = (Noise(x / 20000 + 500, y / 20000 + 500) + 1) / 2;
-  value3 = (Noise(x / 20000 + 1000, y / 20000 + 1000) + 1) / 2;
+  value1 = (noise.simplex2(x / 10000, y / 10000) + 1) / 2;
+  value2 = (noise.simplex2(x / 20000 + 500, y / 20000 + 500) + 1) / 2;
+  value3 = (noise.simplex2(x / 20000 + 1000, y / 20000 + 1000) + 1) / 2;
   return Math.pow((value1 * value2 + value3) / 2, 2);
 }
 

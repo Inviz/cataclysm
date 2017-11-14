@@ -3,7 +3,7 @@ Game.Generator = function(seed, step, previous) {
   if (!this.Road) {
     Game.Generator.prototype.Road = this.compile(
       Game.Struct.Road,      
-      ['previous', 'angle', 'type', 'x', 'y'], 
+      ['previous', 'angle', 'type', 'ex', 'ey', 'collision'], 
       {previous: 'roads'}, 'road', 'roads');
 
     Game.Generator.prototype.Building = this.compile(
@@ -29,7 +29,7 @@ Game.Generator = function(seed, step, previous) {
   this.roads     = new Float64Array(previous ? previous.roads     : this.Road.size * 10000);
   this.buildings = new Float64Array(previous ? previous.buildings : this.Building.size * 10000);
   this.rooms     = new Float64Array(previous ? previous.rooms     : this.Room.size * 10000);
-  this.furniture = new Float64Array(previous ? previous.furniture : this.Furniture.size * 10000);
+  this.furniture = new Float64Array(previous ? previous.furniture : this.Furniture.size * 100000);
   this.equipment = new Float64Array(previous ? previous.equipment : this.Equipment.size * 10000);
 
 }
@@ -48,15 +48,17 @@ Game.Generator.prototype.advance = function(polygons, segments) {
   this.Road.network = []
   var polygons = [];
   this.CityRoad(0)
+  var count = 0;
   for (var roadIndex = 0; roadIndex < this.Road.count; roadIndex ++) {
-
     if (this.getRoadCollision(roadIndex) > 9) continue
+      count++;
     var p = this.computeScaledPolygon(this.computeRoadPolygon(roadIndex))
     polygons.push(p)
     //roads.push(this.computeRoadVector(roadIndex).map(function(p) {
     //  return [p.x, p.y]
     //}))
-    this.RoadBuilding(roadIndex)
+    //if (count % 45 == 0)
+      this.RoadBuilding(roadIndex)
   }
     this.Road.network = this.computePolygonBinary(this.Road.network, polygons);
 

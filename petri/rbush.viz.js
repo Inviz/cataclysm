@@ -116,6 +116,7 @@ function drawTree(node, level) {
             ]])
         })
         if (false) polygon.properties.spines.forEach(function(line, index) {
+          if (index)
           dots.push(['green', 2, [
                       {x: line[0], y: line[1]},
                       {x: line[0], y: line[1]}
@@ -266,12 +267,12 @@ function draw() {
     var scale = function(p) {
       if (p[0] != null)
         return {
-          x: (p[0]) * zoom,
-          y: (p[1]) * zoom
+          x: (p[0] - minX) * zoom,
+          y: (p[1] - minY) * zoom
         }
       return {
-        x: (p.x) * zoom,
-        y: (p.y) * zoom
+        x: (p.x - minX) * zoom,
+        y: (p.y - minY) * zoom
       }
     }
 
@@ -279,15 +280,19 @@ function draw() {
       if (this.getRoadCollision(index) > 10) return;
       var poly = this.computeRoadOuterPolygon(index)
       var p = ['black', 3, poly.map(scale)]
-      dots.push(['black', 5, [
+      if (index > times && times)
+        return
+      var noise = this.getRoadPopulation(index)
+      var color = 'rgb(0, ' + Math.floor((noise * 4) * 255) + ',0)'
+      dots.push(['black', 2, [
                   scale({x: this.getRoadEx(index), y: this.getRoadEy(index)}),
                   scale({x: this.getRoadEx(index), y: this.getRoadEy(index)})
                   ]])
-      dots.push(['green', 5, [
-                  scale({x: this.getRoadX(index), y: this.getRoadY(index)}),
-                  scale({x: this.getRoadX(index), y: this.getRoadY(index)})
-                  ]])
-      polys.push(p)
+      //dots.push([color, 5, [
+      //            scale({x: this.getRoadX(index), y: this.getRoadY(index)}),
+      //            scale({x: this.getRoadX(index), y: this.getRoadY(index)})
+      //            ]])
+      //polys.push(p)
           if (poly.marginPoints)
             poly.marginPoints[0].forEach(function(line) {
               var x2 = line[0] + Math.cos(line[3]) * 5
@@ -375,8 +380,41 @@ function draw() {
 
    hulls.push(['lightgrey', 2, loop.map(scale)])
     })
-    ctx.clearRect(0, 0, W + 1, W + 1);
-
+    for (var i = dots.length - 1; i >= 0; i--) {
+      ctx.beginPath();
+        ctx.strokeStyle = dots[i][0]
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = dots[i][1]
+      ctx.moveTo(dots[i][2][0].x * window.devicePixelRatio - dots[i][1] / 2 , dots[i][2][0].y * window.devicePixelRatio) - dots[i][1] / 2;
+      ctx.lineTo(dots[i][2][1].x * window.devicePixelRatio + dots[i][1] / 2,  dots[i][2][1].y * window.devicePixelRatio) + dots[i][1] / 2;
+      ctx.stroke()
+    }
+    if (times > 1) return;
+    if (location.search.indexOf('heatmap') > -1) {
+    for (var x = minX; x < maxX; x += 200)
+      for (var y = minY; y < maxY; y += 200) {
+        var p = scale([x, y])
+        var noise = Game.World.computeTripleNoise(x, y);
+        ctx.globalAlpha = 1
+        ctx.beginPath()
+        ctx.moveTo(p.x * window.devicePixelRatio, p.y * window.devicePixelRatio)
+        ctx.lineTo((p.x + 50) * window.devicePixelRatio, p.y * window.devicePixelRatio);
+        ctx.lineTo((p.x + 50) * window.devicePixelRatio, (p.y + 50) * window.devicePixelRatio);
+        ctx.lineTo(p.x * window.devicePixelRatio, (p.y + 50) * window.devicePixelRatio);
+        ctx.closePath()
+        ctx.fillStyle = 'rgb(0, ' + Math.floor((noise * 4) * 255) + ',0)'
+        ctx.fill()
+      }
+    for (var i = dots.length - 1; i >= 0; i--) {
+      ctx.beginPath();
+        ctx.strokeStyle = dots[i][0]
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = dots[i][1]
+      ctx.moveTo(dots[i][2][0].x * window.devicePixelRatio - dots[i][1] / 2 , dots[i][2][0].y * window.devicePixelRatio) - dots[i][1] / 2;
+      ctx.lineTo(dots[i][2][1].x * window.devicePixelRatio + dots[i][1] / 2,  dots[i][2][1].y * window.devicePixelRatio) + dots[i][1] / 2;
+      ctx.stroke()
+    }
+  }
     var r = 0;
     for (var i = hulls.length - 1; i >= 0; i--) {
       ctx.beginPath();
@@ -401,15 +439,7 @@ function draw() {
       ctx.lineTo(lines[i][2][1].x * window.devicePixelRatio,  lines[i][2][1].y * window.devicePixelRatio);
       ctx.stroke()
     }
-    for (var i = dots.length - 1; i >= 0; i--) {
-      ctx.beginPath();
-        ctx.strokeStyle = dots[i][0]
-        ctx.globalAlpha = 1;
-        ctx.lineWidth = dots[i][1]
-      ctx.moveTo(dots[i][2][0].x * window.devicePixelRatio - dots[i][1] / 2 , dots[i][2][0].y * window.devicePixelRatio) - dots[i][1] / 2;
-      ctx.lineTo(dots[i][2][1].x * window.devicePixelRatio + dots[i][1] / 2,  dots[i][2][1].y * window.devicePixelRatio) + dots[i][1] / 2;
-      ctx.stroke()
-    }
+
 
     for (var i = rects.length - 1; i >= 0; i--) {
         ctx.strokeStyle = rects[i][0];
@@ -436,6 +466,7 @@ function draw() {
     }
     for (var i = sidewalks.length - 1; i >= 0; i--) {
       var poly = sidewalks[i];
+      debugger
       ctx.beginPath();
         ctx.fillStyle = 'green'
         ctx.globalAlpha = 0.05;
@@ -453,9 +484,9 @@ var times = 0;
 var interval = setInterval(function() {
   times ++;
   //draw();
-  if (times > 20)
+  if (times > 50)
     clearInterval(interval)
-}, 1000)
+}, 300)
 
 function search(e) {
     console.time('1 pixel search');
