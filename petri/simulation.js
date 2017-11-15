@@ -189,7 +189,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     }\n\
     for (var index = 0; index < this.count; i++) \n\
       this.set' + prefix + 'Previous(index, remap[this.get' + prefix + 'Previous(index)])\n\
-    this.' + prefix + '.count = count;\n\
+    return this.' + prefix + '.count = count;\n\
   ')
 
   for (var property in computedProperties) {

@@ -341,11 +341,15 @@ function draw() {
 
        return poly.map(scale)
     })])
-    Game.World.Road.sidewalks.forEach(function(poly, index) {
-      sidewalks.push(poly.map(scale))
+    
+
+    Game.World.eachBlock(function(block) {
+      var p = this.computeBlockInnerPolygon(block);
+      if (p.length)
+        sidewalks.push.apply(sidewalks, p.map(function(l) {return l.map(scale)})) 
     })
 
-    Game.World.Road.sidewalks.forEach(function(poly) {
+    sidewalks.forEach(function(poly) {
        hulls.push(['lightgrey', 3, poly.map(scale)])
     })
 
@@ -361,9 +365,9 @@ function draw() {
 
   // hulls.push(['lightgrey', 2, Game.World.Road.networkPadding.map(scale)])
     //drawTree(tree.data, 0);
-    sidewalks.push.apply(sidewalks, Game.World.allPoints.map(function(pp) {
-      return pp.map(scale)
-    }))
+    //sidewalks.push.apply(sidewalks, Game.World.allPoints.map(function(pp) {
+    //  return pp.map(scale)
+    //}))
     if ( Game.World.allLines)
     Game.World.allLines.forEach(function(loop) {
       lines.push(['green', 3, [
@@ -375,10 +379,11 @@ function draw() {
     Game.World.allVoronoi.forEach(function(loop) {
       hulls.push(['lightgrey', 2, loop.map(scale)])
     })
-    Game.World.allPoints.forEach(function(loop) {
-
-   hulls.push(['lightgrey', 2, loop.map(scale)])
-    })
+  if (Game.World.allPoints)
+     Game.World.allPoints.forEach(function(loop) {
+ 
+    hulls.push(['lightgrey', 2, loop.map(scale)])
+     })
     for (var i = dots.length - 1; i >= 0; i--) {
       ctx.beginPath();
         ctx.strokeStyle = dots[i][0]
@@ -465,7 +470,6 @@ function draw() {
     }
     for (var i = sidewalks.length - 1; i >= 0; i--) {
       var poly = sidewalks[i];
-      debugger
       ctx.beginPath();
         ctx.fillStyle = 'green'
         ctx.globalAlpha = 0.05;

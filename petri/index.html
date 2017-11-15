@@ -17,7 +17,7 @@
 <script src="generator/city.js"></script>
 <script src="generator/room.js"></script>
 <script src="generator/road.js"></script>
-<script src="generator/districts.js"></script>
+<script src="generator/block.js"></script>
 <script src="generator/building.js"></script>
 <script src="generator/city.js"></script>
 <script src="generator/furniture.js"></script>
@@ -81,7 +81,6 @@ var maxY = -Infinity
 
 
 Game.World.eachRoad(function(road) {
-  if (this.getRoadCollision(road) > 9) return
   var pX = this.getRoadEx(road);
   var pY = this.getRoadEy(road);
   if (pX > maxX) maxX = pX;
@@ -97,10 +96,9 @@ Game.World.eachRoad(function(road) {
 
 })
 debugger
-var width = maxX - minX + 100
-var height = maxY - minY + 100
+var width = maxX - minX
+var height = maxY - minY
 var max =3200;
-debugger
 if (width > height) {
   height = max * (height / width)
   var zoom = max / width

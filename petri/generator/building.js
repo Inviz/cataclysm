@@ -1,9 +1,9 @@
 Game.Struct.Building = [
   function setWidth(width, context) {
-    return 60 + context.random() * 20
+    return 600 + context.random() * 200
   },
   function setHeight(height, context) {
-    return 50 + context.random() * 50
+    return 500 + context.random() * 500
   },
   function setOffsetAngle(offsetAngle, road) {
     return ((Math.PI) + offsetAngle)//360 * Math.random()
@@ -81,7 +81,7 @@ Game.Generator.prototype.RoadBuilding = function(roadIndex) {
   var count = 13;
   var buildingIndex = this.Building.count;
   var polygon = this.computeRoadSurroundingPolygon(roadIndex)
-  var polygon = this.computeAnchorPoints(polygon, 50, 50)
+  var polygon = this.computeAnchorPoints(polygon, 500, 500)
   placement: for (var i = 0; i < count; i++) {
 
     var point = polygon.marginPointsShuffled[0][i % polygon.marginPointsShuffled[0].length];

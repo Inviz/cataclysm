@@ -203,10 +203,10 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
     segments.push(segments[0])
   }
   if (padding == null)
-    padding = 10;
+    padding = 100;
   if (margin == null)
-    margin = 6;
-  context.padding = this.computePolygonOffset([points], 0, -10, 2).map(function(pp) {
+    margin = 60;
+  context.padding = this.computePolygonOffset([points], 0, -100, 2).map(function(pp) {
     return pp.map(function(p) {
       return [p.x, p.y]
     })
@@ -215,7 +215,7 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
   if (!context.paddingPoints.length)
     context.paddingPoints = [[]]
 
-  context.margin = this.computePolygonOffset([points], 6, 0, 2).map(function(pp) {
+  context.margin = this.computePolygonOffset([points], 60, 0, 2).map(function(pp) {
     return pp.map(function(p) {
       return [p.x, p.y]
     })

@@ -296,7 +296,7 @@ angleToPolygon = function (point, poly, relative) {
 
 equidistantPointsFromPolygon = function(poly, length, binary) {
   if (length == null)
-    length = 10;
+    length = 100;
   var result = [];
   for (var i = 0; i < poly.length; i++) {
     var p1 = poly[i];
@@ -452,4 +452,15 @@ function polygonToPSLG(loops, options, X, Y) {
     points: points,
     edges:  edges
   }
+}
+
+polygonCenter = function(arr){
+    var minX, maxX, minY, maxY;
+    for(var i=0; i< arr.length; i++){
+        minX = (arr[i].x < minX || minX == null) ? arr[i].x : minX;
+        maxX = (arr[i].x > maxX || maxX == null) ? arr[i].x : maxX;
+        minY = (arr[i].y < minY || minY == null) ? arr[i].y : minY;
+        maxY = (arr[i].y > maxY || maxY == null) ? arr[i].y : maxY;
+    }
+    return {x: (minX + maxX) /2, y: (minY + maxY) /2, width: maxX - minX, height: maxY - minY};
 }

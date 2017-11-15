@@ -4,17 +4,17 @@ Game.Struct.Furniture = [
   },
   function setWidth (width, anchor, context) {
     if (anchor == Game.ANCHORS.INSIDE_INWARDS || anchor == Game.ANCHORS.OUTSIDE_INWARDS) {
-      return 5
+      return 70
     } else {
-      return 10 + 10 * context.random()//width;
+      return 150 + 100 * context.random()//width;
 
     }
   },
   function setHeight (height, width, anchor, context) {
     if (anchor == Game.ANCHORS.OUTSIDE_INWARDS) {
-      return 5;
+      return 70;
     } else {
-      return 10 + 5 * context.random()//height;
+      return 150 + 50 * context.random()//height;
     }
   },
   function setAngle (angle, room, anchor, context) {
@@ -24,20 +24,20 @@ Game.Struct.Furniture = [
     return angle// + Math.floor(Math.random() * 8) * 2// + room.angle//angle;
   },
   function setX (x, anchor, angle, width, context) {
-    var x1 = x + context.random() * 6 - 3;;
+    var x1 = x + context.random() * 60 - 30;;
 
     if (anchor == Game.ANCHORS.INSIDE_INWARDS) {
-      return x + Math.cos(angle) * (width / 2 - 10 + 1)
+      return x + Math.cos(angle) * (width / 2 - 100 + 10)
     } 
     return x
   },
 
   function setY (y, anchor, angle, width, context) {
-    var y1 = y + context.random() * 6 - 3;;
+    var y1 = y + context.random() * 60 - 30;;
 
 
     if (anchor == Game.ANCHORS.INSIDE_INWARDS) {
-      return y + Math.sin(angle) * (width / 2 - 10 + 1)
+      return y + Math.sin(angle) * (width / 2 - 100 + 10)
     } 
     return y
   },
@@ -77,7 +77,7 @@ Game.Struct.Furniture = [
   },
 
   function computeAnchorPoints(index, context) {
-    return context.computeAnchorPoints(context.computeFurniturePolygon(index), 4)
+    return context.computeAnchorPoints(context.computeFurniturePolygon(index), 40)
   },
   function computeSpinePoints(index, context) {
     return context.computeSpinePoints(context.computeFurniturePolygon(index))
