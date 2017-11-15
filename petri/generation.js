@@ -296,9 +296,9 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
 
 Generation.prototype.computeTripleNoise = function(x, y) {
   var value1, value2, value3;
-  value1 = (noise.simplex2(x / 10000, y / 10000) + 1) / 2;
-  value2 = (noise.simplex2(x / 20000 + 500, y / 20000 + 500) + 1) / 2;
-  value3 = (noise.simplex2(x / 20000 + 1000, y / 20000 + 1000) + 1) / 2;
+  value1 = (noise.simplex2(x / 100000, y / 100000) + 1) / 2;
+  value2 = (noise.simplex2(x / 200000 + 5000, y / 200000 + 5000) + 1) / 2;
+  value3 = (noise.simplex2(x / 200000 + 10000, y / 200000 + 10000) + 1) / 2;
   return Math.pow((value1 * value2 + value3) / 2, 2);
 }
 

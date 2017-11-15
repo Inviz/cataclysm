@@ -15,7 +15,7 @@ Game.Struct.Road = [
     return type === 0 ? context.HIGHWAY_SEGMENT_WIDTH : context.DEFAULT_SEGMENT_WIDTH;
   },
   function setLength (length, type, context, ex, ey, previous, index) {
-    if (ex != null && index > 2) {
+    if (ex != null && (index > 2 || context.Road.count > 2)) {
       return Math.sqrt(Math.pow(previous.ex - ex, 2) + Math.pow(previous.ey - ey, 2), 2)
     }
     return type === 0 ? context.HIGHWAY_SEGMENT_LENGTH : context.DEFAULT_SEGMENT_LENGTH;
@@ -150,11 +150,10 @@ Game.Struct.Road = [
       })
       // update current segment to snap to point on target line
       context.Road(index, context.getRoadPrevious(index), null, context.getRoadType(index), xx, xy, type || 0);
-      
-      //context.Road(index, )
     }
-    if (target != null)
+    if (target != null) {
       return 10 + target;
+    }
 
     return 0;
   },
@@ -189,7 +188,12 @@ Game.Generator.prototype.CityRoad = function(city) {
   var roadIndex = 2; 
   var count = 0;
   this.Road.count = 2;
-  while (count < 100) {
+  var limit = location.search.match(/limit=([^&]+)/);
+  if (limit)
+    var limit = parseFloat(limit[1])
+  else
+    limit = 100;
+  while (count < limit) {
     if (!queue.length) {
       break
     }
@@ -218,14 +222,14 @@ Game.Generator.prototype.CityRoad = function(city) {
       // segment that did snap may split the other road
       } else {
         var target = collision - 10;
-        var xn = this.getRoadEx(roadIndex);
+        var xx = this.getRoadEx(roadIndex);
         var xy = this.getRoadEy(roadIndex);
         var ex = this.getRoadEx(target);
         var ey = this.getRoadEy(target);
         // split target segment
-        if (this.getRoadEx(target) != xn || this.getRoadEy(target) != xy)
-          if (this.getRoadSx(target) != xn || this.getRoadSy(target) != xy) {
-            this.Road(target, this.getRoadPrevious(target), null, this.getRoadType(target), xn, xy, 0);
+        if (this.getRoadEx(target) != xx || this.getRoadEy(target) != xy)
+          if (this.getRoadSx(target) != xx || this.getRoadSy(target) != xy) {
+            this.Road(target, this.getRoadPrevious(target), null, this.getRoadType(target), xx, xy, 0);
             this.Road(this.Road.count++, target, null, this.getRoadType(target), ex, ey, 0);
           }
       }

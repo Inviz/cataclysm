@@ -395,8 +395,8 @@ function draw() {
     }
     if (times > 1) return;
     if (location.search.indexOf('heatmap') > -1) {
-    for (var x = minX; x < maxX; x += 200)
-      for (var y = minY; y < maxY; y += 200) {
+    for (var x = minX; x < maxX; x += 2000)
+      for (var y = minY; y < maxY; y += 2000) {
         var p = scale([x, y])
         var noise = Game.World.computeTripleNoise(x, y);
         ctx.globalAlpha = 1
