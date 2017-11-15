@@ -18,9 +18,9 @@ Game.Struct.Furniture = [
     }
   },
   function setAngle (angle, room, anchor, context) {
-    angle = Math.floor((Math.PI  + angle) * (180 / Math.PI))
+    angle = angle + Math.PI
     if (anchor == Game.ANCHORS.INSIDE_CENTER && context.random() > 0.8)
-      return angle += Math.floor(context.random() * 8) * 3
+      return angle += (Math.floor(context.random() * 8) * 3) * Math.PI / 180
     return angle// + Math.floor(Math.random() * 8) * 2// + room.angle//angle;
   },
   function setX (x, anchor, angle, width, context) {

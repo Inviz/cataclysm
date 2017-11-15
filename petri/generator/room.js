@@ -47,8 +47,8 @@ Game.Struct.Room = [
       var offsetDistance = offset * origin.width
     }
 
-    var angleShift = Math.cos(angle * (Math.PI / 180)) * (distance + .1);
-    var offsetShift = Math.cos((angle - 90) * (Math.PI / 180)) * (offsetDistance);
+    var angleShift = Math.cos(angle) * (distance + .1);
+    var offsetShift = Math.cos((angle - 90 * (Math.PI / 180))) * (offsetDistance);
     return x + (angleShift) * orientation + offsetShift
     //if (number == 0)
   },
@@ -66,8 +66,8 @@ Game.Struct.Room = [
       var offsetDistance = offset * origin.width
     }
 
-    var angleShift = Math.sin(angle * (Math.PI / 180)) * (distance + .1);
-    var offsetShift = Math.sin((angle - 90) * (Math.PI / 180)) * (offsetDistance);
+    var angleShift = Math.sin(angle) * (distance + .1);
+    var offsetShift = Math.sin((angle - 90 * (Math.PI / 180))) * (offsetDistance);
     return y + (angleShift) * orientation + offsetShift
   },
   function setBuilding (building) {
@@ -77,7 +77,7 @@ Game.Struct.Room = [
     return Math.sqrt(Math.pow(x - building.x, 2) + Math.pow(y - building.y, 2), 2);
   },
   function computePolygon(x, y, width, height, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
+    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
   },
   function computeAnchorPoints(index, context) {
     return context.computeAnchorPoints(context.computeRoomPolygon(index))

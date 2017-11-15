@@ -26,11 +26,11 @@ Game.Generator = function(seed, step, previous) {
       ['room', 'building', 'furniture'], 
       {}, 'equipment');
   }
-  this.roads     = new Float64Array(previous ? previous.roads     : this.Road.size * 10000);
-  this.buildings = new Float64Array(previous ? previous.buildings : this.Building.size * 10000);
-  this.rooms     = new Float64Array(previous ? previous.rooms     : this.Room.size * 10000);
-  this.furniture = new Float64Array(previous ? previous.furniture : this.Furniture.size * 100000);
-  this.equipment = new Float64Array(previous ? previous.equipment : this.Equipment.size * 10000);
+  this.roads     = new Float32Array(previous ? previous.roads     : this.Road.size * 10000);
+  this.buildings = new Float32Array(previous ? previous.buildings : this.Building.size * 10000);
+  this.rooms     = new Float32Array(previous ? previous.rooms     : this.Room.size * 10000);
+  this.furniture = new Float32Array(previous ? previous.furniture : this.Furniture.size * 100000);
+  this.equipment = new Float32Array(previous ? previous.equipment : this.Equipment.size * 10000);
 
 }
 
@@ -193,7 +193,7 @@ Game.Generator.prototype.processRoadsAndDistricts = function() {
   /*
   // subtract road network first time
   this.outline = this.computePolygonBinary(this.outline, this.Road.networkPadding, ClipperLib.ClipType.ctDifference);
-  
+
     // detect corners and small cutouts created by intersection of road network
   [1].forEach(function(d) {
     this.diff =   this.computePolygonBinary(this.outline, this.computePolygonOffset(

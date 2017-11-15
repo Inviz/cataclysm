@@ -6,7 +6,7 @@ Game.Struct.Building = [
     return 50 + context.random() * 50
   },
   function setOffsetAngle(offsetAngle, road) {
-    return ((Math.PI) + offsetAngle) * (180 / Math.PI)//360 * Math.random()
+    return ((Math.PI) + offsetAngle)//360 * Math.random()
   },
   function setOffsetDistance(offsetDistance, width, height, road) {
     return width / 2//100// * Math.random()
@@ -14,13 +14,13 @@ Game.Struct.Building = [
   function setX (x, road, offsetDistance, offsetAngle) {
     if (x == null)
       x = road.x;
-    return x + Math.cos(offsetAngle * (Math.PI / 180)) * (offsetDistance);
+    return x + Math.cos(offsetAngle) * (offsetDistance);
   },
   function setY (y, road, offsetDistance, offsetAngle) {
     
     if (y == null)
       y = road.y;
-    return y + Math.sin(offsetAngle * (Math.PI / 180)) * (offsetDistance);
+    return y + Math.sin(offsetAngle) * (offsetDistance);
   },
   function setAngle (angle, road) {
     return road.angle
@@ -49,7 +49,7 @@ Game.Struct.Building = [
     return 0;
   },
   function computePolygon(x, y, width, height, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle * (Math.PI / 180))
+    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
   },
   function computeShape(index, context) {
     var loops = [];
