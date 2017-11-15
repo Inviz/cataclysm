@@ -1,48 +1,48 @@
 Game.Generator = function(seed, step, previous) {
   Generation.call(this, seed, step, previous);
   if (!this.Road) {
-    Game.Generator.prototype.City = this.compile(
+    Game.Generator.prototype.City = Game.Generator.prototype.compile(
       Game.Struct.City,      
       ['x', 'y'], 
       {previous: 'roads'}, 'city', 'cities');
 
-    Game.Generator.prototype.Road = this.compile(
+    Game.Generator.prototype.Road = Game.Generator.prototype.compile(
       Game.Struct.Road,      
       ['previous', 'angle', 'type', 'ex', 'ey', 'collision'], 
       {previous: 'roads'}, 'road', 'roads');
 
-    Game.Generator.prototype.Block = this.compile(
+    Game.Generator.prototype.Block = Game.Generator.prototype.compile(
       Game.Struct.Block,      
       ['road', 'loop', 'type', 'x', 'y', 'angle'], 
       {road: 'roads'}, 'block', 'blocks');
 
-    Game.Generator.prototype.Building = this.compile(
+    Game.Generator.prototype.Building = Game.Generator.prototype.compile(
       Game.Struct.Building,  
       ['road', 'x', 'y', 'offsetAngle'], 
       {road: 'roads', block: 'blocks'}, 'building', 'buildings');
 
-    Game.Generator.prototype.Room = this.compile(
+    Game.Generator.prototype.Room = Game.Generator.prototype.compile(
       Game.Struct.Room,      
       ['building', 'number', 'origin'], 
       {building: 'buildings', origin: 'rooms'}, 'room', 'rooms');
 
-    Game.Generator.prototype.Furniture = this.compile(
+    Game.Generator.prototype.Furniture = Game.Generator.prototype.compile(
       Game.Struct.Furniture, 
       ['room', 'building', 'x', 'y', 'angle', 'anchor'], 
       {building: 'buildings', room: 'rooms'}, 'furniture');
 
-    Game.Generator.prototype.Equipment = this.compile(
+    Game.Generator.prototype.Equipment = Game.Generator.prototype.compile(
       Game.Struct.Equipment, 
       ['room', 'building', 'furniture'], 
       {}, 'equipment');
   }
-  this.cities    = new Float32Array(previous ? previous.cities    : this.Block.size * 100);
-  this.blocks    = new Float32Array(previous ? previous.blocks    : this.Block.size * 10000);
-  this.roads     = new Float32Array(previous ? previous.roads     : this.Road.size * 10000);
-  this.buildings = new Float32Array(previous ? previous.buildings : this.Building.size * 10000);
-  this.rooms     = new Float32Array(previous ? previous.rooms     : this.Room.size * 10000);
-  this.furniture = new Float32Array(previous ? previous.furniture : this.Furniture.size * 100000);
-  this.equipment = new Float32Array(previous ? previous.equipment : this.Equipment.size * 10000);
+  this.cities    = new Float64Array(previous ? previous.cities    : this.Block.size * 100);
+  this.blocks    = new Float64Array(previous ? previous.blocks    : this.Block.size * 10000);
+  this.roads     = new Float64Array(previous ? previous.roads     : this.Road.size * 10000);
+  this.buildings = new Float64Array(previous ? previous.buildings : this.Building.size * 10000);
+  this.rooms     = new Float64Array(previous ? previous.rooms     : this.Room.size * 10000);
+  this.furniture = new Float64Array(previous ? previous.furniture : this.Furniture.size * 100000);
+  this.equipment = new Float64Array(previous ? previous.equipment : this.Equipment.size * 10000);
 
 }
 
@@ -77,11 +77,23 @@ Game.Generator.prototype.advance = function(polygons, segments) {
   for (var i = 1; i < this.Road.network.length; i++) {
     this.Block(blockIndex++, null, i)
   }
+  for (var roadIndex = 0; roadIndex < this.Road.count; roadIndex ++) {
+    if (!this.getRoadConnectivity(roadIndex)) {
+      debugger
+      this.Block(blockIndex++, roadIndex)
+    }
+  }
   this.Block.count = blockIndex;
 
   for (var roadIndex = 0; roadIndex < this.Road.count; roadIndex ++) {
     if (!this.getRoadConnectivity(roadIndex))
-      this.RoadBuilding(roadIndex)
+      this.RoadBuilding(roadIndex, function(building) {
+        this.BuildingRoom(building, function(building, room) {
+          this.BuildingRoomFurniture(building, room, function(building, room, furniture) {
+            this.BuildingRoomFurnitureFurniture(building, room, furniture)
+          })
+        })
+      })
   }
 
     /*

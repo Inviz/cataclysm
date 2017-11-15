@@ -76,7 +76,7 @@ Game.Struct.Building = [
     return context.computeSpinePoints(context.computeBuildingPolygon(index))
   }
 ]
-Game.Generator.prototype.RoadBuilding = function(roadIndex) {
+Game.Generator.prototype.RoadBuilding = function(roadIndex, callback) {
   var distance = this.getRoadRange(roadIndex)
   var count = 13;
   var buildingIndex = this.Building.count;
@@ -89,7 +89,7 @@ Game.Generator.prototype.RoadBuilding = function(roadIndex) {
       this.Building(buildingIndex, roadIndex, point[0], point[1], point[3])
 
       if (!this.getBuildingCollision(buildingIndex)) {
-        this.BuildingRoom(buildingIndex)
+        callback.call(this, buildingIndex)
         buildingIndex++
         continue placement;
       }

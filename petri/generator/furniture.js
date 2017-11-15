@@ -84,7 +84,7 @@ Game.Struct.Furniture = [
   },
 ]
 
-Game.Generator.prototype.BuildingRoomFurniture = function(buildingIndex, roomIndex) {
+Game.Generator.prototype.BuildingRoomFurniture = function(buildingIndex, roomIndex, callback) {
   var building = this.computeRoomAnchorPoints(roomIndex)
   building = this.computeRoomSpinePoints(roomIndex)
 
@@ -101,7 +101,7 @@ Game.Generator.prototype.BuildingRoomFurniture = function(buildingIndex, roomInd
         this.Furniture(furnitureIndex, roomIndex, buildingIndex, bone[0], bone[1], bone[3] || 0, Game.ANCHORS.INSIDE_CENTER)
         
         if (!this.getFurnitureCollision(furnitureIndex)) {
-          furnitureIndex = this.BuildingRoomFurnitureFurniture(buildingIndex, roomIndex, furnitureIndex)
+          callback.call(this, buildingIndex, roomIndex, furnitureIndex)
           
           continue placements;
         }

@@ -35,6 +35,46 @@ Simulation.prototype.random = function() {
           (this.seedZ = (170 * this.seedZ) % 30323) / 30323.0) % 1.0;
 }
 
+Simulation.prototype.compileFunction = function(source, args, attributes, properties, relations, changed) {
+  var attribute = attributes[args[0]]
+  var prefix = 'data[start + ';
+  var suffix = ']';
+  // pass context to reference relations
+  args.forEach(function(arg) {
+    if (relations[arg] && args.indexOf('this') == -1 && args.indexOf('context') == -1) {
+      args.push('context')
+      source = source.replace(')', ', context)')
+    }
+  })
+  var name = source.match(/function\s+(\w+)/)[1]
+  var call = prefix + attributes[args[0]] + suffix + ' = ' + name + '(' + args.map(function(arg, i) {
+    if (arg === 'context')
+      return 'this'
+    if (changed) {
+      if (changed.indexOf(arg) == -1) {
+        var computing = source.match(/function\s+compute(\w+)/);
+        if (changed && i == 0 && !computing)
+          changed.push(arg)
+        if ((properties.indexOf(arg) > -1 && !computing) || arg === 'index')
+          return arg
+      }
+    } else {
+      if (arg == 'context')
+        return 'this'
+      if (i == 0 || arg == 'index')
+        return arg
+    }
+    return prefix + attributes[arg] + suffix 
+  }).join(', ') + ')'
+  return {
+    source: source,
+    call: call,
+    name: name,
+    attribute: args[0]
+  }
+
+  
+}
 Simulation.prototype.compile = function(functions, properties, relations, name, collection) {
   var attributes = {}
   var size = 0;
@@ -55,36 +95,21 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     })
   })
 
-  // fetch/store arguments as array indecies
+
   var self = this;
   var changed = [];
-  var invocations = functions.map(function(fn, index) {
-    var args = allArgs[index];
-    var attribute = attributes[args[0]]
-    var prefix = 'data[start + ';
-    var suffix = ']';
-    // pass context to reference relations
-    args.forEach(function(arg) {
-      if (relations[arg] && args.indexOf('this') == -1 && args.indexOf('context') == -1) {
-        args.push('context')
-        functions[index] = functions[index].replace(')', ', context)')
-      }
-    })
-    var name = fn.match(/function\s+(\w+)/)[1]
-    return prefix + attributes[args[0]] + suffix + ' = ' + name + '(' + args.map(function(arg, i) {
-      if (arg === 'context')
-        return 'this'
-      if (changed.indexOf(arg) == -1) {
-        var computing = functions[index].match(/function\s+compute(\w+)/);
-        if (i == 0 && !computing)
-          changed.push(arg)
-        if ((properties.indexOf(arg) > -1 && !computing) || arg === 'index')
-          return arg
-      }
-      return prefix + attributes[arg] + suffix 
-    }).join(', ') + ')'
-  });
 
+  var setters = [];
+  var invocations = functions.map(function(fn, index) {
+    var compiled = this.compileFunction(fn, allArgs[index], attributes, properties, relations, changed)
+    functions[index] = compiled.source;
+    if (compiled.name.match(/^set[A-Z]/))
+      setters.push(this.compileFunction(fn, allArgs[index], attributes, properties, relations))
+    return compiled.call;
+  }, this)
+
+
+  // fetch/store arguments as array indecies
   var prefix = name.charAt(0).toUpperCase() + name.substring(1)
   var related = ''
   for (var property in relations)
@@ -99,7 +124,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
   }
 
   var computedProperties = {};
-  invocations = invocations.filter(function(invocation, index) {
+  var immediate = invocations.filter(function(invocation, index) {
     var prop = functions[index].match(/function\s+compute(\w+)/)
 
     if (prop) {
@@ -128,6 +153,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     }
     return true;
   })
+
   var result = new Function( 
     // bake functions into local context
     functions.join('\n')
@@ -153,12 +179,27 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
       }) + '\n'
 
     // 
-    + 'return function ' + name + ' (index, ' + properties.join(',') + ') {\n'
-    + 'var data = this.' + collection + ';\n'
-    + 'var start = index * ' + size + ';\n'
-    + invocations.join(';\n')
-    + '\nreturn index;\n'
-    + '}')()
+    + 'function ' + name + ' (index, ' + properties.join(',') + ') {\n'
+    + '  var data = this.' + collection + ';\n'
+    + '  var start = index * ' + size + ';\n'
+    + '  ' + immediate.join(';\n  ')
+    + '  \nreturn index;\n'
+    + '};\n ' +
+    setters.map(function(setter) {
+
+      var suffix = setter.attribute.charAt(0).toUpperCase() + setter.attribute.substring(1);
+      var offset = attributes[setter.attribute]
+      setter.fullName = 'set' + prefix + suffix
+      setter.source = '  return ' + setter.call;
+      if (setter.source.indexOf('data[') > -1) {
+        setter.source =  '  var data = this.' + collection + ';\n' +
+                         '  var start = index * ' + size + ';\n' +
+                         setter.source
+      }
+      return name + '.' + setter.name + ' = function(index, ' + setter.attribute + ') {\n' +
+        setter.source + '\n}\n'
+    }).join(';\n') + 
+    'return ' + name + ';')()
 
   var that = this;
   var assignments = [];
@@ -166,9 +207,6 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     var suffix = attribute.charAt(0).toUpperCase() + attribute.substring(1);
     that['get' + prefix + suffix] = new Function('index',
       'return this.' + collection + '[' + size + ' * index + ' + offset + ']'
-    )
-    that['set' + prefix + suffix] = new Function('index', 'value',
-      'return this.' + collection + '[' + size + ' * index + ' + offset + '] = value;'
     )
     assignments.push('this.' + collection + '[' + size + ' * to + ' + offset + '] = this.' + collection + '[' + size + ' * from + ' + offset + ']')
   })(attribute, attributes[attribute]);
@@ -195,6 +233,9 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
   for (var property in computedProperties) {
     this[property] = computedProperties[property]
   }
+  setters.forEach(function(setter) {
+    this[setter.fullName] = result[setter.name]
+  }, this)
   result.count = 0;
   result.size = size;
   result.attributes = attributes

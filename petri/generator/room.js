@@ -107,7 +107,7 @@ Game.Struct.Room = [
   },
 ]
 
-Game.Generator.prototype.BuildingRoom = function(buildingIndex) {
+Game.Generator.prototype.BuildingRoom = function(buildingIndex, callback) {
   var roomIndex = this.Room.count;
   var min = 1;
   var max = 4;
@@ -132,7 +132,7 @@ Game.Generator.prototype.BuildingRoom = function(buildingIndex) {
     if (bestPlacement != null) {
       this.moveRoom(bestPlacement, candidateIndex);
       this.recomputeRoomPolygon(candidateIndex)
-      this.BuildingRoomFurniture(buildingIndex, candidateIndex)
+      callback.call(this, buildingIndex, candidateIndex)
       roomIndex = candidateIndex + 1;
     } else {
       roomIndex = candidateIndex

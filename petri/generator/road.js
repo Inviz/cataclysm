@@ -34,6 +34,8 @@ Game.Struct.Road = [
     return ex - Math.cos(angle) * length / 2;
   },
   function setY (y, ey, angle, length) {
+    if (ey != ey)
+      debugger
     return ey - Math.sin(angle) * length / 2;
   },
   function setSx (sx, ex, angle, length) {
@@ -46,7 +48,7 @@ Game.Struct.Road = [
     if (connectivity) {
       return 1
     } else {
-      return context.random > 0.8 ? 2 : 1
+      return 0
     }
   },
   function setRange(range, connectivity) {
@@ -60,7 +62,10 @@ Game.Struct.Road = [
     return (context.computeTripleNoise(context.getRoadSx(index), context.getRoadSy(index)) 
           + context.computeTripleNoise(context.getRoadEx(index), context.getRoadEy(index))) / 2;
   },
-  function collide(collision, index, context) {
+  function setStatus(status) {
+    return status
+  },
+  function setCollision(collision, index, context) {
     if (collision != null)
       return collision;
     var type = null;
@@ -68,15 +73,30 @@ Game.Struct.Road = [
     var y1 = context.getRoadSy(index)
     var x2 = context.getRoadEx(index)
     var y2 = context.getRoadEy(index)
+    var ninety = Math.PI;
     for (var other = 0; other < context.Road.count; other++) {
       var x3 = context.getRoadSx(other)
       var y3 = context.getRoadSy(other);
       var x4 = context.getRoadEx(other)
       var y4 = context.getRoadEy(other);
-      if (other == index || (context.getRoadCollision(other) == 1) || (other < 2 && index < 2))
+      var otherCollision = context.getRoadCollision(other)
+      if (other == index || otherCollision === 1 || otherCollision === -1 || (other < 2 && index < 2))
         continue;
+      // snap to closest road
+      //var closest = closestOnLineXY(x4, y4, x1, y1, x2, y2);
+      //var closestDistance = Math.sqrt(Math.pow(x2 - closest.x, 2) + Math.pow(y2 - closest.y, 2), 2);
+      //if (closestDistance < context.ROAD_SNAP_DISTANCE) {
+      //  if (type <= 4 && (bestDistance == null || bestDistance > closestDistance)) {
+      //    var target = other;
+      //    var xx = closest.x;
+      //    var xy = closest.y;
+      //    var bestDistance = closestDistance;
+      //    var type = 4;
+      //  }
+      //}
       // create crossroads on line intersection
       if (type <= 3) {
+
         var intersection = checkIntersection(x1, y1, x2, y2, x3, y3, x4, y4)
         if (intersection && (intersection.x != x1 || intersection.y != y1)) {
           var distance = Math.sqrt(Math.pow(x1 - intersection.x, 2) + Math.pow(y1 - intersection.y, 2), 2);
@@ -87,6 +107,11 @@ Game.Struct.Road = [
             var delay = distance;
           }
           var type = 3;
+        // reject close roads that are too similar
+          var angleDiff = context.computeDegreeDifference(context.getRoadAngle(index), context.getRoadAngle(other))
+          if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) {
+            return 1;
+          } 
         } else if (intersection && !type) {
           type = 0;
         }
@@ -99,57 +124,48 @@ Game.Struct.Road = [
           var xx = x4;
           var xy = y4;
           var type = 2;
+
+          var angleDiff = context.computeDegreeDifference(context.getRoadAngle(index), context.getRoadAngle(other))
+          if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) {
+            return 1;
+          } 
         }
+
       }
       // snap to closest road
       var closest = closestOnLineXY(x2, y2, x3, y3, x4, y4);
       var closestDistance = Math.sqrt(Math.pow(x2 - closest.x, 2) + Math.pow(y2 - closest.y, 2), 2);
       if (closestDistance < context.ROAD_SNAP_DISTANCE) {
-
-        if (type <= 1) {
+        if (type <= 1 && (bestDistance == null || bestDistance > closestDistance)) {
           var target = other;
           var xx = closest.x;
           var xy = closest.y;
+          var bestDistance = closestDistance;
           var type = 1;
-
-          // split other path at the point
-          var angleDiff = Math.abs(((context.getRoadAngle(index) % Math.PI) + Math.PI) - ((context.getRoadAngle(target) % Math.PI) + Math.PI))
-          if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) 
-            return 1;
-
         }
+
+        var angleDiff = context.computeDegreeDifference(context.getRoadAngle(index), context.getRoadAngle(other))
+        if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) {
+          return 1;
+        } 
       }
-
-    }
-    switch (type) {
-      case 0: case 1: case 3: 
-        // split other path at the point
-        var angleDiff = Math.abs(((context.getRoadAngle(index) % Math.PI) + Math.PI) - ((context.getRoadAngle(target) % Math.PI) + Math.PI))
-        if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) 
-          return 1
-
-        //other.split(intersection, segment, segments, qTree)
-        //segment.r.end = intersection
-        break;
-
-      // snap our path to their point
-      case 2:
-        //segment.r.end = point
-        break;
     }
     if (xx != null) {
+      // find if intersection point can be snapped to a nearby point
       context.eachRoad(function(other) {
         if (other == index) return;
         var ox = context.getRoadEx(other);
         var oy = context.getRoadEy(other);
         var d = Math.sqrt(Math.pow(ox - xx, 2) + Math.pow(oy - xy, 2), 2)
         if (d < context.POINT_SNAP_DISTANCE) {
-          xn = ox;
+          xx = ox;
           xy = oy;
         }
       })
+      
       // update current segment to snap to point on target line
       context.Road(index, context.getRoadPrevious(index), null, context.getRoadType(index), xx, xy, type || 0);
+
     }
     if (target != null) {
       return 10 + target;
@@ -182,8 +198,10 @@ Game.Generator.prototype.CityRoad = function(city) {
   // create two opposite directed segments linked to each other
   var centerX = this.getCityX(city)
   var centerY = this.getCityY(city)
-  queue.push(0, this.Road(0, 1, 0, 0, centerX + this.HIGHWAY_SEGMENT_LENGTH / 2, centerY))
-  queue.push(0, this.Road(1, 0, Math.PI, 0, centerX - this.HIGHWAY_SEGMENT_LENGTH / 2, centerY))
+  var centerX0 = centerX + this.HIGHWAY_SEGMENT_LENGTH / 2;
+  var centerX1 = centerX - this.HIGHWAY_SEGMENT_LENGTH / 2
+  queue.push(0, this.Road(0, 1, 0, 0, centerX0, centerY))
+  queue.push(0, this.Road(1, 0, Math.PI, 0, centerX1, centerY))
 
   var roadIndex = 2; 
   var count = 0;
@@ -197,6 +215,8 @@ Game.Generator.prototype.CityRoad = function(city) {
     if (!queue.length) {
       break
     }
+    if (count == 24)
+      debugger
     var minT = Infinity;
     var minI = null;
     var roadIndex;
@@ -211,10 +231,12 @@ Game.Generator.prototype.CityRoad = function(city) {
     if (minI != null)
       queue.splice(minI, 2);
 
-    var collision = this.getRoadCollision(roadIndex);
+      if (count == 24)
+        debugger
+    var collision = this.setRoadCollision(roadIndex);
+
     if (collision !== 1) {
       count++
-
       // segment that did not snap to other, can continue or branch
       if (collision === 0) {
         this.CityRoadRoad(city, roadIndex, queue, minT + 1)
@@ -227,18 +249,22 @@ Game.Generator.prototype.CityRoad = function(city) {
         var ex = this.getRoadEx(target);
         var ey = this.getRoadEy(target);
         // split target segment
-        if (this.getRoadEx(target) != xx || this.getRoadEy(target) != xy)
-          if (this.getRoadSx(target) != xx || this.getRoadSy(target) != xy) {
+        if ((this.getRoadEx(target) != xx || this.getRoadEy(target) != xy)
+          && (this.getRoadSx(target) != xx || this.getRoadSy(target) != xy)) {
+          if (target > 2) {
             this.Road(target, this.getRoadPrevious(target), null, this.getRoadType(target), xx, xy, 0);
             this.Road(this.Road.count++, target, null, this.getRoadType(target), ex, ey, 0);
           }
+        }
+        this.setRoadCollision(roadIndex, 0)
       }
     }
   }
 
   var roadCount = this.Road.count;
   this.filterRoad(function(road) {
-    return this.getRoadCollision(road) !== 1
+    console.info(this.getRoadCollision(road))
+    return !this.getRoadCollision(road)
   })
   console.log('new count', this.Road.count, roadCount)
 }
@@ -249,14 +275,14 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
 
   // continue road ahead
 
-  var roadAhead = this.Road(roadIndex++, road, 0, roadType);
+  var roadAhead = this.Road(roadIndex++, road, 0, roadType, null, null, -1);
   var populationAhead = this.getRoadPopulation(roadAhead);
 
   // previous road was a highway
   if (roadType === 0) {
 
     // steer highway into direction with higher population
-    var roadRandomStraight = this.Road(roadIndex++, road, (this.RANDOM_STRAIGHT_ANGLE()) * (Math.PI / 180), roadType);
+    var roadRandomStraight = this.Road(roadIndex++, road, (this.RANDOM_STRAIGHT_ANGLE()) * (Math.PI / 180), roadType, null, null, -1);
     var populationRandomStraight = this.getRoadPopulation(roadRandomStraight);
     if (populationRandomStraight > populationAhead) {
       this.moveRoad(roadRandomStraight, roadAhead)
@@ -268,9 +294,9 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
     // make a highway T-junction
     if (populationAhead > this.HIGHWAY_BRANCH_POPULATION_THRESHOLD) {
       if (this.random() < this.HIGHWAY_BRANCH_PROBABILITY)
-        queue.push(priority, this.Road(roadIndex++, road, (90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), roadType))
+        queue.push(priority, this.Road(roadIndex++, road, (90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), roadType, null, null, -1))
       else if (this.random() < this.HIGHWAY_BRANCH_PROBABILITY)
-        queue.push(priority, this.Road(roadIndex++, road, (- 90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), roadType))
+        queue.push(priority, this.Road(roadIndex++, road, (- 90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), roadType, null, null, -1))
     }
 
     priority += this.NORMAL_BRANCH_TIME_DELAY_FROM_HIGHWAY;
@@ -285,9 +311,9 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
   // branch off regular road (even from highway)
   if (populationAhead > this.NORMAL_BRANCH_POPULATION_THRESHOLD) {
     if (this.random() < this.DEFAULT_BRANCH_PROBABILITY)
-      queue.push(priority, this.Road(roadIndex++, road, (90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), 1))
+      queue.push(priority, this.Road(roadIndex++, road, (90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), 1, null, null, -1))
     else if (this.random() < this.DEFAULT_BRANCH_PROBABILITY)
-      queue.push(priority, this.Road(roadIndex++, road, (- 90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), 1))
+      queue.push(priority, this.Road(roadIndex++, road, (- 90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), 1, null, null, -1))
   }
   
   return this.Road.count = roadIndex;
@@ -309,7 +335,7 @@ Game.Generator.prototype.DEFAULT_BRANCH_PROBABILITY = 0.4,
 // local constraints
 Game.Generator.prototype.MINIMUM_INTERSECTION_DEVIATION = 30 * Math.PI  / 180,
 Game.Generator.prototype.ROAD_SNAP_DISTANCE = 700
-Game.Generator.prototype.POINT_SNAP_DISTANCE = 150
+Game.Generator.prototype.POINT_SNAP_DISTANCE = 250
 
 Game.Generator.prototype.RANDOM_BRANCH_ANGLE = function() {
   if (this.random() > 0.5)

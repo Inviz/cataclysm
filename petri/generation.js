@@ -192,7 +192,10 @@ Generation.prototype.computeDistances = function() {
       }
     }
 }
-
+Generation.prototype.computeDegreeDifference = function(d1, d2) {
+  var diff = Math.abs(d1 - d2) % Math.PI;
+  return Math.min(diff, Math.abs(diff - Math.PI));
+}
 
 Generation.prototype.computeAnchorPoints = function(points, padding, margin, context, segments) {
 
