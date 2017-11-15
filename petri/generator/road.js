@@ -162,7 +162,7 @@ Game.Struct.Road = [
           xy = oy;
         }
       })
-      
+
       // update current segment to snap to point on target line
       context.Road(index, context.getRoadPrevious(index), null, context.getRoadType(index), xx, xy, type || 0);
 
@@ -215,7 +215,7 @@ Game.Generator.prototype.CityRoad = function(city) {
     if (!queue.length) {
       break
     }
-    if (count == 24)
+    if (count == 141)
       debugger
     var minT = Infinity;
     var minI = null;
@@ -231,8 +231,6 @@ Game.Generator.prototype.CityRoad = function(city) {
     if (minI != null)
       queue.splice(minI, 2);
 
-      if (count == 24)
-        debugger
     var collision = this.setRoadCollision(roadIndex);
 
     if (collision !== 1) {
@@ -253,6 +251,10 @@ Game.Generator.prototype.CityRoad = function(city) {
           && (this.getRoadSx(target) != xx || this.getRoadSy(target) != xy)) {
           if (target > 2) {
             this.Road(target, this.getRoadPrevious(target), null, this.getRoadType(target), xx, xy, 0);
+            this.eachRoad(function(other) {
+              if (this.getRoadPrevious(other) == target)
+                this.setRoadPrevious(other, this.Road.count)
+            })
             this.Road(this.Road.count++, target, null, this.getRoadType(target), ex, ey, 0);
           }
         }
