@@ -42,13 +42,13 @@ Game.Struct.Room = [
       var distance = (origin.width + width) / 2;
       var offsetDistance = offset * origin.height
     } else {
-      angle += 90;
+      angle += Math.PI / 2;
       var distance = (origin.height + height) / 2;
       var offsetDistance = offset * origin.width
     }
 
     var angleShift = Math.cos(angle) * (distance + .1);
-    var offsetShift = Math.cos((angle - 90 * (Math.PI / 180))) * (offsetDistance);
+    var offsetShift = Math.cos((angle - Math.PI / 2)) * (offsetDistance);
     return x + (angleShift) * orientation + offsetShift
     //if (number == 0)
   },
@@ -61,13 +61,13 @@ Game.Struct.Room = [
       var distance = (origin.width + width) / 2;
       var offsetDistance = offset * origin.height
     } else {
-      angle += 90;
+      angle += Math.PI / 2;
       var distance = (origin.height + height) / 2;
       var offsetDistance = offset * origin.width
     }
 
     var angleShift = Math.sin(angle) * (distance + .1);
-    var offsetShift = Math.sin((angle - 90 * (Math.PI / 180))) * (offsetDistance);
+    var offsetShift = Math.sin((angle - Math.PI / 2)) * (offsetDistance);
     return y + (angleShift) * orientation + offsetShift
   },
   function setBuilding (building) {

@@ -118,6 +118,7 @@ Game.Generator.prototype.BuildingRoomFurniture = function(buildingIndex, roomInd
       for (var attempt = 0; attempt < 21; attempt++) {
         this.Furniture(furnitureIndex, roomIndex, buildingIndex, bone[0], bone[1], bone[3] || 0, Game.ANCHORS.INSIDE_INWARDS)
         if (!this.getFurnitureCollision(furnitureIndex)) {
+          //callback.call(this, buildingIndex, roomIndex, furnitureIndex)
           continue placements
         }
       }
@@ -128,7 +129,7 @@ Game.Generator.prototype.BuildingRoomFurniture = function(buildingIndex, roomInd
   return furnitureIndex;
 
 }
-Game.Generator.prototype.BuildingRoomFurnitureFurniture = function(buildingIndex, roomIndex, furnitureIndex) {
+Game.Generator.prototype.BuildingRoomFurnitureFurniture = function(buildingIndex, roomIndex, furnitureIndex, callback) {
   var polygon = this.recomputeFurniturePolygon(furnitureIndex);
   var polygon = this.recomputeFurnitureAnchorPoints(furnitureIndex);
   var slots = polygon.marginStraightPointsShuffled[0];

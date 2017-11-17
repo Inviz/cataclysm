@@ -34,8 +34,6 @@ Game.Struct.Road = [
     return ex - Math.cos(angle) * length / 2;
   },
   function setY (y, ey, angle, length) {
-    if (ey != ey)
-      debugger
     return ey - Math.sin(angle) * length / 2;
   },
   function setSx (sx, ex, angle, length) {
@@ -183,15 +181,59 @@ Game.Struct.Road = [
     return context.computePolygonFromRotatedRectangle(x, y, length, width, angle)
   },
   function computeOuterPolygon(x, y, width, length, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, length + 200, width + 100, angle)
+    return context.computePolygonFromRotatedRectangle(x, y, length + 200, width + 200, angle)
   },
   function computeSurroundingPolygon(x, y, width, length, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, length + 600, width + 600, angle)
+    return context.computePolygonFromRotatedRectangle(x, y, length + 300, width +300, angle)
   },
   function computeAnchorPoints(index, context) {
     return context.computeAnchorPoints(context.computeRoadSurroundingPolygon(index), 50, 400)
   }
 ]
+
+
+Game.Generator.prototype.DEFAULT_SEGMENT_LENGTH = 3000
+Game.Generator.prototype.HIGHWAY_SEGMENT_LENGTH = 4000
+Game.Generator.prototype.DEFAULT_SEGMENT_WIDTH = 160
+Game.Generator.prototype.HIGHWAY_SEGMENT_WIDTH = 260
+
+// global goals
+Game.Generator.prototype.HIGHWAY_BRANCH_POPULATION_THRESHOLD = 0.15;
+Game.Generator.prototype.HIGHWAY_BRANCH_PROBABILITY = 0.1;
+Game.Generator.prototype.NORMAL_BRANCH_TIME_DELAY_FROM_HIGHWAY = 5;
+Game.Generator.prototype.NORMAL_BRANCH_POPULATION_THRESHOLD = 0.1;
+Game.Generator.prototype.DEFAULT_BRANCH_PROBABILITY = 0.4,
+
+// local constraints
+Game.Generator.prototype.MINIMUM_INTERSECTION_DEVIATION = 30 * Math.PI  / 180,
+Game.Generator.prototype.ROAD_SNAP_DISTANCE = 1000
+Game.Generator.prototype.POINT_SNAP_DISTANCE = 250
+
+Game.Generator.prototype.RANDOM_BRANCH_ANGLE = function() {
+  if (this.random() > 0.66)
+    return 0
+  return this.randomAngle(3);
+}
+Game.Generator.prototype.HIGHWAY_RANDOM_STRAIGHT_ANGLE= function() {
+  return this.randomAngle(15);
+}
+Game.Generator.prototype.RANDOM_STEER_ANGLE= function() {
+  if (this.random() > 0.95)
+    return 0
+  return this.randomAngle(2);
+}
+Game.Generator.prototype.randomRange = function(min, max) {
+  return this.random()*(max - min) + min;
+}
+Game.Generator.prototype.randomAngle = function(limit) {
+  var nonUniformNorm, val;
+  nonUniformNorm = Math.pow(Math.abs(limit), 3);
+  val = 0;
+  while (val === 0 || this.random() < Math.pow(Math.abs(val), 3) / nonUniformNorm) {
+    val = this.randomRange(-limit, +limit);
+  }
+  return val;
+}
 
 Game.Generator.prototype.CityRoad = function(city) {
   var queue = [];
@@ -215,8 +257,6 @@ Game.Generator.prototype.CityRoad = function(city) {
     if (!queue.length) {
       break
     }
-    if (count == 141)
-      debugger
     var minT = Infinity;
     var minI = null;
     var roadIndex;
@@ -265,9 +305,10 @@ Game.Generator.prototype.CityRoad = function(city) {
 
   var roadCount = this.Road.count;
   this.filterRoad(function(road) {
-    console.info(this.getRoadCollision(road))
     return !this.getRoadCollision(road)
   })
+  this.computeCityRoadConnectivity(0);
+  this.Road.network = this.computeCityInsidePolygon(0);
   console.log('new count', this.Road.count, roadCount)
 }
 
@@ -277,14 +318,18 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
 
   // continue road ahead
 
-  var roadAhead = this.Road(roadIndex++, road, 0, roadType, null, null, -1);
+  if (roadType == 0)
+    var roadAhead = this.Road(roadIndex++, road, 0, roadType, null, null, -1);
+  else
+    var roadAhead = this.Road(roadIndex++, road, this.RANDOM_STEER_ANGLE() * (Math.PI / 180), roadType, null, null, -1);
+
   var populationAhead = this.getRoadPopulation(roadAhead);
 
   // previous road was a highway
   if (roadType === 0) {
 
     // steer highway into direction with higher population
-    var roadRandomStraight = this.Road(roadIndex++, road, (this.RANDOM_STRAIGHT_ANGLE()) * (Math.PI / 180), roadType, null, null, -1);
+    var roadRandomStraight = this.Road(roadIndex++, road, (this.HIGHWAY_RANDOM_STRAIGHT_ANGLE()) * (Math.PI / 180), roadType, null, null, -1);
     var populationRandomStraight = this.getRoadPopulation(roadRandomStraight);
     if (populationRandomStraight > populationAhead) {
       this.moveRoad(roadRandomStraight, roadAhead)
@@ -319,43 +364,4 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
   }
   
   return this.Road.count = roadIndex;
-}
-
-Game.Generator.prototype.DEFAULT_SEGMENT_LENGTH = 3000
-Game.Generator.prototype.HIGHWAY_SEGMENT_LENGTH = 4000
-Game.Generator.prototype.DEFAULT_SEGMENT_WIDTH = 160
-Game.Generator.prototype.HIGHWAY_SEGMENT_WIDTH = 260
-Game.Generator.prototype.SEGMENT_COUNT_LIMIT = 100
-
-// global goals
-Game.Generator.prototype.HIGHWAY_BRANCH_POPULATION_THRESHOLD = 0.1;
-Game.Generator.prototype.HIGHWAY_BRANCH_PROBABILITY = 0.05;
-Game.Generator.prototype.NORMAL_BRANCH_TIME_DELAY_FROM_HIGHWAY = 5;
-Game.Generator.prototype.NORMAL_BRANCH_POPULATION_THRESHOLD = 0.1;
-Game.Generator.prototype.DEFAULT_BRANCH_PROBABILITY = 0.4,
-
-// local constraints
-Game.Generator.prototype.MINIMUM_INTERSECTION_DEVIATION = 30 * Math.PI  / 180,
-Game.Generator.prototype.ROAD_SNAP_DISTANCE = 700
-Game.Generator.prototype.POINT_SNAP_DISTANCE = 250
-
-Game.Generator.prototype.RANDOM_BRANCH_ANGLE = function() {
-  if (this.random() > 0.5)
-    return 0
-  return this.randomAngle(3);
-}
-Game.Generator.prototype.RANDOM_STRAIGHT_ANGLE= function() {
-  return this.randomAngle(15);
-}
-Game.Generator.prototype.randomRange = function(min, max) {
-  return this.random()*(max - min) + min;
-}
-Game.Generator.prototype.randomAngle = function(limit) {
-  var nonUniformNorm, val;
-  nonUniformNorm = Math.pow(Math.abs(limit), 3);
-  val = 0;
-  while (val === 0 || this.random() < Math.pow(Math.abs(val), 3) / nonUniformNorm) {
-    val = this.randomRange(-limit, +limit);
-  }
-  return val;
 }

@@ -225,7 +225,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
         count++;\n\
       }\n\
     }\n\
-    for (var index = 0; index < this.count; i++) \n\
+    for (var index = 0; index < count; index++) \n\
       this.set' + prefix + 'Previous(index, remap[this.get' + prefix + 'Previous(index)])\n\
     return this.' + prefix + '.count = count;\n\
   ')

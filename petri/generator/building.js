@@ -6,10 +6,10 @@ Game.Struct.Building = [
     return 500 + context.random() * 500
   },
   function setOffsetAngle(offsetAngle, road) {
-    return ((Math.PI) + offsetAngle)//360 * Math.random()
+    return (Math.PI + offsetAngle)//360 * Math.random()
   },
   function setOffsetDistance(offsetDistance, width, height, road) {
-    return width / 2//100// * Math.random()
+    return width / 2 + 50 //100// * Math.random()
   },
   function setX (x, road, offsetDistance, offsetAngle) {
     if (x == null)
@@ -22,13 +22,13 @@ Game.Struct.Building = [
       y = road.y;
     return y + Math.sin(offsetAngle) * (offsetDistance);
   },
-  function setAngle (angle, road) {
-    return road.angle
+  function setAngle (angle, offsetAngle) {
+    return offsetAngle
   },
   function setRoad (road) {
     return road
   },
-  function collide (collision, x, y, width, height, building, index, context) {
+  function setCollision (collision, x, y, width, height, building, index, context) {
     // collide previously generated buildings
     var polygon1 = context.recomputeBuildingPolygon(index)
     for (var i = 0; i < index; i++) {
@@ -76,25 +76,56 @@ Game.Struct.Building = [
     return context.computeSpinePoints(context.computeBuildingPolygon(index))
   }
 ]
-Game.Generator.prototype.RoadBuilding = function(roadIndex, callback) {
-  var distance = this.getRoadRange(roadIndex)
+Game.Generator.prototype.RoadBuilding = function(road, callback) {
+  var distance = this.getRoadRange(road)
   var count = 13;
-  var buildingIndex = this.Building.count;
-  var polygon = this.computeRoadSurroundingPolygon(roadIndex)
+  var building = this.Building.count;
+  var polygon = this.computeRoadSurroundingPolygon(road)
   var polygon = this.computeAnchorPoints(polygon, 500, 500)
   placement: for (var i = 0; i < count; i++) {
 
     var point = polygon.marginPointsShuffled[0][i % polygon.marginPointsShuffled[0].length];
     for (var attempt = 0; attempt < 3; attempt++) {
-      this.Building(buildingIndex, roadIndex, point[0], point[1], point[3])
+      this.Building(building, road, point[0], point[1], point[3])
 
-      if (!this.getBuildingCollision(buildingIndex)) {
-        callback.call(this, buildingIndex)
-        buildingIndex++
+      if (!this.getBuildingCollision(building)) {
+        callback.call(this, building)
+        building++
         continue placement;
       }
     }
   }
 
-  this.Building.count = buildingIndex
+  this.Building.count = building
+}
+
+Game.Generator.prototype.BlockBuilding = function(block, callback) {
+  var road = this.getBlockRoad(block)
+  var loop = this.getBlockLoop(block)
+  //if (loop) {
+    var polygon = this.computeBlockInnerPolygon(block)[0]
+    var polygon = this.computeAnchorPoints(polygon, 500, 500)
+    var points = polygon.paddingPointsShuffled[0];
+  //} else {
+  //  var polygon = this.computeRoadSurroundingPolygon(road)
+  //  var polygon = this.computeAnchorPoints(polygon, 500, 500)
+  //  var points = polygon.marginPointsShuffled[0];
+  //}
+  var building = this.Building.count;
+  var count = 13;
+  placement: for (var i = 0; i < count; i++) {
+
+    var point = points[i % points.length];
+    for (var attempt = 0; attempt < 6; attempt++) {
+      this.Building(building, road, point[0], point[1], point[3])
+
+      if (!this.getBuildingCollision(building)) {
+        callback.call(this, building)
+        building++
+        continue placement;
+      }
+    }
+  }
+
+  this.Building.count = building
 }

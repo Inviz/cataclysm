@@ -345,8 +345,19 @@ function draw() {
 
     Game.World.eachBlock(function(block) {
       var p = this.computeBlockInnerPolygon(block);
-      if (p.length)
+      if (p.length) {
+        //if (this.getBlockLoop(block)) {
+        //  this.computeBlockInnerPolygon(block)[0].paddingPoints[0].forEach(function(point) {
+        //      var x2 = point[0] + Math.cos(point[3]) * 500
+        //      var y2 = point[1] + Math.sin(point[3]) * 500
+        //    lines.push(['red', 5, [
+        //      scale(point),
+        //      scale([x2, y2])
+        //      ]])
+        //  })
+        //}
         sidewalks.push.apply(sidewalks, p.map(function(l) {return l.map(scale)})) 
+      }
     })
 
     sidewalks.forEach(function(poly) {
