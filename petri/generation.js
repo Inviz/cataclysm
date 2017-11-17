@@ -197,8 +197,7 @@ Generation.prototype.computeDegreeDifference = function(d1, d2) {
   return Math.min(diff, Math.abs(diff - Math.PI));
 }
 
-Generation.prototype.computeAnchorPoints = function(points, padding, margin, context, segments) {
-
+Generation.prototype.computeAnchorPoints = function(points, padding, margin, context, segments, mDash, pDash) {
   if (!context)
     context = points
   if (!segments) {
@@ -209,21 +208,25 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
     padding = 100;
   if (margin == null)
     margin = 60;
-  context.padding = this.computePolygonOffset([points], 0, -100, 2).map(function(pp) {
+  if (mDash == null)
+    mDash = margin;
+  if (pDash == null)
+    pDash = padding;
+  context.padding = this.computePolygonOffset([points], 0, -padding, 2).map(function(pp) {
     return pp.map(function(p) {
       return [p.x, p.y]
     })
   })
-  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, padding, true)}) 
+  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, Math.abs(pDash), true)}) 
   if (!context.paddingPoints.length)
     context.paddingPoints = [[]]
 
-  context.margin = this.computePolygonOffset([points], 60, 0, 2).map(function(pp) {
+  context.margin = this.computePolygonOffset([points], margin, 0, 2).map(function(pp) {
     return pp.map(function(p) {
       return [p.x, p.y]
     })
   })
-  context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, margin)});
+  context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, Math.abs(mDash))});
 
   context.paddingPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)

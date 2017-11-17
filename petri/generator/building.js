@@ -104,8 +104,11 @@ Game.Generator.prototype.BlockBuilding = function(block, callback) {
   var loop = this.getBlockLoop(block)
   //if (loop) {
     var polygon = this.computeBlockInnerPolygon(block)[0]
-    var polygon = this.computeAnchorPoints(polygon, 500, 500)
+    var polygon = this.computeAnchorPoints(polygon, 100, -400, null, null, 500, 500)
+  if (loop)
     var points = polygon.paddingPointsShuffled[0];
+  else
+    var points = polygon.marginPointsShuffled[0];
   //} else {
   //  var polygon = this.computeRoadSurroundingPolygon(road)
   //  var polygon = this.computeAnchorPoints(polygon, 500, 500)

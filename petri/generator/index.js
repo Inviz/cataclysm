@@ -28,7 +28,7 @@ Game.Generator = function(seed, step, previous) {
 
     Game.Generator.prototype.Furniture = Game.Generator.prototype.compile(
       Game.Struct.Furniture, 
-      ['room', 'building', 'x', 'y', 'angle', 'anchor'], 
+      ['room', 'building', 'x', 'y', 'angle', 'anchor', 'previous'], 
       {building: 'buildings', room: 'rooms'}, 'furniture');
 
     Game.Generator.prototype.Equipment = Game.Generator.prototype.compile(

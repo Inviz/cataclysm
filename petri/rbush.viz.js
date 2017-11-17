@@ -372,6 +372,17 @@ function draw() {
           scale(step)
           ]])
       }, this)
+      if (poly.marginPoints) {
+        debugger
+        poly.marginPoints[0].forEach(function(line) {
+          var x2 = line[0] + Math.cos(line[3]) * 5
+          var y2 = line[1] + Math.sin(line[3]) * 5
+          dots.push(['green', 2, [
+                      {x: line[0], y: line[1]},
+                      {x: x2, y: y2}
+                      ]])
+        })
+      }
    })
 
   // hulls.push(['lightgrey', 2, Game.World.Road.networkPadding.map(scale)])
