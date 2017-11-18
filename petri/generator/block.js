@@ -17,7 +17,7 @@ Game.Struct.Block = [
     if (loop)
       width = context.computeBlockPolygonCenter(index).width;
     else if (context.random() > 0.8)
-      return 2000 + (context.random() * 3000)
+      return 3000 + (context.random() * 3000)
     else
       return 4000 + (context.random() * 3000)
     return width;
@@ -32,10 +32,10 @@ Game.Struct.Block = [
     return height;
   },
   function setShift(shift, context) {
-    return Math.floor(context.random() * 4) - 2;
+    return - Math.floor(context.random() * 2);
   },
   function setSide(side, shift, context) {
-    if (shift == 1)
+    if (shift == 0)
       return 0
     return Math.floor(context.random() * 3) - 1;
   },

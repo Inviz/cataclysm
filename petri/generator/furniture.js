@@ -80,7 +80,6 @@ Game.Struct.Furniture = [
   },
 
   function computeAnchorPoints(index, context) {
-    debugger
     return context.computeAnchorPoints(context.computeFurniturePolygon(index), 50, 5, null, null, 50, 50)
   },
   function computeSpinePoints(index, context) {
@@ -140,10 +139,10 @@ Game.Generator.prototype.BuildingRoomFurnitureFurniture = function(building, roo
   var maxS = Math.floor(this.random() * (slots.length - 1)) + 1
   slots: for (var p = 0; p < maxS; p++) {
     var slot = slots[p];
-    var chainFurniture = this.Furniture.count;
+    var nextFurniture = this.Furniture.count;
     for (var attempt = 0; attempt < 21; attempt++) {
-      this.Furniture(chainFurniture, room, building, slot[0], slot[1], slot[3] ||0, Game.ANCHORS.OUTSIDE_INWARDS, furniture)
-      if (!this.getFurnitureCollision(chainFurniture)) {
+      this.Furniture(nextFurniture, room, building, slot[0], slot[1], slot[3] ||0, Game.ANCHORS.OUTSIDE_INWARDS, furniture)
+      if (!this.getFurnitureCollision(nextFurniture)) {
         this.Furniture.count++;
         continue slots
       }

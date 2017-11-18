@@ -8,7 +8,7 @@ Game.Generator = function(seed, step, previous) {
 
     Game.Generator.prototype.Road = Game.Generator.prototype.compile(
       Game.Struct.Road,      
-      ['previous', 'angle', 'type', 'ex', 'ey', 'collision'], 
+      ['previous', 'angle', 'type', 'ex', 'ey', 'collision', 'sx', 'sy'], 
       {previous: 'roads'}, 'road', 'roads');
 
     Game.Generator.prototype.Block = Game.Generator.prototype.compile(
@@ -60,7 +60,7 @@ Game.Generator.prototype.advance = function() {
   // generate blocks
   this.CityBlock(city);
 
-  // fill blocks with buildings, rooms and furniture
+  // fill blocks with multi-room buildings and furniture
   this.eachBlock(function(block) {
     this.BlockBuilding(block, function(building) {
       this.BuildingRoom(building, function(building, room) {
@@ -76,49 +76,6 @@ Game.Generator.prototype.advance = function() {
 }
 
 Game.Struct = {};
-
-
-Game.Distributions = {};
-Game.Distributions.Rooms = {
-  residence: {
-    living_room: 1,
-    kitchen: 1,
-    pantry: 1
-  }
-}
-Game.Distributions.Furniture = {
-  living_room: {
-    INSIDE_CENTER: {
-      table: 0.8,
-      sofa: 0.7
-    },
-    INSIDE_CORNER: {
-      lamp: 0.5
-    },
-    ALONG_INWARDS: {
-      shelf: 0.15
-    }
-  }
-}
-Game.Distributions.Objects = {
-  table: {
-    INSIDE_TOP: {
-      electronics: 0.2,
-      food: 0.7,
-      objects: 0.3,
-      magazine: 0.2
-    },
-    OUTSIDE_INWARDS: {
-      chair: 0.8
-    }
-  },
-
-  chair: {
-    INSIDE_TOP: {
-      magazine: 0.2
-    }
-  }
-}
 
 Game.MASK = {
   INSIDE: 1,

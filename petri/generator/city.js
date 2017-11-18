@@ -15,7 +15,7 @@ Game.Struct.City = [
       var x = Math.floor(context.random() * 1000000 - 500000);
       var y = Math.floor(context.random() * 1000000 - 500000); 
       var value = context.computeTripleNoise(x, y);
-    } while (value > 0.15 || value < 0.1)
+    } while (value > 0.25 || value < 0.15)
     return {x: x, y: y}
   },
 

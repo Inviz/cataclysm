@@ -107,37 +107,37 @@ Game.Struct.Room = [
   },
 ]
 
-Game.Generator.prototype.BuildingRoom = function(buildingIndex, callback) {
-  var roomIndex = this.Room.count;
+Game.Generator.prototype.BuildingRoom = function(building, callback) {
+  var room = this.Room.count;
   var min = 1;
   var max = 4;
   var rooms = 3//Math.floor(Math.random() * (max - min) + min)
-  var first = roomIndex;
+  var first = room;
   placement: for (var i = 0; i < rooms; i++) {
-    var candidateIndex = roomIndex;
+    var candidate = room;
     var minDistance = Infinity;
     var bestPlacement = null;
     for (var attempt = 0; attempt < 5; attempt++) {
-      this.Room(roomIndex, buildingIndex, i, first + Math.floor(this.random() * (i)))
-      if (!this.getRoomCollision(roomIndex)) {
-        var distance = this.getRoomDistance(roomIndex);
+      this.Room(room, building, i, first + Math.floor(this.random() * (i)))
+      if (!this.getRoomCollision(room)) {
+        var distance = this.getRoomDistance(room);
         if (distance < minDistance) {
           minDistance = distance;
-          bestPlacement = roomIndex;
-          ++roomIndex
+          bestPlacement = room;
+          ++room
         }
       }
     }
     
     if (bestPlacement != null) {
-      this.moveRoom(bestPlacement, candidateIndex);
-      this.recomputeRoomPolygon(candidateIndex)
-      callback.call(this, buildingIndex, candidateIndex)
-      roomIndex = candidateIndex + 1;
+      this.moveRoom(bestPlacement, candidate);
+      this.recomputeRoomPolygon(candidate)
+      callback.call(this, building, candidate)
+      room = candidate + 1;
     } else {
-      roomIndex = candidateIndex
+      room = candidate
       break
     }
   }
-  this.Room.count = roomIndex
+  this.Room.count = room
 }
