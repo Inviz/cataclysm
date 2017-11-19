@@ -326,15 +326,17 @@ function draw() {
            ]])
        }, this)
     })
-    //Game.World.eachRoom(function(r) {
-    //   var poly = this.computeRoomPolygon(r)
-    //   poly.forEach(function(step, index) {
-    //     lines.push([this.getRoomNumber(r) ? 'red' : 'grey', 3, [
-    //       scale(poly[index - 1] || poly[poly.length - 1]),
-    //       scale(step)
-    //       ]])
-    //   }, this)
-    //})
+    Game.World.eachRoom(function(r) {
+       
+         this.computeRoomPolygon(r).paddingPoints[0].forEach(function(point) {
+             var x2 = point[0] + Math.cos(point[3]) * 30
+             var y2 = point[1] + Math.sin(point[3]) * 30
+           lines.push(['red', 1, [
+             scale(point),
+             scale([x2, y2])
+             ]])
+         })
+    })
     var blocks = [];
     var sidewalks = [];
     polys.push(['black', 3, Game.World.Road.network.map(function(poly, index) {
@@ -367,13 +369,12 @@ function draw() {
    Game.World.eachFurniture(function(f) {
       var poly = this.computeFurniturePolygon(f)
       poly.forEach(function(step, index) {
-        lines.push([(this.getFurnitureAnchor(f) & Game.ANCHORS.INWARDS) ? 'blue' : 'green', 3, [
+        hulls.push([(this.getFurnitureAnchor(f) & Game.ANCHOR.CORNER) ? 'blue' : 'green', 1, [
           scale(poly[index - 1] || poly[poly.length - 1]),
           scale(step)
           ]])
       }, this)
       if (poly.marginPoints) {
-        debugger
         poly.marginPoints[0].forEach(function(line) {
           var x2 = line[0] + Math.cos(line[3]) * 5
           var y2 = line[1] + Math.sin(line[3]) * 5

@@ -28,7 +28,7 @@ Game.Generator = function(seed, step, previous) {
 
     Game.Generator.prototype.Furniture = Game.Generator.prototype.compile(
       Game.Struct.Furniture, 
-      ['room', 'building', 'x', 'y', 'angle', 'anchor', 'previous'], 
+      ['room', 'building', 'x', 'y', 'angle', 'offsetAngle', 'anchor', 'type', 'previous'], 
       {building: 'buildings', room: 'rooms'}, 'furniture');
 
     Game.Generator.prototype.Equipment = Game.Generator.prototype.compile(
@@ -76,7 +76,8 @@ Game.Generator.prototype.advance = function() {
 }
 
 Game.Struct = {};
-
+Game.Distributions = {};
+Game.Objects = {};
 Game.MASK = {
   INSIDE: 1,
   OUTSIDE: 2,
@@ -91,9 +92,36 @@ Game.MASK = {
   CENTER: 512,
 
 }
-Game.ANCHORS = {};
-for (var p1 in Game.MASK) {
-  Game.ANCHORS[p1] = Game.MASK[p1]
-  for (var p2 in Game.MASK)
-    Game.ANCHORS[p1 + '_' + p2] = Game.MASK[p1] | Game.MASK[p2]
+
+
+Game.compile = function() {
+  Game.ANCHOR = {};
+  for (var p1 in Game.MASK) {
+    Game.ANCHOR[p1] = Game.MASK[p1]
+    for (var p2 in Game.MASK)
+      Game.ANCHOR[p1 + '_' + p2] = Game.MASK[p1] | Game.MASK[p2]
+  }
+  Game.compile.Blueprint(Game.Distributions.Rooms)
+  Game.compile.Furniture()
+
+}
+Game.compile.Blueprint = function(blueprint, root) {
+  var weights = [];
+  for (var property in blueprint) {
+    if (typeof blueprint[property] == 'object') {
+      Game.compile.Blueprint(blueprint[property], root || blueprint)
+    } else {
+      if (Game.ANCHOR[property])
+        weights.push(blueprint[property], Game.ANCHOR[property]);
+    }
+  }
+  if (weights)
+    blueprint.weights = weights;
+}
+Game.compile.Furniture = function() {
+  var index = 0;
+  for (var property in Game.Furniture) {
+    Game.Furniture[index] = Game.Furniture[property]
+    Game.Furniture[property].index = index++;
+  }
 }

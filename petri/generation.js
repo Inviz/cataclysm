@@ -212,6 +212,9 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
     mDash = margin;
   if (pDash == null)
     pDash = padding;
+  points = points.map(function(p) {
+    return {x: ClipperLib.Cast_Int32(p.x), y: ClipperLib.Cast_Int32(p.y)}
+  })
   context.padding = this.computePolygonOffset([points], 0, -padding, 2).map(function(pp) {
     return pp.map(function(p) {
       return [p.x, p.y]
@@ -229,7 +232,19 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
   context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, Math.abs(mDash))});
 
   context.paddingPoints[0].forEach(function(spine) {
-    spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
+    spine[3] = Math.PI + angleToPolygon({x: spine[0], y: spine[1]}, points)
+    spine[4] = Game.ANCHOR.INSIDE | Game.ANCHOR.OUTWARDS | Game.ANCHOR.INWARDS
+    for (var i = 0; i < context.padding[0].length; i++) {
+      var p = context.padding[0][i];
+      var pp = context.padding[0][i ? i - 1 : context.padding[0].length - 1];
+      var pn = context.padding[0][(i + 1) % context.padding[0].length];
+      if (p[0] == spine[0] && p[1] == spine[1]) {
+        spine[4] = Game.ANCHOR.INSIDE_CORNER;
+        var closestCorner = findClosestPoint(spine, points);  
+        spine[5] = angleBetweenLines(p[0], p[1], pp[0], pp[1], p[0], p[1], pn[0], pn[1]) 
+//        spine[3] += angle / 2
+      }
+    }
   })
   context.paddingPointsShuffled = [this.shuffleArray(context.paddingPoints[0].slice())]
   context.paddingStraightPointsShuffled = [context.paddingPointsShuffled[0].filter(function(point) {
@@ -237,6 +252,18 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
   })]
   context.marginPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
+    spine[4] = Game.ANCHOR.OUTSIDE | Game.ANCHOR.OUTWARDS | Game.ANCHOR.INWARDS
+    for (var i = 0; i < context.margin[0].length; i++) {
+      var p = context.margin[0][i];
+      var pp = context.margin[0][i ? i - 1 : context.margin[0].length - 1];
+      var pn = context.margin[0][(i + 1) % context.margin[0].length];
+      if (p[0] == spine[0] && p[1] == spine[1]) {
+        spine[4] = Game.ANCHOR.OUTSIDE_CORNER;
+        var closestCorner = findClosestPoint(spine, points);  
+        spine[5] = angleBetweenLines(p[0], p[1], pp[0], pp[1], p[0], p[1], pn[0], pn[1]) 
+//        spine[3] += angle / 2
+      }
+    }
   })
   context.marginPointsShuffled = [this.shuffleArray(context.marginPoints[0].slice())]
   context.marginStraightPointsShuffled = [context.marginPointsShuffled[0].filter(function(spine) {
@@ -245,7 +272,11 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
 
   return context
 }
-
+Generation.prototype.computePoints = function(points, context, segments) {
+  points.allPoints = points.marginPoints[0].concat(points.paddingPoints[0], points.spines)
+  points.allPointsShuffled = this.shuffleArray(points.allPoints);
+  return points;
+}
 Generation.prototype.computeSpinePoints = function(points, context, segments) {
   if (!context)
     context = points
@@ -274,7 +305,7 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
   var skeleton = new CompGeo.Skeleton( pather.path, Infinity );
 
   context.skeleton = skeleton
-  context.bones = [];
+  context.spines = [];
   context.backbone = [];
   //var skeletonPath = new CompGeo.shapes.Path( skeleton.spokes );
   //var shape = new CompGeo.shapes.Shape( path.concat( skeletonPath ) ) 
@@ -292,11 +323,13 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
       return
     } else {
       uniqueness[key] = true;
-      context.bones.push(spoke.end)
+      spoke.end[3] = angleToPolygon({x: spoke.end[0], y: spoke.end[1]}, points)
+      spoke.end[4] = Game.ANCHOR.CENTER
+      context.spines.push(spoke.end)
     }
   })
 
-  context.spinesShuffled = this.shuffleArray(context.bones)
+  context.spinesShuffled = this.shuffleArray(context.spines)
   return context
 }
 

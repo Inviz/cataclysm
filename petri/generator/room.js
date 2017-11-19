@@ -80,10 +80,15 @@ Game.Struct.Room = [
     return context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
   },
   function computeAnchorPoints(index, context) {
-    return context.computeAnchorPoints(context.computeRoomPolygon(index))
+    return context.computeAnchorPoints(context.computeRoomPolygon(index), 2, 2, null, null, 100, 100)
   },
   function computeSpinePoints(index, context) {
     return context.computeSpinePoints(context.computeRoomPolygon(index))
+  },
+  function computePoints(index, context) {
+    var points = context.computeRoomAnchorPoints(index);
+    context.computeRoomSpinePoints(index);
+    return context.computePoints(points)
   },
   function collide (collision, x, y, width, height, building, index, context, number) {
     // collide previously generated buildings

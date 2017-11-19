@@ -269,7 +269,7 @@ distanceToPolygon = function (point, poly) {
 isPointAboveLine = function(x1, y1, x2, y2, x, y) {
   return (x2-x1)*(y2-y) - (y2-y1)*(x2-x) >= 0;
 }
-angleToPolygon = function (point, poly, relative) {
+angleToPolygon = function (point, poly, relative, round) {
   var minDistance = Infinity;
   for (var i = 0; i < poly.length; i++) {
     var p1 = poly[i];
@@ -403,6 +403,36 @@ equidistantPointsFromSegments = function(segments, length, binary) {
   return result;
 }
 
+function findClosestPoint(point, polygon, X, Y) {
+  if (X == null)
+    X = 'x'
+  if (Y == null)
+    Y = 'y'
+  var minDistance = Infinity;
+  for (var i = 0; i < polygon.length; i++) {
+    var p = polygon[i];
+    var distance = Math.sqrt(Math.pow(point[0] - p[X], 2) + Math.pow(point[0] - p[Y], 2), 2);
+    if (minDistance > distance) {
+      var bestPoint = i;
+      minDistance = distance;
+    }
+  }
+  return polygon[bestPoint]
+}
+
+function polygonHasPoint(point, polygon, X, Y) {
+  if (X == null)
+    X = 'x'
+  if (Y == null)
+    Y = 'y'
+  for (var i = 0; i < polygon.length; i++) {
+    var p = polygon[i];
+    if (p[X] == point[0] && p[Y] == point[1]) {
+      return true;
+    }
+  }
+}
+
 
 //Converts a polygon to a planar straight line graph
 function polygonToPSLG(loops, options, X, Y) {
@@ -463,4 +493,16 @@ polygonCenter = function(arr){
         maxY = (arr[i].y > maxY || maxY == null) ? arr[i].y : maxY;
     }
     return {x: (minX + maxX) /2, y: (minY + maxY) /2, width: maxX - minX, height: maxY - minY};
+}
+
+angleBetweenLines = function(A1x, A1y, A2x, A2y, B1x, B1y, B2x, B2y) {
+  var dAx = A2x - A1x;
+  var dAx = A2x - A1x;
+  var dAy = A2y - A1y;
+  var dBx = B2x - B1x;
+  var dBy = B2y - B1y;
+  var angle = Math.atan2(dAx * dBy - dAy * dBx, dAx * dBx + dAy * dBy);
+  if(angle < 0) {angle = angle * -1;}
+  return angle
+
 }

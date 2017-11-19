@@ -212,7 +212,8 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
   })(attribute, attributes[attribute]);
 
   that['move' + prefix] = new Function('from', 'to',
-    assignments.join(';\n')
+    assignments.join(';\n') + '\n' +
+    'return to;'
   )
 
   that['filter' + prefix] = new Function('callback', '\

@@ -22,11 +22,11 @@
 <script src="generator/city.js"></script>
 <script src="generator/furniture.js"></script>
 <script src="generator/equipment.js"></script>
+<script src="content/furniture.js"></script>
+<script src="content/rooms.js"></script>
 <script src="nets/area.js"></script>
 <script src="nets/zone.js"></script>
 <script src="nets/creature.js"></script>
-<script src="../citygen/assets/js/bundle.js"></script>
-<script src="../src/City.js"></script>
 <script src="noise.js"></script>
 <script src="rbush.js"></script>
 <script src="rbush.viz.js"></script>
@@ -70,6 +70,7 @@
   //console.log(state, Simulation.prototype.Creature)
 
   //tree.compute()
+Game.compile()
 Game.Life = Sim()
 Game.World = Gen()
 
