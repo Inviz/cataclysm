@@ -1,6 +1,6 @@
 <body id="clickable">
 <script>P = {version: {commit: Math.random()}}</script>
-<link rel="stylesheet" href="src/styles/page.css" />
+<link rel="stylesheet" href="engine/styles/page.css" />
 <div id="container"></div>
 
 <div id="fixed">
@@ -15,147 +15,59 @@
 </header>
 </div>
 
-<script src="engine/src/loader.js"></script>
-<script src="citygen/assets/js/bundle.js"></script>
-
+<script src="petri/loader.js"></script>
 <script>
+  var seed = 2;
+  if (location.search.indexOf('random') > -1)
+    seed = Math.random()
+  var seed = location.search.match(/seed=([^&]+)/);
+  if (seed)
+    seed = parseFloat(seed[1])
+
+
+  function Gen() {
+    console.time('gen test')
+    var state = new Game.Generator(seed)
+    var states = [];
+    state = state.advance.apply(state, arguments)
+    console.timeEnd('gen test')
+
+    return state
+  }
   function READY() {
+    Game.compile()
+    Game.World = Gen()
 
-  var areas = [1,2,3,4].map(function(area_index) {
-    
-    var map = City()
-    var walls = [];
-    var zones = [];
-    P.Wall.atGrid = function(v) {
-      return v
-    }
-    map.buildings.map(function(building, index) {
-      walls.push(
-        [0, P.Wall.atGrid(building.corners[0].x),
-            P.Wall.atGrid(building.corners[0].y), 
-            P.Wall.atGrid(building.corners[1].x), 
-            P.Wall.atGrid(building.corners[1].y)],
-        [0, P.Wall.atGrid(building.corners[1].x),
-            P.Wall.atGrid(building.corners[1].y), 
-            P.Wall.atGrid(building.corners[2].x), 
-            P.Wall.atGrid(building.corners[2].y)],
-        [0, P.Wall.atGrid(building.corners[2].x),
-            P.Wall.atGrid(building.corners[2].y), 
-            P.Wall.atGrid(building.corners[3].x), 
-            P.Wall.atGrid(building.corners[3].y)],
-        [0, P.Wall.atGrid(building.corners[3].x),
-            P.Wall.atGrid(building.corners[3].y), 
-            P.Wall.atGrid(building.corners[0].x), 
-            P.Wall.atGrid(building.corners[0].y)]
-      )
-      zones.push({
-        id: index,
-        title: 'Building #' + index,
-        polygon: {
-          coordinates: [[
-            [P.Wall.atGrid(building.corners[0].x), P.Wall.atGrid(building.corners[0].y)],
-            [P.Wall.atGrid(building.corners[1].x), P.Wall.atGrid(building.corners[1].y)],
-            [P.Wall.atGrid(building.corners[2].x), P.Wall.atGrid(building.corners[2].y)],
-            [P.Wall.atGrid(building.corners[3].x), P.Wall.atGrid(building.corners[3].y)]
-          ]]
-        },
-        observed: true
+    P.areas = [];
+    Game.World.eachBlock(function(block) {
+      var area = new P.Area({
+        id: block,
+        polygon: this.computeBlockPolygon(block),
+        zones: []
       })
-    })
-    
-    var minX =  Infinity
-    var maxX = -Infinity
-    var minY =  Infinity
-    var maxY = -Infinity
-
-    map.segments.forEach(function(wall) {
-      var pX = wall.r.start.x
-      var pY = wall.r.start.y
-      if (pX > maxX) maxX = pX;
-      if (pX < minX) minX = pX;
-      if (pY > maxY) maxY = pY;
-      if (pY < minY) minY = pY;
-      var pX = wall.r.end.x
-      var pY = wall.r.end.y
-      if (pX > maxX) maxX = pX;
-      if (pX < minX) minX = pX;
-      if (pY > maxY) maxY = pY;
-      if (pY < minY) minY = pY;
-    })
-
-    var lines = map.segments.slice(1).map(function(segment) {
-      return new P.Line({
-        from: segment.r.start,
-        to: segment.r.end,
-        zoom: segment.width,
-        color: new THREE.Color(0.6,0.6,0.6),
-        segment: segment
-      })
-    });
-    return {
-      id: area_index,
-      title: 'Rough neibourhood#' + area_index,
-      walls_editor: walls,
-      zones: zones,
-      polygon: {
-        coordinates: [[
-          [minX, minY],
-          [minX, maxY],
-          [maxX, maxY],
-          [maxX, minY]
-        ]]
-      },
-      lines: lines,
-      coordinates: {
-        x: 0,
-        y: 0,
-        z: area_index
-      }
-    }
-  })
-
-
-  P.Import.startup({
-    location: {
-      id: 0,
-      areas: areas,
-      title: 'Bibiryovo',
-      community: {
-        title: 'Before the storm'
-      },
-    },
-
-    people: [
-      {
-        area_id: 1,
-        id: 1,
-          display_name: 'Yaroslaff Fedin',
-        profile: {
-          display_name: 'Yaroslaff Fedin',
-          imageSRC: '/images/'
-        }, 
-        position: {
-          area_id: 1
+      this.eachBuilding(function(building) {
+        if (this.getBuildingBlock(building) == block) {
+          area.zones.push(new P.Zone({
+            area: area,
+            id: building,
+            polygon: this.computeBuildingShape(building)
+          }))
         }
-      }
-    ],
-    companies: [],
-
-    user: {
-      id: 1
-    }
-  })
-
-  P.areas.forEach(function(area) {
-    area.zones.forEach(function(zone) {
-      zone.extrudeY = (50 * Math.floor(Math.random() * 3)) + 50;
-      zone.overlayColor = new THREE.Color(0.9,0.9,0.9)
-
+      })
+      area.computeAreaBox()
+      P.areas.push(area)
     })
-  })
-  P.initialized = true;
-  P.animate.start()
-}
+
+    P.city = new P.City({
+      areas: P.areas,
+      roadNetwork: Game.World.Road.network
+    })
+
+    P.initialized = true;
+    P.Scene.navigate('map')
+    P.animate.start()
+  }
 
 </script>
+<script src="engine/loader.js"></script>
 </body>

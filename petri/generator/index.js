@@ -8,8 +8,8 @@ Game.Generator = function(seed, step, previous) {
 
     Game.Generator.prototype.Road = Game.Generator.prototype.compile(
       Game.Struct.Road,      
-      ['previous', 'angle', 'type', 'ex', 'ey', 'collision', 'sx', 'sy'], 
-      {previous: 'roads'}, 'road', 'roads');
+      ['city', 'previous', 'angle', 'type', 'ex', 'ey', 'collision', 'sx', 'sy'], 
+      {previous: 'roads', city: 'cities'}, 'road', 'roads');
 
     Game.Generator.prototype.Block = Game.Generator.prototype.compile(
       Game.Struct.Block,      
@@ -18,7 +18,7 @@ Game.Generator = function(seed, step, previous) {
 
     Game.Generator.prototype.Building = Game.Generator.prototype.compile(
       Game.Struct.Building,  
-      ['road', 'x', 'y', 'offsetAngle'], 
+      ['block', 'road', 'x', 'y', 'offsetAngle'], 
       {road: 'roads', block: 'blocks'}, 'building', 'buildings');
 
     Game.Generator.prototype.Room = Game.Generator.prototype.compile(

@@ -612,6 +612,10 @@ THREE.InstancedMesh.prototype.needsUpdate = function( attribute ){
 
 THREE.InstancedMesh.prototype._setAttributes = function(){
   if (this._useMatrix) {
+    this.geometry.removeAttribute( '_instanceMatrixA')
+    this.geometry.removeAttribute( '_instanceMatrixB')
+    this.geometry.removeAttribute( '_instanceMatrixC')
+    this.geometry.removeAttribute( '_instanceMatrixD')
     this.geometry.addAttribute( '_instanceMatrixA' ,  new THREE.InstancedBufferAttribute( new Float32Array( this.numInstances * 4 ) , 4 , 1 ) ); 
     this.geometry.addAttribute( '_instanceMatrixB' ,  new THREE.InstancedBufferAttribute( new Float32Array( this.numInstances * 4 ) , 4 , 1 ) ); 
     this.geometry.addAttribute( '_instanceMatrixC' ,  new THREE.InstancedBufferAttribute( new Float32Array( this.numInstances * 4 ) , 4 , 1 ) ); 

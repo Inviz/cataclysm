@@ -212,9 +212,6 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
     mDash = margin;
   if (pDash == null)
     pDash = padding;
-  points = points.map(function(p) {
-    return {x: ClipperLib.Cast_Int32(p.x), y: ClipperLib.Cast_Int32(p.y)}
-  })
   context.padding = this.computePolygonOffset([points], 0, -padding, 2).map(function(pp) {
     return pp.map(function(p) {
       return [p.x, p.y]

@@ -61,15 +61,18 @@ Game.Struct.Road = [
     else
       return 1000;
   },
-  function setPopulation(population, index, context) {
+  function setPopulation(population, index, context, city) {
     var vector = context.computeRoadVector(index);
-    return (context.computeTripleNoise(context.getRoadSx(index), context.getRoadSy(index)) 
-          + context.computeTripleNoise(context.getRoadEx(index), context.getRoadEy(index))) / 2;
+    var x = city.x;
+    var y = city.y;
+    console.log(x, y)
+    return (context.computeTripleNoise(context.getRoadSx(index) + x, context.getRoadSy(index) + y) 
+          + context.computeTripleNoise(context.getRoadEx(index) + x, context.getRoadEy(index) + y)) / 2;
   },
   function setStatus(status) {
     return status
   },
-  function setCollision(collision, index, context) {
+  function setCollision(collision, index, context, city) {
     if (collision != null)
       return collision;
     var type = null;
@@ -168,7 +171,7 @@ Game.Struct.Road = [
       })
 
       // update current segment to snap to point on target line
-      context.Road(index, context.getRoadPrevious(index), null, context.getRoadType(index), xx, xy, type || 0);
+      context.Road(index, city, context.getRoadPrevious(index), null, context.getRoadType(index), xx, xy, type || 0);
 
     }
     if (target != null) {
@@ -244,12 +247,12 @@ Game.Generator.prototype.randomAngle = function(limit) {
 Game.Generator.prototype.CityRoad = function(city) {
   var queue = [];
   // create two opposite directed segments linked to each other
-  var centerX = this.getCityX(city)
-  var centerY = this.getCityY(city)
+  var centerX = 0//this.getCityX(city)
+  var centerY = 0//this.getCityY(city)
   var centerX0 = centerX + this.HIGHWAY_SEGMENT_LENGTH / 2;
   var centerX1 = centerX - this.HIGHWAY_SEGMENT_LENGTH / 2
-  queue.push(0, this.Road(0, 1, 0, 0, centerX0, centerY))
-  queue.push(0, this.Road(1, 0, Math.PI, 0, centerX1, centerY))
+  queue.push(0, this.Road(0, city, 1, 0, 0, centerX0, centerY))
+  queue.push(0, this.Road(1, city, 0, Math.PI, 0, centerX1, centerY))
 
   var road = 2; 
   var count = 0;
@@ -295,8 +298,8 @@ Game.Generator.prototype.CityRoad = function(city) {
         // split target segment
         if ((this.getRoadEx(target) != xx || this.getRoadEy(target) != xy)
           && (this.getRoadSx(target) != xx || this.getRoadSy(target) != xy)) {
-            this.Road(this.Road.count, this.getRoadPrevious(target), null, this.getRoadType(target), xx, xy, 0, this.getRoadSx(target), this.getRoadSy(target));
-            this.Road(target, this.Road.count, null, this.getRoadType(target), ex, ey, 0, xx, xy);
+            this.Road(this.Road.count, city, this.getRoadPrevious(target), null, this.getRoadType(target), xx, xy, 0, this.getRoadSx(target), this.getRoadSy(target));
+            this.Road(target, city, this.Road.count, null, this.getRoadType(target), ex, ey, 0, xx, xy);
             this.Road.count++
         }
         this.setRoadCollision(road, 0)
@@ -320,9 +323,9 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
   // continue road ahead
 
   if (roadType == 0)
-    var roadAhead = this.Road(nextRoad++, road, 0, roadType, null, null, -1);
+    var roadAhead = this.Road(nextRoad++, city, road, 0, roadType, null, null, -1);
   else
-    var roadAhead = this.Road(nextRoad++, road, this.RANDOM_STEER_ANGLE() * (Math.PI / 180), roadType, null, null, -1);
+    var roadAhead = this.Road(nextRoad++, city, road, this.RANDOM_STEER_ANGLE() * (Math.PI / 180), roadType, null, null, -1);
 
   var populationAhead = this.getRoadPopulation(roadAhead);
 
@@ -330,7 +333,7 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
   if (roadType === 0) {
 
     // steer highway into direction with higher population
-    var roadRandomStraight = this.Road(nextRoad++, road, (this.HIGHWAY_RANDOM_STRAIGHT_ANGLE()) * (Math.PI / 180), roadType, null, null, -1);
+    var roadRandomStraight = this.Road(nextRoad++, city, road, (this.HIGHWAY_RANDOM_STRAIGHT_ANGLE()) * (Math.PI / 180), roadType, null, null, -1);
     var populationRandomStraight = this.getRoadPopulation(roadRandomStraight);
     if (populationRandomStraight > populationAhead) {
       this.moveRoad(roadRandomStraight, roadAhead)
@@ -342,9 +345,9 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
     // make a highway T-junction
     if (populationAhead > this.HIGHWAY_BRANCH_POPULATION_THRESHOLD) {
       if (this.random() < this.HIGHWAY_BRANCH_PROBABILITY)
-        queue.push(priority, this.Road(nextRoad++, road, (90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), roadType, null, null, -1))
+        queue.push(priority, this.Road(nextRoad++, city, road, (90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), roadType, null, null, -1))
       else if (this.random() < this.HIGHWAY_BRANCH_PROBABILITY)
-        queue.push(priority, this.Road(nextRoad++, road, (- 90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), roadType, null, null, -1))
+        queue.push(priority, this.Road(nextRoad++, city, road, (- 90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), roadType, null, null, -1))
     }
 
     priority += this.NORMAL_BRANCH_TIME_DELAY_FROM_HIGHWAY;
@@ -359,9 +362,9 @@ Game.Generator.prototype.CityRoadRoad = function(city, road, queue, priority) {
   // branch off regular road (even from highway)
   if (populationAhead > this.NORMAL_BRANCH_POPULATION_THRESHOLD) {
     if (this.random() < this.DEFAULT_BRANCH_PROBABILITY)
-      queue.push(priority, this.Road(nextRoad++, road, (90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), 1, null, null, -1))
+      queue.push(priority, this.Road(nextRoad++, city, road, (90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), 1, null, null, -1))
     else if (this.random() < this.DEFAULT_BRANCH_PROBABILITY)
-      queue.push(priority, this.Road(nextRoad++, road, (- 90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), 1, null, null, -1))
+      queue.push(priority, this.Road(nextRoad++, city, road, (- 90 + this.RANDOM_BRANCH_ANGLE()) * (Math.PI / 180), 1, null, null, -1))
   }
   
   return this.Road.count = nextRoad;

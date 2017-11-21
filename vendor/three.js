@@ -34402,7 +34402,7 @@
 
   function Curve() {
 
-    this.arcLengthDivisions = 200;
+    this.arcLengthDivisions = 10;
 
   }
 

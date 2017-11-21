@@ -1,0 +1,94 @@
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<canvas id="canvas" width="1500" height="1500"></canvas>
+<script src="petri/loader.js"></script>
+<script>
+
+  var seed = 2;
+  if (location.search.indexOf('random') > -1)
+    seed = Math.random()
+  var seed = location.search.match(/seed=([^&]+)/);
+  if (seed)
+    seed = parseFloat(seed[1])
+  function Sim() {
+    console.time('sim test')
+    var state = new Simulation(0, 123)
+    state.areas[0] = 10000
+    state.areas[1] = 10000
+    var states = [];
+    for (var x = 0; x < 100; x++) {
+      state = state.advance()
+      states.push(state);
+      if (states.length > 5)
+        states.pop()
+    }
+    state.history = states
+    console.timeEnd('sim test')
+    return state
+  }
+
+  function Gen() {
+    console.time('gen test')
+    var state = new Game.Generator(seed)
+    var states = [];
+    state = state.advance.apply(state, arguments)
+    console.timeEnd('gen test')
+
+    return state
+  }
+  //console.log(state, Simulation.prototype.Creature)
+
+  //tree.compute()
+Game.compile()
+Game.Life = Sim()
+Game.World = Gen()
+
+
+var minX =  Infinity
+var maxX = -Infinity
+var minY =  Infinity
+var maxY = -Infinity
+
+
+Game.World.eachRoad(function(road) {
+  var pX = this.getRoadEx(road);
+  var pY = this.getRoadEy(road);
+  if (pX > maxX) maxX = pX;
+  if (pX < minX) minX = pX;
+  if (pY > maxY) maxY = pY;
+  if (pY < minY) minY = pY;
+  var pX = this.getRoadSx(road);
+  var pY = this.getRoadSy(road);
+  if (pX > maxX) maxX = pX;
+  if (pX < minX) minX = pX;
+  if (pY > maxY) maxY = pY;
+  if (pY < minY) minY = pY;
+
+})
+var width = maxX - minX
+var height = maxY - minY
+var max =3200;
+if (width > height) {
+  height = max * (height / width)
+  var zoom = max / width
+  width = max
+} else {
+  width = max * (width / height)
+  var zoom = max / height
+  height = max
+}
+canvas.width = width;
+canvas.height = height;
+console.info(width, 'x', height)
+
+if (window.devicePixelRatio > 1) {
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
+    canvas.width = canvas.width * 2;
+    canvas.height = canvas.height * 2;
+}
+
+draw()
+</script>

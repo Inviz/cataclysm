@@ -84,7 +84,6 @@ Game.Struct.Furniture = [
   },
 
   function computeAnchorPoints(index, context) {
-    debugger
     return context.computeAnchorPoints(context.computeFurniturePolygon(index), 2, 2, null, null, 50, 50)
   },
   function computeSpinePoints(index, context) {

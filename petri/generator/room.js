@@ -47,7 +47,7 @@ Game.Struct.Room = [
       var offsetDistance = offset * origin.width
     }
 
-    var angleShift = Math.cos(angle) * (distance + .1);
+    var angleShift = Math.cos(angle) * (distance);
     var offsetShift = Math.cos((angle - Math.PI / 2)) * (offsetDistance);
     return x + (angleShift) * orientation + offsetShift
     //if (number == 0)
@@ -66,7 +66,7 @@ Game.Struct.Room = [
       var offsetDistance = offset * origin.width
     }
 
-    var angleShift = Math.sin(angle) * (distance + .1);
+    var angleShift = Math.sin(angle) * (distance);
     var offsetShift = Math.sin((angle - Math.PI / 2)) * (offsetDistance);
     return y + (angleShift) * orientation + offsetShift
   },
