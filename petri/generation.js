@@ -141,7 +141,7 @@ Generation.prototype.computePolygonOffset = function(paths, margin, padding, typ
 Generation.prototype.computePolygonSimplification = function(polygon, distance) {
   var simplified_path = new ClipperLib.Paths(); // empty solution
   var simplified_path2 = new ClipperLib.Paths(); // empty solution
-  simplified_path = ClipperLib.JS.Lighten(polygon, distance || 5);
+  simplified_path = ClipperLib.JS.Lighten(polygon, distance || .5);
   simplified_path[0] = simplifyColinearLines(simplified_path[0], 'x', 'y')
   return simplified_path
 }
@@ -216,9 +216,9 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
     segments.push(segments[0])
   }
   if (padding == null)
-    padding = 100;
+    padding = 10;
   if (margin == null)
-    margin = 60;
+    margin = 6;
   if (mDash == null)
     mDash = margin;
   if (pDash == null)
@@ -258,6 +258,8 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
   context.paddingStraightPointsShuffled = [context.paddingPointsShuffled[0].filter(function(point) {
     return point[3] % Math.PI / 2 == 0
   })]
+  if (!context.marginPoints[0])
+    context.marginPoints[0] = [];
   context.marginPoints[0].forEach(function(spine) {
     spine[3] = angleToPolygon({x: spine[0], y: spine[1]}, points)
     spine[4] = Game.ANCHOR.OUTSIDE | Game.ANCHOR.OUTWARDS | Game.ANCHOR.INWARDS
@@ -354,9 +356,9 @@ Generation.prototype.computeSpinePoints = function(points, context, segments, di
 
 Generation.prototype.computeTripleNoise = function(x, y) {
   var value1, value2, value3;
-  value1 = (noise.simplex2(x / 100000, y / 100000) + 1) / 2;
-  value2 = (noise.simplex2(x / 200000 + 5000, y / 200000 + 5000) + 1) / 2;
-  value3 = (noise.simplex2(x / 200000 + 10000, y / 200000 + 10000) + 1) / 2;
+  value1 = (noise.simplex2(x / 10000, y / 10000) + 1) / 2;
+  value2 = (noise.simplex2(x / 20000 + 500, y / 20000 + 500) + 1) / 2;
+  value3 = (noise.simplex2(x / 20000 + 1000, y / 20000 + 1000) + 1) / 2;
   return Math.pow((value1 * value2 + value3) / 2, 2);
 }
 

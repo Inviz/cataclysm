@@ -354,10 +354,10 @@ simplifyColinearLines = function(segments, X, Y) {
       return true;
 
     var angle1 = Math.atan2(point[Y] - prev[Y], point[X] - prev[X])
-    var angle2 = Math.atan2(next[Y] - prev[Y], next[X] - prev[X])
+    var angle2 = Math.atan2(next[Y] - point[Y], next[X] - point[X])
     var diff = Math.abs(angle1 - angle2) % Math.PI;
     var d = Math.min(diff, Math.abs(diff - Math.PI));
-    return d > 0.01
+    return Math.abs(d) > 0.1
   }, this)
 }
 

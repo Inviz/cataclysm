@@ -20,15 +20,19 @@ Game.Distributions.Furniture = {
 
 Game.Furniture = {
   table: {
-    width: 200,
-    height: 200,
-    maxWidth: 100,
-    maxHeight: 100,
+    width: 20,
+    height: 20,
+    maxWidth: 10,
+    maxHeight: 10,
 
-    blueprint: [
+    children: [
       {
         type: 'long_plate', 
-        shift: new THREE.Vector3(-1, 1, 0)
+        shift: new THREE.Vector3(-1, 1, 0),
+
+        children: [
+
+        ]
       },
       {
         type: 'long_plate', 
@@ -40,7 +44,8 @@ Game.Furniture = {
       },
       {
         type: 'short_bar', 
-        shift: new THREE.Vector3(-1, 0, -1)
+        shift: new THREE.Vector3(-1, 0, -1),
+        quaternion: new THREE.Quaternion().setFromEuler(new THREE.Euler(1,0,0))
       },
       {
         type: 'short_bar', 
@@ -58,46 +63,46 @@ Game.Furniture = {
   },
 
   chair: {
-    width: 70,
-    height: 70
+    width: 7,
+    height: 7
   },
   armchair: {
-    width: 100,
-    height: 100
+    width: 10,
+    height: 10
   },
 
   small_table: {
-    width: 200,
-    height: 100
+    width: 20,
+    height: 10
   },
 
   lamp: {
-    width: 50,
-    height: 50
+    width: 5,
+    height: 5
   },
 
   stool: {
-    width: 50,
-    height: 50
+    width: 5,
+    height: 5
   },
 
   shelf: {
-    width: 60,
-    height: 40
+    width: 6,
+    height: 4
   },
 
   sofa: {
-    width: 200,
-    height: 80
+    width: 20,
+    height: 8
   },
 
   tv: {
-    width: 120,
-    height: 20
+    width: 12,
+    height: 2
   },
 
   bar_stand: {
-    width: 150,
-    height: 70
+    width: 15,
+    height: 7
   }
 }

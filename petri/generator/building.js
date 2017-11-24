@@ -1,12 +1,12 @@
 Game.Struct.Building = [
   function setWidth(width, context) {
-    return 600 + context.random() * 200
+    return 60 + context.random() * 20
   },
   function setLength(length, context) {
-    return 500 + context.random() * 500
+    return 50 + context.random() * 50
   },
   function setHeight(height, context) {
-    return Math.max(300, Math.floor(Math.random() * 3) * 300)
+    return Math.max(30, Math.floor(Math.random() * 3) * 30)
   },
   function setOffsetAngle(offsetAngle, road) {
     return (Math.PI + offsetAngle)//360 * Math.random()
@@ -15,10 +15,10 @@ Game.Struct.Building = [
     return block
   },
   function setRoofHeight(roofHeight, context) {
-    return context.random() > 0.5 ? 450 : context.random() > 0.5 ? 100 : 200;
+    return context.random() > 0.5 ? 45 : context.random() > 0.5 ? 10 : 20;
   },
   function setOffsetDistance(offsetDistance, width, length, road) {
-    return width / 2 + 50 //100// * Math.random()
+    return width / 2 + 5 //100// * Math.random()
   },
   function setX (x, road, offsetDistance, offsetAngle) {
     if (x == null)
@@ -75,7 +75,7 @@ Game.Struct.Building = [
     return context.computePolygonSimplification(context.computeCleanPolygon(context.computeBuildingPSLG(index)))
   },
   function computeOuterPolygon(index, context) {
-    return context.computePolygonOffset(context.computeBuildingCleanPolygon(index), 200, null, 2)[0]
+    return context.computePolygonOffset(context.computeBuildingCleanPolygon(index), 20, null, 2)[0]
   },
   function computeNavigationNetwork(index, context) {
     return context.computeNavigationNetwork(context.computeBuildingPSLG(index))
@@ -88,7 +88,7 @@ Game.Struct.Building = [
   },
   function computeFinalSpinePoints(index, context) {
     var polygon = context.computeBuildingCleanPolygon(index)
-    var polygon = context.computePolygonOffset(polygon, 30, null, 2)[0]
+    var polygon = context.computePolygonOffset(polygon, 3, null, 2)[0]
     var polygon = context.computeSpinePoints(polygon, null, null, context.getBuildingRoofHeight(index));
 
     return polygon;
@@ -109,7 +109,7 @@ Game.Generator.prototype.RoadBuilding = function(road, callback) {
   var distance = this.getRoadRange(road)
   var count = 13;
   var polygon = this.computeRoadSurroundingPolygon(road)
-  var polygon = this.computeAnchorPoints(polygon, 500, 500)
+  var polygon = this.computeAnchorPoints(polygon, 50, 50)
   placement: for (var i = 0; i < count; i++) {
 
     var building = this.Building.count;
@@ -131,7 +131,7 @@ Game.Generator.prototype.BlockBuilding = function(block, callback) {
   var loop = this.getBlockLoop(block)
   //if (loop) {
     var polygon = this.computeBlockInnerPolygon(block)[0]
-    var polygon = this.computeAnchorPoints(polygon, 100, -300, null, null, 500, 500)
+    var polygon = this.computeAnchorPoints(polygon, 10, -30, null, null, 50, 50)
   if (loop) {
     var angle = Math.PI
     var points = polygon.paddingPointsShuffled[0];

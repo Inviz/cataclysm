@@ -17,18 +17,18 @@ Game.Struct.Block = [
     if (loop)
       width = context.computeBlockPolygonCenter(index).width;
     else if (context.random() > 0.8)
-      return 3000 + (context.random() * 3000)
+      return 300 + (context.random() * 300)
     else
-      return 4000 + (context.random() * 3000)
+      return 400 + (context.random() * 300)
     return width;
   },
   function setHeight(height, loop, context, index) {
     if (loop)
       height = context.computeBlockPolygonCenter(index).height;
     else if (context.random() > 0.8)
-      return 3000
+      return 300
     else 
-      return 4000
+      return 400
     return height;
   },
   function setShift(shift, context) {
@@ -101,7 +101,7 @@ Game.Struct.Block = [
   },
 
   function computeInnerPolygon(index, context) {
-    return context.computePolygonOffset([context.computeBlockPolygon(index)], -200, 100, 0);
+    return context.computePolygonOffset([context.computeBlockPolygon(index)], -20, 10, 0);
   }
 ]
 

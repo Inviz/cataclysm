@@ -55,12 +55,6 @@ Game.Struct.Road = [
       return 0
     }
   },
-  function setRange(range, connectivity) {
-    if (connectivity)
-      return 2000
-    else
-      return 1000;
-  },
   function setPopulation(population, index, context, city) {
     var vector = context.computeRoadVector(index);
     var x = city.x;
@@ -189,21 +183,21 @@ Game.Struct.Road = [
     return context.computePolygonFromRotatedRectangle(x, y, length, width, angle)
   },
   function computeOuterPolygon(x, y, width, length, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, length + 200, width + 200, angle)
+    return context.computePolygonFromRotatedRectangle(x, y, length + 20, width + 20, angle)
   },
   function computeSurroundingPolygon(x, y, width, length, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, length + 300, width +300, angle)
+    return context.computePolygonFromRotatedRectangle(x, y, length + 30, width + 30, angle)
   },
   function computeAnchorPoints(index, context) {
-    return context.computeAnchorPoints(context.computeRoadSurroundingPolygon(index), 50, 400)
+    return context.computeAnchorPoints(context.computeRoadSurroundingPolygon(index), 5, 40)
   }
 ]
 
 
-Game.Generator.prototype.DEFAULT_SEGMENT_LENGTH = 3000
-Game.Generator.prototype.HIGHWAY_SEGMENT_LENGTH = 4000
-Game.Generator.prototype.DEFAULT_SEGMENT_WIDTH = 160
-Game.Generator.prototype.HIGHWAY_SEGMENT_WIDTH = 260
+Game.Generator.prototype.DEFAULT_SEGMENT_LENGTH = 300
+Game.Generator.prototype.HIGHWAY_SEGMENT_LENGTH = 400
+Game.Generator.prototype.DEFAULT_SEGMENT_WIDTH = 16
+Game.Generator.prototype.HIGHWAY_SEGMENT_WIDTH = 26
 
 // global goals
 Game.Generator.prototype.HIGHWAY_BRANCH_POPULATION_THRESHOLD = 0.15;
@@ -214,8 +208,8 @@ Game.Generator.prototype.DEFAULT_BRANCH_PROBABILITY = 0.4,
 
 // local constraints
 Game.Generator.prototype.MINIMUM_INTERSECTION_DEVIATION = 30 * Math.PI  / 180,
-Game.Generator.prototype.ROAD_SNAP_DISTANCE = 1000
-Game.Generator.prototype.POINT_SNAP_DISTANCE = 250
+Game.Generator.prototype.ROAD_SNAP_DISTANCE = 100
+Game.Generator.prototype.POINT_SNAP_DISTANCE = 25
 
 Game.Generator.prototype.RANDOM_BRANCH_ANGLE = function() {
   if (this.random() > 0.66)

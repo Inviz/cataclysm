@@ -6492,7 +6492,6 @@ function triangulate(segments, borders) {
     return new THREE.Vector3(x, y, z);
   });
 
-  console.log('another')
   var edge1 =  new THREE.Vector3();
   var edge2 =  new THREE.Vector3();
   var normal = new THREE.Vector3();
@@ -6520,7 +6519,6 @@ function triangulate(segments, borders) {
   //geometry.computeFaceNormals()
   //geometry.computeVertexNormals()
   //THREE.calculateVertexNormals(geometry, 45)
-  console.error('faces', geometry.faces.length, geometry.vertices)
   return geometry;
 }
 

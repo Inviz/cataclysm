@@ -294,8 +294,8 @@ function draw() {
       //polys.push(p)
           if (poly.marginPoints)
             poly.marginPoints[0].forEach(function(line) {
-              var x2 = line[0] + Math.cos(line[3]) * 5
-              var y2 = line[1] + Math.sin(line[3]) * 5
+              var x2 = line[0] + Math.cos(line[3]) * .5
+              var y2 = line[1] + Math.sin(line[3]) * .5
               //lines.push(['blue', 3, [
               //            scale({x: line[0], y: line[1]}),
               //            scale({x: x2, y: y2})
@@ -347,8 +347,8 @@ function draw() {
     Game.World.eachRoom(function(r) {
        
          this.computeRoomPolygon(r).paddingPoints[0].forEach(function(point) {
-             var x2 = point[0] + Math.cos(point[3]) * 30
-             var y2 = point[1] + Math.sin(point[3]) * 30
+             var x2 = point[0] + Math.cos(point[3]) * 3
+             var y2 = point[1] + Math.sin(point[3]) * 3
            lines.push(['red', 1, [
              scale(point),
              scale([x2, y2])

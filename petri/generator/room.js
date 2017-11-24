@@ -80,7 +80,7 @@ Game.Struct.Room = [
     return context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
   },
   function computeAnchorPoints(index, context) {
-    return context.computeAnchorPoints(context.computeRoomPolygon(index), 2, 2, null, null, 100, 100)
+    return context.computeAnchorPoints(context.computeRoomPolygon(index), .2, .2, null, null, 10, 10)
   },
   function computeSpinePoints(index, context) {
     return context.computeSpinePoints(context.computeRoomPolygon(index))

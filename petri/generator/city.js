@@ -28,28 +28,28 @@ Game.Struct.City = [
   },
 
   function computeInsidePolygon(context, index) {
-    return context.computePolygonOffset(context.computeCityPolygon(index), 150, -150, 0)
+    return context.computePolygonOffset(context.computeCityPolygon(index), 15, -15, 0)
   },
   function computeCleanInsidePolygon(context, index) {
-    return context.computePolygonSimplification(context.computeCleanPolygon(polygonToPSLG(context.computeCityInsidePolygon(index), {clean: true}, 'x', 'y')).map(function(hole) {
+    return context.computeCleanPolygon(polygonToPSLG(context.computeCityInsidePolygon(index), {clean: true}, 'x', 'y')).map(function(hole) {
       return hole.map(function(p) {
         return {x: p[0], y: p[1]}
       })
-    }))
+    })
   },
 
   function computeRoadConnectivity(context) {
     var connectivity = {};
     context.eachRoad(function(road) {
-      var key = Math.floor(context.getRoadEx(road) / 100) + 'x' + Math.floor(context.getRoadEy(road) / 100)
+      var key = Math.floor(context.getRoadEx(road) / 10) + 'x' + Math.floor(context.getRoadEy(road) / 10)
       if (!connectivity[key]) connectivity[key] = [];
       connectivity[key].push(road);
-      var key = Math.floor(context.getRoadSx(road) / 100) + 'x' + Math.floor(context.getRoadSy(road) / 100)
+      var key = Math.floor(context.getRoadSx(road) / 10) + 'x' + Math.floor(context.getRoadSy(road) / 10)
       if (!connectivity[key]) connectivity[key] = [];
       connectivity[key].push(road);
     })
     context.eachRoad(function(road) {
-      var key = Math.floor(context.getRoadEx(road) / 100) + 'x' + Math.floor(context.getRoadEy(road) / 100)
+      var key = Math.floor(context.getRoadEx(road) / 10) + 'x' + Math.floor(context.getRoadEy(road) / 10)
       context.setRoadConnectivity(road, connectivity[key].length - 1);
     })
     return connectivity;
