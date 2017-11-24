@@ -342,17 +342,22 @@ equidistantPointsFromPolygon = function(poly, length, binary) {
 
   return result;
 }
-simplifyColinearLines = function(segments) {
+simplifyColinearLines = function(segments, X, Y) {
+  if (X == null)
+    X = '0'
+  if (Y == null)
+    Y = '1'
   return segments.filter(function(point, index) {
-    var prev = segments[index - 1];
-    var next = segments[index + 1];
+    var prev = segments[index - 1] || segments[segments.length - 1];
+    var next = segments[index + 1] || segments[0];
     if (prev == null || next == null)
       return true;
 
-    var angle1 = Math.round(Math.atan2(point[1] - prev[1], point[0] - prev[0]) * 180 /Math.PI)
-    var angle2 = Math.round(Math.atan2(next[1] - prev[1], next[0] - prev[0]) * 180 /Math.PI)
-
-    return Math.abs(Math.abs(angle1) - Math.abs(angle2)) > 0.01
+    var angle1 = Math.atan2(point[Y] - prev[Y], point[X] - prev[X])
+    var angle2 = Math.atan2(next[Y] - prev[Y], next[X] - prev[X])
+    var diff = Math.abs(angle1 - angle2) % Math.PI;
+    var d = Math.min(diff, Math.abs(diff - Math.PI));
+    return d > 0.01
   }, this)
 }
 
@@ -506,3 +511,22 @@ angleBetweenLines = function(A1x, A1y, A2x, A2y, B1x, B1y, B2x, B2y) {
   return angle
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

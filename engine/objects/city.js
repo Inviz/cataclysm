@@ -3,7 +3,8 @@ P.City = function(properties) {
     return new P.City(properties);
 
   P.Object.call(this, properties)
-  this.roads = this.setPolygon(this.roadNetwork).map(function(matrix) {
+  var network = Game.World.computePolygonSimplification(Game.World.computeCleanPolygon(Game.World.computePSLG(this.roadNetwork)))
+  this.roads = this.setPolygon(network).map(function(matrix) {
     return new P.Road({
       city: this,
       matrix: matrix

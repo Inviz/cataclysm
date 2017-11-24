@@ -30,6 +30,13 @@ Game.Struct.City = [
   function computeInsidePolygon(context, index) {
     return context.computePolygonOffset(context.computeCityPolygon(index), 150, -150, 0)
   },
+  function computeCleanInsidePolygon(context, index) {
+    return context.computePolygonSimplification(context.computeCleanPolygon(polygonToPSLG(context.computeCityInsidePolygon(index), {clean: true}, 'x', 'y')).map(function(hole) {
+      return hole.map(function(p) {
+        return {x: p[0], y: p[1]}
+      })
+    }))
+  },
 
   function computeRoadConnectivity(context) {
     var connectivity = {};

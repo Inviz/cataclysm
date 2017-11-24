@@ -28,9 +28,9 @@ Game.Struct.Room = [
   },
   function setHeight (height, number, building, placement, context) {
     if (number == 0 || placement)
-      return building.height;
+      return building.length;
     else
-      return building.height * (2 + (context.random() * 3)) / 3
+      return building.length * (2 + (context.random() * 3)) / 3
     return height;
   },
   function setX (x, number, building, origin, angle, orientation, placement, width, height, offset) {
@@ -47,7 +47,7 @@ Game.Struct.Room = [
       var offsetDistance = offset * origin.width
     }
 
-    var angleShift = Math.cos(angle) * (distance);
+    var angleShift = Math.cos(angle) * (distance + .00000001);
     var offsetShift = Math.cos((angle - Math.PI / 2)) * (offsetDistance);
     return x + (angleShift) * orientation + offsetShift
     //if (number == 0)
@@ -66,7 +66,7 @@ Game.Struct.Room = [
       var offsetDistance = offset * origin.width
     }
 
-    var angleShift = Math.sin(angle) * (distance);
+    var angleShift = Math.sin(angle) * (distance + .00000001);
     var offsetShift = Math.sin((angle - Math.PI / 2)) * (offsetDistance);
     return y + (angleShift) * orientation + offsetShift
   },
@@ -94,8 +94,17 @@ Game.Struct.Room = [
     // collide previously generated buildings
     var polygon1 = context.recomputeRoomPolygon(index)
     for (var i = 0; i < index; i++) {
-      if (!context.getRoomCollision(i) && (context.getRoomNumber(i) !== number || context.getRoomBuilding(i) !== building)) {
+      if (!context.getRoomCollision(i) && context.getRoomNumber(i) !== number && context.getRoomBuilding(i) === building) {
         var polygon2 = context.computeRoomPolygon(i)
+        if (doPolygonsIntersect(polygon1, polygon2)) {
+          return i + 1;
+        }
+      }
+    }
+    // collide previously generated buildings
+    for (var i = 0; i < context.Building.count; i++) {
+      if (i !== building) {
+        var polygon2 = context.computeBuildingOuterPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }

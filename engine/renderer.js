@@ -153,7 +153,7 @@ function init() {
 
 
     render(true)
-    READY()
+    setTimeout(READY, 50)
 
   })
 

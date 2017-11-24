@@ -325,6 +325,24 @@ function draw() {
            scale(pslg.points[edge[1]])
            ]])
        }, this)
+       var polygon = this.computeBuildingFinalSpinePoints(b)
+
+       polygon.forEach(function(point) {
+        return dots.push(['red', 5, [ scale(point),  scale(point)]])
+       })
+       polygon.backbone.forEach(function(line) {
+
+          lines.push(['red', 5, [
+                      scale(line[0]),
+                      scale(line[1])
+                      ]])
+       })
+       polygon.skeleton.spokes.forEach(function(line, index) {
+          lines.push(['green', 2, [
+                      scale(line.start),
+                      scale(line.end)
+                      ]])
+        })
     })
     Game.World.eachRoom(function(r) {
        
@@ -374,16 +392,16 @@ function draw() {
           scale(step)
           ]])
       }, this)
-      if (poly.marginPoints) {
+      /*if (poly.marginPoints) {
         poly.marginPoints[0].forEach(function(line) {
           var x2 = line[0] + Math.cos(line[3]) * 5
           var y2 = line[1] + Math.sin(line[3]) * 5
           dots.push(['green', 2, [
-                      {x: line[0], y: line[1]},
-                      {x: x2, y: y2}
+                      scale({x: line[0], y: line[1]}),
+                      scale({x: x2, y: y2})
                       ]])
         })
-      }
+      }*/
    })
 
   // hulls.push(['lightgrey', 2, Game.World.Road.networkPadding.map(scale)])

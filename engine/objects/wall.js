@@ -4,6 +4,8 @@ P.Wall = function(properties) {
 
 
 P.Wall.prototype = new P.Object;
+P.Wall.prototype.color = new THREE.Color(0x999999)
+P.Wall.prototype.alignY = 0.5
 
 P.Wall.instanced = function() {
   return THREE.InstancedMesh.create(
@@ -12,7 +14,7 @@ P.Wall.instanced = function() {
     P.UPDATE_POSITION | P.UPDATE_SCALE | P.UPDATE_ROTATION | P.UPDATE_OPACITY | P.UPDATE_COLOR,
     {
       name: 'walls',
-      getter: 'getWalls',
+      //getter: 'getWalls',
       renderForZones: true
     }
   )

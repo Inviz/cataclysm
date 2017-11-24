@@ -57,10 +57,19 @@ Generation.prototype.computeVectorFromSegment = function(x, y, distance, angle) 
   return v2;
 }
 Generation.prototype.computePSLG = function(polygons) {
-  return polygonToPSLG(polygons, {clean: true}, 0, 1);
+  return polygonToPSLG(polygons.map(function(loop) {
+      return loop.map(function(pt) {
+        return [pt.x, pt.y]//[Math.floor(pt.x * 1) / 1, Math.floor(pt.y * 1) / 1]
+      })
+    }), {clean: true}, 0, 1);
 }
 Generation.prototype.computeCleanPolygon = function(pslg) {
-  return PSLGToPoly(pslg.points, pslg.edges);
+  return PSLGToPoly(pslg.points, pslg.edges).map(function(loop) {
+    loop = loop.map(function(point) {
+      return {x: point[0], y: point[1]}
+    })
+    return loop
+  })
 }
 Generation.prototype.getConnectivity = function(a, b, pslg) {
   for (var i = 0; i < pslg.edges.length; i++)
@@ -131,7 +140,9 @@ Generation.prototype.computePolygonOffset = function(paths, margin, padding, typ
 }
 Generation.prototype.computePolygonSimplification = function(polygon, distance) {
   var simplified_path = new ClipperLib.Paths(); // empty solution
-  simplified_path = ClipperLib.JS.Lighten(polygon, distance || 2);
+  var simplified_path2 = new ClipperLib.Paths(); // empty solution
+  simplified_path = ClipperLib.JS.Lighten(polygon, distance || 5);
+  simplified_path[0] = simplifyColinearLines(simplified_path[0], 'x', 'y')
   return simplified_path
 }
 Generation.prototype.computeScaledPolygon = function(poly, scale) {
@@ -274,7 +285,7 @@ Generation.prototype.computePoints = function(points, context, segments) {
   points.allPointsShuffled = this.shuffleArray(points.allPoints);
   return points;
 }
-Generation.prototype.computeSpinePoints = function(points, context, segments) {
+Generation.prototype.computeSpinePoints = function(points, context, segments, distance) {
   if (!context)
     context = points
   if (!segments) {
@@ -299,9 +310,10 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
   }
   pather.close();
 
-  var skeleton = new CompGeo.Skeleton( pather.path, Infinity );
+  var skeleton = new CompGeo.Skeleton( pather.path,distance || Infinity );
 
   context.skeleton = skeleton
+  context.skeletonInput = pather.path
   context.spines = [];
   context.backbone = [];
   //var skeletonPath = new CompGeo.shapes.Path( skeleton.spokes );
@@ -309,6 +321,16 @@ Generation.prototype.computeSpinePoints = function(points, context, segments) {
 
 
   var uniqueness = {};
+  skeleton.spokes = skeleton.spokes.filter(function(spoke) {
+    if (!isFinite(spoke.start[0]) || !isFinite(spoke.start[1]) || !isFinite(spoke.end[0]) || !isFinite(spoke.end[1]))
+      return false;
+
+    var start = {x: spoke.end[0], y: spoke.end[1]};
+    if (!intersectPolygon(start, segments) &&
+      distanceToPolygon(start, points) > 1) 
+    return false;
+    return true;
+  });
   skeleton.spokes.forEach(function(spoke) {
     var key = Math.floor(spoke.end[0]) + 'x' + Math.floor(spoke.end[1]);
     var start = {x: spoke.start[0], y: spoke.start[1]};

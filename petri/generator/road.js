@@ -65,7 +65,6 @@ Game.Struct.Road = [
     var vector = context.computeRoadVector(index);
     var x = city.x;
     var y = city.y;
-    console.log(x, y)
     return (context.computeTripleNoise(context.getRoadSx(index) + x, context.getRoadSy(index) + y) 
           + context.computeTripleNoise(context.getRoadEx(index) + x, context.getRoadEy(index) + y)) / 2;
   },
@@ -261,7 +260,7 @@ Game.Generator.prototype.CityRoad = function(city) {
   if (limit)
     var limit = parseFloat(limit[1])
   else
-    limit = 100;
+    limit = this.Road.limit || 100;
   while (count < limit) {
     if (!queue.length) {
       break

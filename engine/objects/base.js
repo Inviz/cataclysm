@@ -2,15 +2,21 @@
 P.Object = function(properties) {
   if (properties != null)
     this.merge(properties)
+  this.shift = new P.Object.Shift(this)
+  if (properties && properties.shift)
+    this.shift.copy(properties.shift)
   this.offset = new P.Object.Offset(this);
   this.alignment = new THREE.Vector3;
-  this.position = new THREE.Vector3;
-  this.shift = new P.Object.Shift(this);
-  this.quaternion = new THREE.Quaternion;
-  this.scale = new THREE.Vector3(1,1,1);
-  this.uv = new THREE.Vector3(0,0,0)
+  if (!properties || !properties.position)
+    this.position = new THREE.Vector3;
+  if (!properties || !properties.quaternion)
+    this.quaternion = new THREE.Quaternion;
+  if (!properties || !properties.scale)
+    this.scale = new THREE.Vector3(1,1,1);
+  if (!properties || !properties.uv)
+    this.uv = new THREE.Vector3(0,0,0)
   this.changes |= P.UPDATE_EVERYTHING
-  
+
   this.icons = this.icons ? this.icons.map(this.getIcon, this) : [];
   if (this.icon) {
     this.icon = this.getIcon(this.icon)
@@ -25,6 +31,7 @@ P.Object = function(properties) {
 
 P.Object.prototype.zIndex = 0;
 P.Object.prototype.zoom = 1;
+P.Object.prototype.depth = 0;
 P.Object.prototype.alignX = 0;
 P.Object.prototype.alignY = 0;
 P.Object.prototype.paddingX = 0;
@@ -142,7 +149,12 @@ P.Object.prototype.getTotalZ = function(includeShift) {
 P.Object.prototype.getZoom = function() {
   if (this.isSticky())
     return camera.zoom
+  if (!this.isZoomable())
+    return 1
   return camera.zoom > 1 ? Math.max(1, camera.zoom / 2) : camera.zoom; 
+}
+P.Object.prototype.isZoomable = function() {
+  return false;
 }
 P.Object.prototype.getOpacity = function() {
   return camera.zoom > 1 ? Math.max(1, camera.zoom / 2) : camera.zoom; 
@@ -302,7 +314,7 @@ P.Object.prototype.computeScale = function() {
     return this.scale.set(
       width * zoom,
       this.height* zoom,
-      width * zoom)
+      this.depth * zoom)
   }
 }
 P.Object.prototype._computeScale = P.Object.prototype.computeScale;
@@ -314,8 +326,10 @@ P.Object.prototype.computeQuaternion = function() {
     return this.quaternion.copy(this.target.quaternion);
   } else if (this.isBillboard()){
     return this.quaternion.copy(camera.quaternion)
+  //} else {
+  //  //return this.quaternion.setFromAxisAngle(this.up, Math.PI / 2)
   } else {
-    return this.quaternion.setFromAxisAngle(this.up, Math.PI / 2)
+    return this.quaternion;
   }
 }
 P.Object.prototype._computeQuaternion = P.Object.prototype.computeQuaternion;
@@ -323,25 +337,25 @@ P.Object.prototype._computeQuaternion = P.Object.prototype.computeQuaternion;
 
 P.Object.zero = new THREE.Vector3;
 P.Object.prototype.getParent = function(includeShift) {
-  var parent = (this.zone || this.area || this.city);
+  var parent = (this.area || this.city);
   if (parent)
     return parent.currentPosition;
   return P.Object.zero;
 }
 P.Object.prototype.getParentX = function(includeShift) {
-  var parent = (this.zone || this.area || this.city)
+  var parent = (this.area || this.city)
   if (parent)
     return parent.currentPosition.x;
   return 0;
 }
 P.Object.prototype.getParentY = function(includeShift) {
-  var parent = (this.zone || this.area || this.city)
+  var parent = ( this.area || this.city)
   if (parent)
     return parent.currentPosition.y;
   return 0;
 }
 P.Object.prototype.getParentZ = function(includeShift) {
-  var parent = (this.zone || this.area || this.city)
+  var parent = ( this.area || this.city)
   if (parent)
     return parent.currentPosition.z;
   return 0;
@@ -634,8 +648,6 @@ P.Object.prototype.computeBox = function(points, useImage) {
   }
  
 
-  if (isNaN(this.contentBox.min.y))
-    debugger
   if (!isFinite(this.contentBox.min.y)) {
     this.contentBox.expandByPoint(p.set(0,0))
     if (!isFinite(box.min.y))

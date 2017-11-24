@@ -225,7 +225,7 @@ P.Scene.setTarget = function(object, ping) {
 P.Scene.getLight = function() {
   var ambient = new THREE.AmbientLight( 0x999999, 1 );
   scene.add(ambient)
-  light = new THREE.DirectionalLight( 0xffffff, 0.7 );
+  light = new THREE.DirectionalLight( 0xeeeeee, 0.7 );
   light.castShadow = true;
   light.name = 'sun';
   return light;

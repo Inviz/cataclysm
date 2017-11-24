@@ -15,7 +15,6 @@
 </header>
 </div>
 
-<script src="petri/loader.js"></script>
 <script>
   var seed = 2;
   if (location.search.indexOf('random') > -1)
@@ -47,11 +46,63 @@
       })
       this.eachBuilding(function(building) {
         if (this.getBuildingBlock(building) == block) {
-          area.zones.push(new P.Zone({
+          var zone = new P.Zone({
             area: area,
             id: building,
-            polygon: this.computeBuildingShape(building)
-          }))
+            polygon: this.computeBuildingCleanPolygon(building),
+            walls: []
+          });
+          area.zones.push(zone)
+
+          //zone.overlays = P.geometry.extrudePolygon(zone.polygon[0].slice(0).reverse())
+
+          var roof = this.computeBuildingRoofGeometry(building)
+       
+          /*
+          if (!roof.mesh2) {
+            roof.verticesNeedUpdate = true;
+            roof.normalsNeedUpdate = true;
+            roof.computeBoundingSphere();
+            roof.computeFaceNormals();
+            roof.computeFlatVertexNormals();
+            roof.mesh2 = new THREE.Mesh(roof, P.materials.roof2);
+            roof.mesh2.rotation.x = - Math.PI / 2,
+            roof.mesh2.rotation.z = - Math.PI / 2,
+            roof.mesh2.position.y = 200,
+            scene.add(roof.mesh2)
+          }*/
+
+          var buildingHeight = Game.World.getBuildingHeight(building);
+          var pslg = this.eachWall(function(wall) {
+            if (this.getWallBuilding(wall) != building)
+              return
+            var s1 = this.getWallX(wall);
+            var s2 = this.getWallY(wall);
+            zone.walls.push(new P.Wall({
+              coordinates: {
+                x: s1,
+                y: s2
+              },
+              quaternion: new THREE.Quaternion().setFromAxisAngle(zone._v3.set(0,-1, 0), this.getWallAngle(wall) + Math.PI / 2),
+              height: buildingHeight,
+              depth: 20,
+              width: this.getWallLength(wall)
+            }))
+          })
+          zone.roofs = P.geometry.matrixesFromGeometry(roof).map(function(matrix, index) {
+            var face = roof.faces[index]
+            var fa = roof.vertices[face.a]
+            var fb = roof.vertices[face.b]
+            var fc = roof.vertices[face.c]
+            var ta = P.geometry.triangleGeometry.clone().applyMatrix(matrix)
+            return new P.Roof({
+              matrix: matrix,
+              shift: new THREE.Vector3(
+                0, buildingHeight, 0
+              ),
+              building: building
+            })
+          });
         }
       })
       area.computeAreaBox()
@@ -70,4 +121,5 @@
 
 </script>
 <script src="engine/loader.js"></script>
+<script src="petri/loader.js"></script>
 </body>

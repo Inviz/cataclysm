@@ -29,6 +29,9 @@
   <script src="engine/objects/location.js?ver=' + P.version.commit + '"></script>\
   <script src="engine/objects/area.js?ver=' + P.version.commit + '"></script>\
   <script src="engine/objects/city.js?ver=' + P.version.commit + '"></script>\
+  <script src="engine/objects/roof.js?ver=' + P.version.commit + '"></script>\
+  <script src="engine/objects/box.js?ver=' + P.version.commit + '"></script>\
+  <script src="engine/objects/furniture.js?ver=' + P.version.commit + '"></script>\
   <script src="engine/objects/zone.js?ver=' + P.version.commit + '"></script>\
   <script src="engine/objects/floor.js?ver=' + P.version.commit + '"></script>\
   <script src="engine/objects/icon.js?ver=' + P.version.commit + '"></script>\

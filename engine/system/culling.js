@@ -86,7 +86,7 @@ P.cull.check = function(area, zone, box) {
   max.y = (zone || area).getTotalY() + 20 / camera.zoom
   max.z = (zone || area).getTotalZ() - box.min.x;
   
-  /*
+/*
   if (!box.mesh) {
     box.mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(
       max.x - min.x,
@@ -95,7 +95,6 @@ P.cull.check = function(area, zone, box) {
     ))
     scene.add(box.mesh)
   }
-  debugger
   if (box.mesh) {
     box.mesh.position.z = min.z + (max.z - min.z) / 2 
     box.mesh.position.x = min.x + (max.x - min.x) / 2
@@ -134,9 +133,12 @@ P.cull.areas = function(areas, order) {
   if (order == null)
     order = P.cull.order
 
+
     // reinitialize render lists
   var cullingChanged = (P.cull.level == P.Area ? P.cull.changed === P.Area : P.cull.changed)
   var batches = P.cull.order.filter(function(batch) {
+    if (batch === P.Furniture.instances)
+      debugger
     if (!batch.material || batch.material.opacity !== 0) {
       if (cullingChanged)
         batch.changes |= P.UPDATE_CULLING

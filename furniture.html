@@ -1,0 +1,81 @@
+<body id="clickable">
+<script>P = {version: {commit: Math.random()}}</script>
+<link rel="stylesheet" href="engine/styles/page.css" />
+<div id="container"></div>
+
+<div id="fixed">
+  <div id="dummy"></div>
+
+
+<header style="display: none;">
+  <form id="searchForm">
+    <input type="search" placeholder="Search…" id="searchInput" />
+    <input type="submit" />
+  </form>
+</header>
+</div>
+<script>
+  var seed = 2;
+  if (location.search.indexOf('random') > -1)
+    seed = Math.random()
+  var seed = location.search.match(/seed=([^&]+)/);
+  if (seed)
+    seed = parseFloat(seed[1])
+
+
+  function Gen() {
+    console.time('gen test')
+    var state = new Game.Generator(seed)
+    var states = [];
+    state.Road.limit = 5; 
+    state = state.advance.apply(state, arguments)
+    console.timeEnd('gen test')
+
+    return state
+  }
+  function READY() {
+    Game.compile()
+    Game.World = Gen(function() {
+      this.Road.limit = 5;
+    })
+
+    P.areas = [];
+
+
+    var area = new P.Area({
+      polygon: [{x: 200, y: 200}, {x: 4800, y: 200}, {x: 4800, y: 4800}, {x: 200, y: 4800}],
+      zones: []
+    })
+    var zone = new P.Area({
+      polygon: [{x: 300, y: 300}, {x: 4700, y: 300}, {x: 4700, y: 4700}, {x: 300, y: 4700}]
+    })
+    zone.furniture = [];
+    for (var i = 0; i < 4; i++)
+    zone.furniture.push(
+      new P.Furniture({
+        coordinates: {
+          x: 500 * (i + 1),
+          y: 500
+        },
+        type: 'chair'
+      })
+    )
+    area.zones.push(zone)
+    area.computeAreaBox()
+    P.areas.push(area)
+
+    P.city = new P.City({
+      areas: P.areas,
+      roadNetwork: [[{x: 0, y: 0}, {x: 5000, y: 0}, {x: 5000, y: 5000}, {x: 0, y: 5000}],
+                  [{x: 100, y: 100}, {x: 4900, y: 100}, {x: 4900, y: 4900}, {x: 100, y: 4900}]],
+    })
+
+    P.initialized = true;
+    P.Scene.navigate('map')
+    P.animate.start()
+  }
+
+</script>
+<script src="engine/loader.js"></script>
+<script src="petri/loader.js"></script>
+</body>

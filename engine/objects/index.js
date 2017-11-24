@@ -2,6 +2,9 @@ P.instances = function() {
   P.instances.distinct = [
     P.Floor.prototype.instances      = P.Floor.instances      = P.Floor.instanced(),
     P.Road.prototype.instances       = P.Road.instances       = P.Road.instanced(),
+    P.Roof.prototype.instances       = P.Roof.instances       = P.Roof.instanced(),
+    P.Furniture.prototype.instances  = P.Furniture.instances  = P.Furniture.instanced(),
+    P.Box.prototype.instances        = P.Box.instances        = P.Box.instanced(),
     P.Background.prototype.instances = P.Background.instances = P.Background.instanced(),
     P.Underlay.prototype.instances   = P.Underlay.instances   = P.Underlay.instanced(),
     P.Sprite.prototype.instances     = P.Sprite.instances     = P.Sprite.instanced(),
@@ -17,8 +20,11 @@ P.instances = function() {
   P.instances.list = [
     P.Floor.instances,
     P.Road.instances,
+    P.Roof.instances,
 
     P.Wall.instances,
+    P.Furniture.instances,
+    P.Box.instances,
     P.Overlay.instances,
     P.Underlay.instances,
     P.Label.instances,

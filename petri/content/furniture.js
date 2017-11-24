@@ -23,7 +23,38 @@ Game.Furniture = {
     width: 200,
     height: 200,
     maxWidth: 100,
-    maxHeight: 100
+    maxHeight: 100,
+
+    blueprint: [
+      {
+        type: 'long_plate', 
+        shift: new THREE.Vector3(-1, 1, 0)
+      },
+      {
+        type: 'long_plate', 
+        shift: new THREE.Vector3(0, 1, 0)
+      },
+      {
+        type: 'long_plate', 
+        shift: new THREE.Vector3(1, 1, 0)
+      },
+      {
+        type: 'short_bar', 
+        shift: new THREE.Vector3(-1, 0, -1)
+      },
+      {
+        type: 'short_bar', 
+        shift: new THREE.Vector3(1, 0, -1)
+      },
+      {
+        type: 'short_bar', 
+        shift: new THREE.Vector3(-1, 0, 1)
+      },
+      {
+        type: 'short_bar', 
+        shift: new THREE.Vector3(1, 0, 1)
+      }
+    ]
   },
 
   chair: {

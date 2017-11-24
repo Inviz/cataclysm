@@ -32,8 +32,24 @@ P.materials.floor = new THREE.MeshLambertMaterial({
   alphaTest: 0.02,
   transparent: true
 });
-P.materials.road = new THREE.MeshLambertMaterial({
+P.materials.road = new THREE.MeshPhongMaterial({
   color: 0xcccccc,
+  alphaTest: 0.02,
+  shading: THREE.FlatShading,
+  transparent: true
+});
+P.materials.roof = new THREE.MeshPhongMaterial({
+  color: 0xddcccc,
+  depthWrite: 1,
+  shading: THREE.FlatShading,
+  alphaTest: 0.02,
+  transparent: true
+});
+P.materials.roof2 = new THREE.MeshPhongMaterial({
+  color: 0xff0000,
+  depthWrite: 1,
+  wireframe: true,
+  wireframeLinewidth: 5,
   alphaTest: 0.02,
   transparent: true
 });
@@ -51,7 +67,7 @@ P.materials.overlay = new THREE.MeshLambertMaterial({
   transparent: true
 });
 P.materials.people = new THREE.MeshLambertMaterial({
-  //color: 0xff0000,
+  color: 0xff0000,
   alphaTest: 0.1,
   transparent: true
 });
@@ -95,6 +111,12 @@ P.materials.icons = new THREE.MeshBasicMaterial({
 });
 
 P.materials.furniture = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  alphaTest: 0.02,
+  transparent: true
+});
+
+P.materials.boxes = new THREE.MeshPhongMaterial({
   color: 0xffffff,
   alphaTest: 0.02,
   transparent: true

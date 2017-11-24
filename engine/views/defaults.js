@@ -15,9 +15,9 @@ P.views.defaults = {
   },
 
   light: {
-    x: 220,
-    y: 150,
-    z: 0
+    x: 4200,
+    y: 3500,
+    z: 2500
   },
 
   target: {
@@ -102,7 +102,7 @@ P.views.defaults = {
   furniture: {
     y: 1,
     material: {
-      opacity: 0
+      opacity: 1
     }
   },
 

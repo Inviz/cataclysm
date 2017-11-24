@@ -11,6 +11,11 @@ Game.Generator = function(seed, step, previous) {
       ['city', 'previous', 'angle', 'type', 'ex', 'ey', 'collision', 'sx', 'sy'], 
       {previous: 'roads', city: 'cities'}, 'road', 'roads');
 
+    Game.Generator.prototype.Wall = Game.Generator.prototype.compile(
+      Game.Struct.Wall,      
+      ['building', 'sx', 'sy', 'ex', 'ey', 'type'], 
+      {building: 'buildings'}, 'wall', 'walls');
+
     Game.Generator.prototype.Block = Game.Generator.prototype.compile(
       Game.Struct.Block,      
       ['road', 'loop', 'type', 'x', 'y', 'angle'], 
@@ -43,6 +48,7 @@ Game.Generator = function(seed, step, previous) {
   this.rooms     = new Float64Array(previous ? previous.rooms     : this.Room.size * 10000);
   this.furniture = new Float64Array(previous ? previous.furniture : this.Furniture.size * 100000);
   this.equipment = new Float64Array(previous ? previous.equipment : this.Equipment.size * 10000);
+  this.walls     = new Float64Array(previous ? previous.walls     : this.Wall.size * 10000);
 
 }
 
@@ -68,6 +74,7 @@ Game.Generator.prototype.advance = function() {
           this.BuildingRoomFurnitureFurniture(building, room, furniture)
         })
       })
+      this.BuildingWall(building)
     })
   })
 

@@ -19,10 +19,12 @@
 <script src="petri/generator/city.js"></script>\
 <script src="petri/generator/furniture.js"></script>\
 <script src="petri/generator/equipment.js"></script>\
+<script src="petri/generator/wall.js"></script>\
 <script src="petri/content/furniture.js"></script>\
 <script src="petri/content/rooms.js"></script>\
 <script src="petri/nets/area.js"></script>\
 <script src="petri/nets/zone.js"></script>\
 <script src="petri/nets/creature.js"></script>\
 <script src="petri/noise.js"></script>\
+<script src="petri/mat.js"></script>\
 <script src="petri/petri.js"></script>');

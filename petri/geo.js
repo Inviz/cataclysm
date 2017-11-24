@@ -3472,6 +3472,7 @@ var SkeletonEdge = function () {
       middle1.lineDirection = Vector2.clone(this.lineDirection);
       middle2.lineDirection = Vector2.clone(this.lineDirection);
 
+
       // Quick set the new vertex
       middle2.start.isAcute = false;
       middle2.start.isParallel = true;
@@ -6026,11 +6027,13 @@ var StraightSkeleton = function () {
   }, {
     key: 'commitSkeletonSpoke',
     value: function commitSkeletonSpoke(start, end) {
+
       this.spokes.push(new LineSegment$2(Vector3.clone(start), Vector3.clone(end)));
     }
   }, {
     key: 'commitSkeletonVertex',
     value: function commitSkeletonVertex(vertex) {
+
       var beginning = Vector3(vertex.position[0], vertex.position[1], vertex.wavefront.time);
       this.commitSkeletonSpoke(vertex.beginning, beginning);
       vertex.beginning = beginning;
@@ -6305,7 +6308,7 @@ var StraightSkeleton = function () {
 
 //import * as THREE from 'three';
 //require('../missing-stuff/cdt2d');
-var cleanPSLG = global.cleanpslg;
+var cleanPSLG = global.cleanPSLG;
 function Shape$1(contourPath, holes) {
   this.contour = contourPath;
   this.holes = holes || [];
@@ -6376,13 +6379,13 @@ function validate(vec) {
   if (isNaN(vec[0]) || isNaN(vec[1])) {
     return false;
   }
-  if (vec[0] === Infinity || vec[1] === Infinity) {
+  if (!isFinite(vec[0]) || !isFinite(vec[1])) {
     return false;
   }
   return true;
 }
 
-function triangulate() {
+function triangulate(segments, borders) {
   var minVertexDistance = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0.00001;
 
   var geometry = new THREE.Geometry();
@@ -6393,6 +6396,7 @@ function triangulate() {
   var vertices = [];
 
   var count = 0;
+  console.error(this.contour.segments.length, 'countours')
   this.contour.segments.forEach(function (_ref, index) {
     var start = _ref.start,
         end = _ref.end;
@@ -6405,7 +6409,7 @@ function triangulate() {
     }
   });
 
-  var precision = 8;
+  var precision = 3;
   //  preserve z-axis data...
   var zs = {};
   vertices.forEach(function (_ref2) {
@@ -6421,9 +6425,48 @@ function triangulate() {
   });
 
   //  clean up skeleton + contour because it's not a valid edge loop
-  cleanPSLG(points, edges);
+  cleanPSLG(points, edges, null, false);
+
+
+  if (segments) {
+    var interior = [];
+    segments.forEach(function(point, index) {
+      var next = segments[index + 1] || segments[0];
+      var bestSDistance = Infinity;
+      var bestS;
+      points.forEach(function(p, j) {
+        var d = Math.sqrt(Math.pow(p[0] - point.x, 2) + Math.pow(p[1] - point.y, 2), 2);
+        if (d < bestSDistance && d < 5) {
+          bestSDistance = d;
+          bestS = j;
+        }
+      })
+      var bestEDistance = Infinity;
+      var bestE;
+      points.forEach(function(p, j) {
+        var d = Math.sqrt(Math.pow(p[0] - next.x, 2) + Math.pow(p[1] - next.y, 2), 2);
+        if (d < bestEDistance && d < 5) {
+          bestEDistance = d;
+          bestE = j;
+        }
+      })
+      if (bestS != null && bestE != null) {
+        for (var e = 0; e < edges.length; e++) {
+          if ((edges[e][0] == bestS && edges[e][1] == bestE) ||
+             (edges[e][0] == bestE && edges[e][1] == bestS))
+            return
+        }
+        interior.push([bestS, bestE]);
+        edges.push([bestS, bestE]);
+      }
+    })
+    interior = cdt2d(points, interior, { exterior: false, delaunay: true })
+  }
 
   var triangulation = cdt2d(points, edges, { exterior: false, delaunay: true });
+  if (interior) {
+    triangulation = triangulation.concat(interior)
+  }
 
   var points3D = points.map(function (_ref4) {
     var _ref5 = slicedToArray(_ref4, 2),
@@ -6440,7 +6483,6 @@ function triangulate() {
   });
 
   // console.log( zs, points3D );
-
   geometry.vertices = points3D.map(function (_ref6) {
     var _ref7 = slicedToArray(_ref6, 3),
         x = _ref7[0],
@@ -6450,15 +6492,35 @@ function triangulate() {
     return new THREE.Vector3(x, y, z);
   });
 
-  geometry.faces = triangulation.map(function (_ref8) {
+  console.log('another')
+  var edge1 =  new THREE.Vector3();
+  var edge2 =  new THREE.Vector3();
+  var normal = new THREE.Vector3();
+  geometry.faces = []
+  triangulation.map(function (_ref8) {
     var _ref9 = slicedToArray(_ref8, 3),
         ix = _ref9[0],
         iy = _ref9[1],
         iz = _ref9[2];
 
-    return new THREE.Face3(ix, iy, iz);
-  });
+    var vectors = [
+       geometry.vertices[ix]
+      ,geometry.vertices[iy],
+       geometry.vertices[iz]
+    ]
 
+    var x = geometry.vertices.push(geometry.vertices[ix].clone()) - 1;
+    var y = geometry.vertices.push(geometry.vertices[iy].clone()) - 1;
+    var z = geometry.vertices.push(geometry.vertices[iz].clone()) - 1;
+
+
+      geometry.faces.push(new THREE.Face3(x, y, z));
+
+  })
+  //geometry.computeFaceNormals()
+  //geometry.computeVertexNormals()
+  //THREE.calculateVertexNormals(geometry, 45)
+  console.error('faces', geometry.faces.length, geometry.vertices)
   return geometry;
 }
 
