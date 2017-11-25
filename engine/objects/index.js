@@ -3,8 +3,6 @@ P.instances = function() {
     P.Floor.prototype.instances      = P.Floor.instances      = P.Floor.instanced(),
     P.Road.prototype.instances       = P.Road.instances       = P.Road.instanced(),
     P.Roof.prototype.instances       = P.Roof.instances       = P.Roof.instanced(),
-    P.Furniture.prototype.instances  = P.Furniture.instances  = P.Furniture.instanced(),
-    P.Box.prototype.instances        = P.Box.instances        = P.Box.instanced(),
     P.Background.prototype.instances = P.Background.instances = P.Background.instanced(),
     P.Underlay.prototype.instances   = P.Underlay.instances   = P.Underlay.instanced(),
     P.Sprite.prototype.instances     = P.Sprite.instances     = P.Sprite.instanced(),
@@ -12,7 +10,9 @@ P.instances = function() {
     P.Label.prototype.instances      = P.Label.instances      = P.Label.instanced(),
     P.Panel.prototype.instances      = P.Panel.instances      = P.Panel.instanced(),
     P.Wall.prototype.instances       = P.Wall.instances       = P.Wall.instanced(),
-    P.Overlay.prototype.instances    = P.Overlay.instances    = P.Overlay.instanced()
+    P.Overlay.prototype.instances    = P.Overlay.instances    = P.Overlay.instanced(),
+    P.Furniture.prototype.instances  = P.Furniture.instances  = P.Furniture.instanced(),
+    P.Box.prototype.instances        = P.Box.instances        = P.Box.instanced()
   ]
   P.instances.distinct.map(function(instances) {
     return P.Scene.add(instances)

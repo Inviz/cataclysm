@@ -294,7 +294,7 @@ angleToPolygon = function (point, poly, relative, round) {
   }
 }
 
-equidistantPointsFromPolygon = function(poly, length, binary) {
+equidistantPointsFromPolygon = function(poly, length, binary, inBetween) {
   if (length == null)
     length = 100;
   var result = [];
@@ -326,6 +326,7 @@ equidistantPointsFromPolygon = function(poly, length, binary) {
       var xs = x2+p*(x1-x2);
       var ys = y2+p*(y1-y2)
       for (var j = 0; j < result.length; j++) {
+        if (j == prev) continue;
         var x0 = result[j][0]
         var y0 = result[j][1]
         var l = Math.sqrt(Math.pow(x0 - xs, 2) + Math.pow(y0 - ys, 2), 2);
@@ -340,6 +341,19 @@ equidistantPointsFromPolygon = function(poly, length, binary) {
   }
   result.push(result[0])
 
+  if (inBetween) {
+    var shifted = [];
+    for (var i = 0; i < result.length; i++) {
+      var next = result[(i + 1) % result.length]
+      var prev = result[i];
+
+      shifted.push([
+        prev[0] + (next[0] - prev[0]) / 2,
+        prev[1] + (next[1] - prev[1]) / 2
+      ])
+    }
+    return shifted
+  }
   return result;
 }
 simplifyColinearLines = function(segments, X, Y) {
@@ -357,7 +371,7 @@ simplifyColinearLines = function(segments, X, Y) {
     var angle2 = Math.atan2(next[Y] - point[Y], next[X] - point[X])
     var diff = Math.abs(angle1 - angle2) % Math.PI;
     var d = Math.min(diff, Math.abs(diff - Math.PI));
-    return Math.abs(d) > 0.1
+    return Math.abs(d) > 0.02
   }, this)
 }
 

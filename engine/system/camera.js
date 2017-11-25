@@ -19,7 +19,6 @@ P.Scene.onCameraMove = function(rotated) {
   })
 }
 P.Scene.needsUpdate = function(hard) {
-  debugger
   P.instances.list.forEach(function(instances) {
     instances.changes |= P.UPDATE_CULLING;
   })

@@ -106,7 +106,6 @@ THREE.InstancedMesh.prototype.cull = function(areas, changed) {
 
 THREE.InstancedMesh.prototype.buildList = function(visible, areas) {
   var cullAreas = P.cull.level != P.Zone;
-  var renderClones = this.renderClones;
   var getter = this.getter || this.name;
   var scene = P.Scene.current;
   if (scene && scene[this.getter]) {
@@ -121,7 +120,7 @@ THREE.InstancedMesh.prototype.buildList = function(visible, areas) {
     var area = areas[i];
     if (area.visible === false && P.cull.level) continue;
     var source = area[getter];
-    if (source && !renderClones) {
+    if (source) {
       if (typeof source == 'function')
         source = source.call(area, area, area);
       if (source) 
@@ -142,14 +141,7 @@ THREE.InstancedMesh.prototype.buildList = function(visible, areas) {
         
         if (source) {
           for (var m = 0, n = source.length; m < n; m++) {
-            var object = source[m];
-            if (renderClones && object.clones && object.clones.length) {
-              for (var o = 0; o < object.clones.length; o++)
-                if (object.clones[o].zone === zone)
-                  this.push(visible, object.clones[o]);
-            } else {
-              this.push(visible, object);
-            }
+            this.push(visible, source[m]);
           }
         }
       }

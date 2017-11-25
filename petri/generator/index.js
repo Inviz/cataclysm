@@ -130,5 +130,6 @@ Game.compile.Furniture = function() {
   for (var property in Game.Furniture) {
     Game.Furniture[index] = Game.Furniture[property]
     Game.Furniture[property].index = index++;
+    Game.Furniture[property].name = property;
   }
 }

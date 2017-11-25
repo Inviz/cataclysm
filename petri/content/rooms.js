@@ -10,9 +10,6 @@ Game.Distributions.Rooms = {
         OUTSIDE_INWARDS: 70
       }
     },
-    tv: {
-      max: 1
-    },
     sofa: {
       max: 1,
       CENTER: 70,
@@ -27,7 +24,7 @@ Game.Distributions.Rooms = {
       }
     },
     bar_stand: {
-      INSIDE_IWARDS: 50,
+      INSIDE_INWARDS: 50,
       CENTER: 60,
       price: 70,
 

@@ -43,31 +43,44 @@
 
 
     var area = new P.Area({
-      polygon: [{x: 200, y: 200}, {x: 4800, y: 200}, {x: 4800, y: 4800}, {x: 200, y: 4800}],
+      polygon: [{x: 20, y: 20}, {x: 480, y: 20}, {x: 480, y: 480}, {x: 20, y: 480}],
       zones: []
     })
     var zone = new P.Area({
-      polygon: [{x: 300, y: 300}, {x: 4700, y: 300}, {x: 4700, y: 4700}, {x: 300, y: 4700}]
+      polygon: [{x: 30, y: 30}, {x: 470, y: 30}, {x: 470, y: 470}, {x: 30, y: 470}]
     })
     zone.furniture = [];
-    for (var i = 0; i < 4; i++)
-    zone.furniture.push(
-      new P.Furniture({
-        coordinates: {
-          x: 500 * (i + 1),
-          y: 500
-        },
-        type: 'chair'
+
+    ['single_bed', 'bed', 'small_table', 'medium_table', 'table', 'chair', 'armchair', 'sofa', 'long_sofa', 'box', 'bar_stand', 'shelf', 'high_shelf'].forEach(function(type, row) {
+      var colors = [new THREE.Color(.9,.9,.9), new THREE.Color(.8,.85,.9), new THREE.Color(.35,.6,.35), new THREE.Color(.6,.35,.25), new THREE.Color(.5,.5,.5)];
+      for (var i = 0; i < 8; i++) {
+      zone.furniture.push(
+        new P.Furniture({
+          coordinates: {
+            x: 50 * (i + 1),
+            y: 50 * (row + 1)
+          },
+          boxColor: colors[i % colors.length],
+          type: type,
+          euler: new THREE.Euler(0, (Math.PI / 4) * i, 0),
+
+          opacity: 0.3
+        })
+      )
+      zone.furniture[zone.furniture.length - 1].boxes.forEach(function(box) {
+        if (i > 4)
+        box.opacity = 0.7
       })
-    )
+    }
+    });
     area.zones.push(zone)
     area.computeAreaBox()
     P.areas.push(area)
 
     P.city = new P.City({
       areas: P.areas,
-      roadNetwork: [[{x: 0, y: 0}, {x: 5000, y: 0}, {x: 5000, y: 5000}, {x: 0, y: 5000}],
-                  [{x: 100, y: 100}, {x: 4900, y: 100}, {x: 4900, y: 4900}, {x: 100, y: 4900}]],
+      roadNetwork: [[{x: 0, y: 0}, {x: 500, y: 0}, {x: 500, y: 500}, {x: 0, y: 500}],
+                  [{x: 10, y: 10}, {x: 490, y: 10}, {x: 490, y: 490}, {x: 10, y: 490}]],
     })
 
     P.initialized = true;

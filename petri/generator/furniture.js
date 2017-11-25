@@ -6,27 +6,27 @@ Game.Struct.Furniture = [
     return previous;
   },
   function setWidth (width, type) {
-    return Game.Furniture[type].width;
+    return Game.Furniture[type].length;
   },
-  function setHeight (height, type) {
-    return Game.Furniture[type].height;
+  function setLength (height, type) {
+    return Game.Furniture[type].width;
   },
   function setAngle (angle, room, anchor, context, height, width) {
     if (angle == null)
       angle = 0;
     //if (height > width)
     //  angle += Math.PI / 2
-    if ((anchor & Game.ANCHOR.CENTER) && context.random() > 0.8)
-      return angle += (Math.floor(context.random() * 8) * 3) * Math.PI / 180
+    //if ((anchor & Game.ANCHOR.CENTER) && context.random() > 0.8)
+    //  return angle += (Math.floor(context.random() * 8) * 3) * Math.PI / 180
     return angle// + Math.floor(Math.random() * 8) * 2// + room.angle//angle;
   },
   function setOffsetAngle(offsetAngle, angle) {
     return angle + (offsetAngle || 0);
   },
-  function setOffsetDistance(offsetDistance, height, type) {
-    if (type == Game.Furniture.chair.index)
-      return - height / 6;
-    return height / 2
+  function setOffsetDistance(offsetDistance, width, type) {
+    //if (type == Game.Furniture.chair.index)
+    //  return - height / 6;
+    return width / 2
   },
   function setX (x, anchor, angle, offsetDistance, offsetAngle, height, width, context) {
     if (anchor & Game.ANCHOR.CENTER) {
@@ -80,11 +80,16 @@ Game.Struct.Furniture = [
   },
 
   function computePolygon(x, y, width, height, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, height, width, angle)
+    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
   },
 
-  function computeAnchorPoints(index, context) {
-    return context.computeAnchorPoints(context.computeFurniturePolygon(index), .2, .2, null, null, 5, 5)
+  function computeAnchorPoints(index, context, type) {
+    if (type == Game.Furniture.table.index) {
+      return context.computeAnchorPoints(context.computeFurniturePolygon(index), .2, .2, null, null, 12, 12)
+
+    } else {
+      return context.computeAnchorPoints(context.computeFurniturePolygon(index), .2, .2, null, null, 5, 5)
+    }
   },
   function computeSpinePoints(index, context) {
     return context.computeSpinePoints(context.computeFurniturePolygon(index))
@@ -145,56 +150,9 @@ Game.Generator.prototype.BuildingRoomFurniture = function(building, room, callba
         }
         if (bestCandidate != null) {
           var furniture = this.moveFurniture(bestCandidate, this.Furniture.count++)
+          this.recomputeFurniturePolygon(furniture);
           this.BuildingRoomFurniture(building, room, null, furniture, blueprint[item])
         }
-      }
-    }
-    /*
-    // center points
-    placements: for (var p = 0; p < max; p++) {
-      var bone = bones[p];
-      var furniture = this.Furniture.count;
-      for (var attempt = 0; attempt < 3; attempt++) {
-        this.Furniture(furniture, room, building, bone[0], bone[1], angle, Game.ANCHOR.INSIDE_CENTER)
-        
-        if (!this.getFurnitureCollision(furniture)) {
-          this.Furniture.count++;
-          callback.call(this, building, room, furniture)
-          continue placements;
-        }
-      }
-    }
-
-    // wall points
-    var bones = points.paddingPointsShuffled[0];
-    var max = Math.floor(this.random() * (bones.length - 1)) + 1
-    placements: for (var p = 0; p < max; p++) {
-      var bone = bones[p];
-      var furniture = this.Furniture.count;
-      for (var attempt = 0; attempt < 21; attempt++) {
-        this.Furniture(furniture, room, building, bone[0], bone[1], bone[3] || 0, Game.ANCHOR.INSIDE_INWARDS)
-        if (!this.getFurnitureCollision(furniture)) {
-          this.Furniture.count++;
-          //callback.call(this, building, room, furnitureIndex)
-          continue placements
-        }
-      }
-    }*/
-  }
-}
-Game.Generator.prototype.BuildingRoomFurnitureFurniture = function(building, room, furniture, callback) {
-  var polygon = this.recomputeFurniturePolygon(furniture);
-  var polygon = this.recomputeFurnitureAnchorPoints(furniture);
-  var slots = polygon.marginStraightPointsShuffled[0];
-  var maxS = Math.floor(this.random() * (slots.length - 1)) + 1
-  slots: for (var p = 0; p < maxS; p++) {
-    var slot = slots[p];
-    var nextFurniture = this.Furniture.count;
-    for (var attempt = 0; attempt < 21; attempt++) {
-      this.Furniture(nextFurniture, room, building, slot[0], slot[1], slot[3] ||0, Game.ANCHOR.OUTSIDE_INWARDS, furniture)
-      if (!this.getFurnitureCollision(nextFurniture)) {
-        this.Furniture.count++;
-        continue slots
       }
     }
   }

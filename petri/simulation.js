@@ -123,6 +123,8 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
       callback.call(this, index)
   }
 
+  var memo = prefix + 'Memoization'
+  this[memo] = [];
   var computedProperties = {};
   var immediate = invocations.filter(function(invocation, index) {
     var prop = functions[index].match(/function\s+compute(\w+)/)
@@ -135,7 +137,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
         + 'if (isNaN(index) || Math.floor(index) !== index) throw "Incorrect index in \\"compute' + prefix + prop[1] +'\\"";'
         + 'var data = this.' + collection + ';\n'
         + 'var start = index * ' + size + ';\n'
-        + 'if (!this.computed' + prefix + prop[1] + ') this.computed' + prefix + prop[1] + ' = {};\n' 
+        + 'if (!this.computed' + prefix + prop[1] + ') this.' + memo + '.push(this.computed' + prefix + prop[1] + ' = {});\n' 
         + 'return (this.computed' + prefix + prop[1] + '[index] || (this.computed' + prefix + prop[1] + '[index] = ' + invocation.split('=')[1] + '))'
         + '}'
         )()
@@ -145,7 +147,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
         + 'return function compute' + prefix + prop[1] + ' (index) {\n'
         + 'var data = this.' + collection + ';\n'
         + 'var start = index * ' + size + ';\n'
-        + 'if (!this.computed' + prefix + prop[1] + ') this.computed' + prefix + prop[1] + ' = {};\n' 
+        + 'if (!this.computed' + prefix + prop[1] + ') this.' + memo + '.push(this.computed' + prefix + prop[1] + ' = {});\n' 
         + 'return (this.computed' + prefix + prop[1] + '[index] = ' + invocation.split('=')[1] + ')'
         + '}'
         )()
@@ -212,8 +214,22 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
   })(attribute, attributes[attribute]);
 
   that['move' + prefix] = new Function('from', 'to',
-    assignments.join(';\n') + '\n' +
-    'return to;'
+    assignments.join(';\n') + '\n' + 
+    'this.' + memo + '.forEach(function(object) {\n\
+      if (object.hasOwnProperty(from))\n\
+        object[to] = object[from];\n\
+      else\n\
+        object[to] = undefined;\n\
+      object[from] = undefined;\n\
+    })\n\
+    return to;'
+  )
+  that['uncompute' + prefix] = new Function('index',
+    'this.' + memo + '.forEach(function(object) {\n\
+      if (object.hasOwnProperty(index))\n\
+        object[index] = undefined;\n\
+    })\n\
+    return index;'
   )
 
   that['filter' + prefix] = new Function('callback', '\
@@ -234,6 +250,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
   for (var property in computedProperties) {
     this[property] = computedProperties[property]
   }
+
   setters.forEach(function(setter) {
     this[setter.fullName] = result[setter.name]
   }, this)

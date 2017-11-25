@@ -1,6 +1,6 @@
 P.views.map = new P.Scene.Canvas({
   camera: {
-    zoom: 0.02
+    zoom: 1
   },
 
   getPerspectiveType: function() {

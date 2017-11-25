@@ -45,14 +45,6 @@ P.materials.roof = new THREE.MeshPhongMaterial({
   alphaTest: 0.02,
   transparent: true
 });
-P.materials.roof2 = new THREE.MeshPhongMaterial({
-  color: 0xff0000,
-  depthWrite: 1,
-  wireframe: true,
-  wireframeLinewidth: 5,
-  alphaTest: 0.02,
-  transparent: true
-});
 P.materials.underlay = new THREE.MeshLambertMaterial({
   color: 0xffffff,
   alphaTest: 0.02,
@@ -112,7 +104,7 @@ P.materials.icons = new THREE.MeshBasicMaterial({
 
 P.materials.furniture = new THREE.MeshBasicMaterial({
   color: 0xffffff,
-  alphaTest: 0.02,
+  depthWrite: false,
   transparent: true
 });
 

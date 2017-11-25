@@ -2,9 +2,7 @@
 P.Object = function(properties) {
   if (properties != null)
     this.merge(properties)
-  this.shift = new P.Object.Shift(this)
-  if (properties && properties.shift)
-    this.shift.copy(properties.shift)
+  this.shift = new P.Object.Shift(this, this.shift)
   this.offset = new P.Object.Offset(this);
   this.alignment = new THREE.Vector3;
   if (!properties || !properties.position)
@@ -28,6 +26,9 @@ P.Object = function(properties) {
   if (this.background)
     this.backgrounds = [this.getBackground(this.background)]
 }
+
+P.Object.prototype._qq = new THREE.Quaternion;
+P.Object.prototype._v3 = new THREE.Vector3;
 
 P.Object.prototype.zIndex = 0;
 P.Object.prototype.zoom = 1;
@@ -255,6 +256,7 @@ P.Object.prototype.computePosition = function() {
     this.position
       .copy(this.target.computeFinalPosition())
       .add(this.alignment)
+      .add(this.shift)
 
   // position in 2d screen space
   } else if (this.isSticky()) {
@@ -311,10 +313,18 @@ P.Object.prototype.computeScale = function() {
     return this.scale
   } else {
     var zoom = this.zoom / this.getZoom();
-    return this.scale.set(
-      width * zoom,
-      this.height* zoom,
-      this.depth * zoom)
+    if (this.length != null) {
+      return this.scale.set(
+        width * zoom,
+        (this.depth) * zoom,
+        (this.length) * zoom)
+    } else {
+      return this.scale.set(
+        width * zoom,
+        (this.height) * zoom,
+        (this.depth) * zoom)
+
+    }
   }
 }
 P.Object.prototype._computeScale = P.Object.prototype.computeScale;
@@ -323,14 +333,20 @@ P.Object.prototype.up = new THREE.Vector3().set(0,1, 0)
 P.Object.prototype.ahead = new THREE.Vector3().set(-1,0,0)
 P.Object.prototype.computeQuaternion = function() {
   if (this.getTarget()) {
-    return this.quaternion.copy(this.target.quaternion);
+    this.quaternion.copy(this.target.quaternion);
   } else if (this.isBillboard()){
-    return this.quaternion.copy(camera.quaternion)
-  //} else {
-  //  //return this.quaternion.setFromAxisAngle(this.up, Math.PI / 2)
+    this.quaternion.copy(camera.quaternion)
   } else {
-    return this.quaternion;
+    this.quaternion.set(0,0,0,1)
+  //  //return this.quaternion.setFromAxisAngle(this.up, Math.PI / 2)
   }
+
+  if (this.euler) {
+    this._qq.setFromEuler(this.euler)
+    this.quaternion.multiply(this._qq)
+  }
+
+  return this.quaternion
 }
 P.Object.prototype._computeQuaternion = P.Object.prototype.computeQuaternion;
 
@@ -506,7 +522,7 @@ P.Object.prototype.getPosition = function(includeShift, v3) {
 }
 P.Object.prototype.getCenter = function(includeShift, v3) {
   v3 = this.getPosition(includeShift, v3);
-  v3.x += this.height / 2;
+  v3.x += (this.height || this.length) / 2;
   v3.z -= this.width / 2;
   return v3;
 }
@@ -573,8 +589,10 @@ P.Object.Offset.prototype.transitions = {
     tension: 9
   }
 }
-P.Object.Shift = function(context) {
+P.Object.Shift = function(context, value) {
   this.context = context;
+  if (value)
+    this.copy(value)
 };
 P.Object.Shift.prototype = new THREE.Vector3;
 P.Object.Shift.prototype.onPropertyChange = function() {
@@ -659,6 +677,7 @@ P.Object.prototype.computeBox = function(points, useImage) {
 
   // compute and normalize offset
   this.height = box.max.y - box.min.y;
+  this.length = box.max.y - box.min.y;
   this.width = box.max.x - box.min.x;
   box.height = box.max.y - box.min.y;
   box.width = box.max.x - box.min.x;

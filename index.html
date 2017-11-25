@@ -83,12 +83,33 @@
                 x: s1,
                 y: s2
               },
-              quaternion: new THREE.Quaternion().setFromAxisAngle(zone._v3.set(0,-1, 0), this.getWallAngle(wall) + Math.PI / 2),
-              height: buildingHeight,
-              depth: 2,
-              width: this.getWallLength(wall)
+              zone: zone,
+              euler: new THREE.Euler(0, Math.PI - this.getWallAngle(wall), 0),
+              depth: buildingHeight,
+              width: 2,
+              length: this.getWallLength(wall)
             }))
           })
+          zone.furniture = []
+          this.eachRoom(function(room) {
+            if (this.getRoomBuilding(room) != building)
+              return;
+            this.eachFurniture(function(furniture) {
+              if (this.getFurnitureRoom(furniture) != room)
+                return;
+              zone.furniture.push(new P.Furniture({
+                zone: zone,
+                coordinates: {
+                  x: this.getFurnitureX(furniture),
+                  y: this.getFurnitureY(furniture)
+                },
+                euler: new THREE.Euler(0, Math.PI -this.getFurnitureAngle(furniture), 0),
+                type: Game.Furniture[this.getFurnitureType(furniture)].name,
+                boxColor: new THREE.Color(Math.random() * 0xffffff)
+              }))
+            })
+          })
+          if (!this.getBuildingTransparent(building))
           zone.roofs = P.geometry.matrixesFromGeometry(roof).map(function(matrix, index) {
             var face = roof.faces[index]
             var fa = roof.vertices[face.a]
@@ -96,6 +117,7 @@
             var fc = roof.vertices[face.c]
             var ta = P.geometry.triangleGeometry.clone().applyMatrix(matrix)
             return new P.Roof({
+              zone: zone,
               matrix: matrix,
               shift: new THREE.Vector3(
                 0, buildingHeight, 0
@@ -103,6 +125,8 @@
               building: building
             })
           });
+
+
         }
       })
       area.computeAreaBox()

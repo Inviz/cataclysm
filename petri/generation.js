@@ -228,7 +228,7 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
       return [p.x, p.y]
     })
   })
-  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, Math.abs(pDash), true)}) 
+  context.paddingPoints = context.padding.map(function(p) { return equidistantPointsFromPolygon(p, Math.abs(pDash), true, false)}) 
   if (!context.paddingPoints.length)
     context.paddingPoints = [[]]
 
@@ -237,7 +237,7 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
       return [p.x, p.y]
     })
   })
-  context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, Math.abs(mDash))});
+  context.marginPoints = context.margin.map(function(p) { return equidistantPointsFromPolygon(p, Math.abs(mDash), true, true)});
 
   context.paddingPoints[0].forEach(function(spine) {
     spine[3] = Math.PI + angleToPolygon({x: spine[0], y: spine[1]}, points)
@@ -282,8 +282,9 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
 
   return context
 }
-Generation.prototype.computePoints = function(points, context, segments) {
-  points.allPoints = points.marginPoints[0].concat(points.paddingPoints[0], points.spines)
+Generation.prototype.computePoints = function(points, straight) {
+  var margin = straight ? points.marginStraightPoints[0] : points.marginPoints[0]
+  points.allPoints = margin.concat(points.paddingPoints[0], points.spines)
   points.allPointsShuffled = this.shuffleArray(points.allPoints);
   return points;
 }

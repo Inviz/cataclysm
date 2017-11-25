@@ -137,8 +137,6 @@ P.cull.areas = function(areas, order) {
     // reinitialize render lists
   var cullingChanged = (P.cull.level == P.Area ? P.cull.changed === P.Area : P.cull.changed)
   var batches = P.cull.order.filter(function(batch) {
-    if (batch === P.Furniture.instances)
-      debugger
     if (!batch.material || batch.material.opacity !== 0) {
       if (cullingChanged)
         batch.changes |= P.UPDATE_CULLING

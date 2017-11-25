@@ -1,8 +1,8 @@
 P.views.defaults = {
 
   camera: {
-    far: 140000,
-    near: -100000,
+    far: 14000,
+    near: -10000,
     zoom: 1,
     
     r: 234 / 255,

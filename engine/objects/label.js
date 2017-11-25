@@ -35,8 +35,6 @@ P.Label.prototype.getZIndex = function() {
   }
   return this.zIndex
 }
-P.Label.prototype._qq = new THREE.Quaternion;
-P.Label.prototype._v3 = new THREE.Vector3;
 P.Label.prototype.computeQuaternion = function() {
   this._computeQuaternion()
   if (!this.getTarget() && !this.isBillboard()) {

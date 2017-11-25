@@ -90,11 +90,11 @@ Game.Struct.Room = [
     context.computeRoomSpinePoints(index);
     return context.computePoints(points)
   },
-  function collide (collision, x, y, width, height, building, index, context, number) {
+  function setCollision (collision, x, y, width, height, building, index, context, number) {
     // collide previously generated buildings
-    var polygon1 = context.recomputeRoomPolygon(index)
-    for (var i = 0; i < index; i++) {
-      if (!context.getRoomCollision(i) && context.getRoomNumber(i) !== number && context.getRoomBuilding(i) === building) {
+    var polygon1 = context.computeRoomPolygon(index)
+    for (var i = 0; i < context.Room.count; i++) {
+      if (!context.getRoomCollision(i) && context.getRoomBuilding(i) === building) {
         var polygon2 = context.computeRoomPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
@@ -122,36 +122,28 @@ Game.Struct.Room = [
 ]
 
 Game.Generator.prototype.BuildingRoom = function(building, callback) {
-  var room = this.Room.count;
   var min = 1;
   var max = 4;
   var rooms = 3//Math.floor(Math.random() * (max - min) + min)
-  var first = room;
+  var first = this.Room.count;
+  var candidate = 9999;
   placement: for (var i = 0; i < rooms; i++) {
-    var candidate = room;
     var minDistance = Infinity;
-    var bestPlacement = null;
     for (var attempt = 0; attempt < 5; attempt++) {
-      this.Room(room, building, i, first + Math.floor(this.random() * (i)))
-      if (!this.getRoomCollision(room)) {
-        var distance = this.getRoomDistance(room);
+      this.Room(candidate, building, i, first + Math.floor(this.random() * (i)))
+      if (!this.getRoomCollision(candidate)) {
+        var distance = this.getRoomDistance(candidate);
         if (distance < minDistance) {
           minDistance = distance;
-          bestPlacement = room;
-          ++room
+          this.moveRoom(candidate, this.Room.count);
+          continue
         }
       }
+      this.uncomputeRoom(candidate)
     }
     
-    if (bestPlacement != null) {
-      this.moveRoom(bestPlacement, candidate);
-      this.recomputeRoomPolygon(candidate)
-      callback.call(this, building, candidate)
-      room = candidate + 1;
-    } else {
-      room = candidate
-      break
+    if (isFinite(minDistance)) {
+      callback.call(this, building, this.Room.count++)
     }
   }
-  this.Room.count = room
 }
