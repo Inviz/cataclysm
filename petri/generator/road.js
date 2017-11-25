@@ -194,10 +194,10 @@ Game.Struct.Road = [
 ]
 
 
-Game.Generator.prototype.DEFAULT_SEGMENT_LENGTH = 300
-Game.Generator.prototype.HIGHWAY_SEGMENT_LENGTH = 400
-Game.Generator.prototype.DEFAULT_SEGMENT_WIDTH = 16
-Game.Generator.prototype.HIGHWAY_SEGMENT_WIDTH = 26
+Game.Generator.prototype.DEFAULT_SEGMENT_LENGTH = 500
+Game.Generator.prototype.HIGHWAY_SEGMENT_LENGTH = 500
+Game.Generator.prototype.DEFAULT_SEGMENT_WIDTH = 26
+Game.Generator.prototype.HIGHWAY_SEGMENT_WIDTH = 36
 
 // global goals
 Game.Generator.prototype.HIGHWAY_BRANCH_POPULATION_THRESHOLD = 0.15;
@@ -208,7 +208,7 @@ Game.Generator.prototype.DEFAULT_BRANCH_PROBABILITY = 0.4,
 
 // local constraints
 Game.Generator.prototype.MINIMUM_INTERSECTION_DEVIATION = 30 * Math.PI  / 180,
-Game.Generator.prototype.ROAD_SNAP_DISTANCE = 100
+Game.Generator.prototype.ROAD_SNAP_DISTANCE = 200
 Game.Generator.prototype.POINT_SNAP_DISTANCE = 25
 
 Game.Generator.prototype.RANDOM_BRANCH_ANGLE = function() {

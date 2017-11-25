@@ -1,109 +1,119 @@
 Game.Struct.Building = [
-  function setWidth(width, context) {
-    return 60 + context.random() * 20
+  function setBuildingWidth(width) {
+    return 100 + this.random() * 20
   },
-  function setLength(length, context) {
-    return 50 + context.random() * 50
+  function setBuildingLength(length) {
+    return 80 + this.random() * 50
   },
-  function setHeight(height, context) {
-    return Math.max(30, Math.floor(context.random() * 1) * 30)
+  function setBuildingHeight(height) {
+    return Math.max(30, Math.floor(this.random() * 1) * 30)
   },
-  function setTransparent(transparent, context) {
-    return context.random() > 0.5
+  function setBuildingTransparent(transparent) {
+    return this.random() > 0.5
   },
-  function setOffsetAngle(offsetAngle, road) {
+  function setBuildingOffsetAngle(offsetAngle, road) {
     return (Math.PI + offsetAngle)//360 * Math.random()
   },
-  function setBlock(block) {
+  function setBuildingBlock(block) {
     return block
   },
-  function setRoofHeight(roofHeight, context) {
-    return context.random() > 0.5 ? 45 : context.random() > 0.5 ? 10 : 20;
+  function setBuildingRoofHeight(roofHeight) {
+    return this.random() > 0.5 ? 45 : this.random() > 0.5 ? 10 : 20;
   },
-  function setOffsetDistance(offsetDistance, width, length, road) {
+  function setBuildingOffsetDistance(offsetDistance, width, length, road) {
     return width / 2 + 5 //100// * Math.random()
   },
-  function setX (x, road, offsetDistance, offsetAngle) {
+  function setBuildingX (x, road, offsetDistance, offsetAngle) {
     if (x == null)
       x = road.x;
     return x + Math.cos(offsetAngle) * (offsetDistance);
   },
-  function setY (y, road, offsetDistance, offsetAngle) {
+  function setBuildingY (y, road, offsetDistance, offsetAngle) {
     
     if (y == null)
       y = road.y;
     return y + Math.sin(offsetAngle) * (offsetDistance);
   },
-  function setAngle (angle, offsetAngle) {
+  function setBuildingAngle (angle, offsetAngle) {
     return offsetAngle
   },
-  function setRoad (road) {
+  function setBuildingRoad (road) {
     return road
   },
-  function setCollision (collision, x, y, width, length, building, index, context) {
-    var polygon1 = context.recomputeBuildingPolygon(index)
+  function setBuildingCollision (collision, x, y, width, length, building, index) {
+    var polygon1 = this.computeBuildingPolygon(index, true)
     // collide previously generated buildings
     for (var i = 0; i < index; i++) {
-      var polygon2 = context.computeBuildingOuterPolygon(i)
+      var polygon2 = this.computeBuildingOuterPolygon(i)
       if (doPolygonsIntersect(polygon1, polygon2)) {
         return i + 1;
       }
     }
     // collide with road polygons
-    for (var i = 0; i < context.Road.count; i++) {
-      var polygon2 = context.computeRoadSurroundingPolygon(i)
+    for (var i = 0; i < this.Road.count; i++) {
+      var polygon2 = this.computeRoadSurroundingPolygon(i)
       if (doPolygonsIntersect(polygon1, polygon2)) {
         return i + 1;
       }
     }
     return 0;
   },
-  function computePolygon(x, y, width, length, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, width, length, angle)
+  function computeBuildingPolygon(x, y, width, length, angle) {
+    return this.computePolygonFromRotatedRectangle(x, y, width, length, angle)
   },
-  function computeShape(index, context) {
+  function computeBuildingShape(index) {
     var loops = [];
-    context.eachRoom(function(room) {
+    this.eachRoom(function(room) {
 
-      if (context.getRoomBuilding(room) == index && !context.getRoomCollision(room)) {
-        loops.push(context.computeRoomPolygon(room))
+      if (this.getRoomBuilding(room) == index && !this.getRoomCollision(room)) {
+        loops.push(this.computeRoomPolygon(room))
       }
     })
     return loops
   },
-  function computePSLG(index, context) {
-    return context.computePSLG(context.computeBuildingShape(index))
+  function computeBuildingPSLG(index) {
+    return this.computePSLG(this.computeBuildingShape(index))
   },
-  function computeCleanPolygon(index, context) {
-    return context.computePolygonSimplification(context.computeCleanPolygon(context.computeBuildingPSLG(index)))
+  function computeBuildingCleanPolygon(index) {
+    return this.computePolygonSimplification(this.computeCleanPolygon(this.computeBuildingPSLG(index)))
   },
-  function computeOuterPolygon(index, context) {
-    return context.computePolygonOffset(context.computeBuildingCleanPolygon(index), 20, null, 2)[0]
+  function computeBuildingOuterPolygon(index) {
+    return this.computePolygonOffset(this.computeBuildingCleanPolygon(index), 20, null, 2)[0]
   },
-  function computeNavigationNetwork(index, context) {
-    return context.computeNavigationNetwork(context.computeBuildingPSLG(index))
+  function computeBuildingNavigationNetwork(index) {
+    return this.computeNavigationNetwork(this.computeBuildingPSLG(index))
   },
-  function computeAnchorPoints(index, context) {
-    return context.computeAnchorPoints(context.computeBuildingPolygon(index))
+  function computeBuildingAnchorPoints(index) {
+    return this.computeAnchorPoints(this.computeBuildingPolygon(index))
   },
-  function computeSpinePoints(index, context) {
-    return context.computeSpinePoints(context.computeBuildingPolygon(index))
+  function computeBuildingSpinePoints(index) {
+    return this.computeSpinePoints(this.computeBuildingPolygon(index))
   },
-  function computeFinalSpinePoints(index, context) {
-    var polygon = context.computeBuildingCleanPolygon(index)
-    var polygon = context.computePolygonOffset(polygon, 3, null, 2)[0]
-    var polygon = context.computeSpinePoints(polygon, null, null, context.getBuildingRoofHeight(index));
+  function computeBuildingCorridor(index) {
+    var pslg = this.computePSLG(index);
+    var loops = this.computeBuildingShape(index)
+
+    for (var start = 0; start < pslg.points.length; start++) {
+      for (var end = 0; end <= pslg.points.length; end++) {
+        //for (var loop;)
+      }
+    }
+  },
+  function computeBuildingFinalSpinePoints(index) {
+    var polygon = this.computeBuildingCleanPolygon(index)
+    var polygon = this.computePolygonOffset(polygon, 3, null, 2)[0]
+    var polygon = this.computeSpinePoints(polygon, null, null, this.getBuildingRoofHeight(index));
 
     return polygon;
   },
-  function computeRoofGeometry(index, context) {
-    var polygon = context.computeBuildingFinalSpinePoints(index)
+  function computeBuildingRoofGeometry(index) {
+    var polygon = this.computeBuildingFinalSpinePoints(index)
     var skeletonPath = new CompGeo.shapes.Path( polygon.skeleton.spokes );
     var shape = new CompGeo.shapes.Shape( polygon.skeletonInput.concat( skeletonPath) );
-    if (isFinite(context.getBuildingRoofHeight(index)))
-      var interior = context.computePolygonOffset([polygon], -context.getBuildingRoofHeight(index), null, 2)[0]
+    if (isFinite(this.getBuildingRoofHeight(index)))
+      var interior = this.computePolygonOffset([polygon], -this.getBuildingRoofHeight(index), null, 2)[0]
     var geometry = shape.triangulate(interior, polygon, function(poly) {
-      return context.computePolygonBinary([poly], [polygon], ClipperLib.ClipType.ctDifference)[0]
+      return this.computePolygonBinary([poly], [polygon], ClipperLib.ClipType.ctDifference)[0]
     });
     return geometry
   }

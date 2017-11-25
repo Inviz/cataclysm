@@ -62,7 +62,7 @@ Game.Struct.Furniture = [
     return type
   },
   function setCollision (collision, x, y, width, height, room, building, previous, index, context, anchor) {
-    var polygon1 = context.recomputeFurniturePolygon(index)
+    var polygon1 = context.computeFurniturePolygon(index, true)
     var polygon0 = context.computeRoomPolygon(room);
     if (checkGivenPolygonIntersection(polygon0, polygon1)
     || !intersectPolygon(polygon1[0], polygon0, 'x', 'y', 0)) {
@@ -150,7 +150,7 @@ Game.Generator.prototype.BuildingRoomFurniture = function(building, room, callba
         }
         if (bestCandidate != null) {
           var furniture = this.moveFurniture(bestCandidate, this.Furniture.count++)
-          this.recomputeFurniturePolygon(furniture);
+          this.computeFurniturePolygon(furniture, true);
           this.BuildingRoomFurniture(building, room, null, furniture, blueprint[item])
         }
       }

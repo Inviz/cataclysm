@@ -385,7 +385,7 @@ function draw() {
     })
 
    Game.World.eachFurniture(function(f) {
-      var poly = this.recomputeFurniturePolygon(f)
+      var poly = this.computeFurniturePolygon(f)
       poly.forEach(function(step, index) {
         hulls.push([(this.getFurnitureAnchor(f) & Game.ANCHOR.CORNER) ? 'blue' : 'green', 1, [
           scale(poly[index - 1] || poly[poly.length - 1]),

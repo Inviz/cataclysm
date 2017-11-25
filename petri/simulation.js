@@ -46,6 +46,15 @@ Simulation.prototype.compileFunction = function(source, args, attributes, proper
       source = source.replace(')', ', context)')
     }
   })
+  var usesThis = false;
+  source = source.replace(/this\./g, function() {
+    usesThis = true;
+    return 'context.';
+  })
+  if (args.indexOf('context') == -1 && usesThis) {
+    args.push('context')
+    source = source.replace(')', ', context)')
+  }
   var name = source.match(/function\s+(\w+)/)[1]
   var call = prefix + attributes[args[0]] + suffix + ' = ' + name + '(' + args.map(function(arg, i) {
     if (arg === 'context')
@@ -130,25 +139,18 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
     var prop = functions[index].match(/function\s+compute(\w+)/)
 
     if (prop) {
-      computedProperties['compute' + prefix + prop[1]] = 
+      var propertyName = prop[1];
+      if (propertyName.substring(0, prefix.length) != prefix)
+        propertyName = prefix + prop[1];
+      computedProperties['compute' + propertyName] = 
         new Function(
           functions[index] + '\n'
-        + 'return function compute' + prefix + prop[1] + ' (index) {\n'
-        + 'if (isNaN(index) || Math.floor(index) !== index) throw "Incorrect index in \\"compute' + prefix + prop[1] +'\\"";'
+        + 'return function computeNth' + propertyName + ' (index, update) {\n'
+        + 'if (isNaN(index) || Math.floor(index) !== index) throw "Incorrect index in \\"compute' + propertyName +'\\"";'
         + 'var data = this.' + collection + ';\n'
         + 'var start = index * ' + size + ';\n'
-        + 'if (!this.computed' + prefix + prop[1] + ') this.' + memo + '.push(this.computed' + prefix + prop[1] + ' = {});\n' 
-        + 'return (this.computed' + prefix + prop[1] + '[index] || (this.computed' + prefix + prop[1] + '[index] = ' + invocation.split('=')[1] + '))'
-        + '}'
-        )()
-      computedProperties['recompute' + prefix + prop[1]] = 
-        new Function(
-          functions[index] + '\n'
-        + 'return function compute' + prefix + prop[1] + ' (index) {\n'
-        + 'var data = this.' + collection + ';\n'
-        + 'var start = index * ' + size + ';\n'
-        + 'if (!this.computed' + prefix + prop[1] + ') this.' + memo + '.push(this.computed' + prefix + prop[1] + ' = {});\n' 
-        + 'return (this.computed' + prefix + prop[1] + '[index] = ' + invocation.split('=')[1] + ')'
+        + 'if (!this.computed' + propertyName + ') this.' + memo + '.push(this.computed' + propertyName + ' = {});\n' 
+        + 'return ((!update && this.computed' + propertyName + '[index]) || (this.computed' + propertyName + '[index] = ' + invocation.split('=')[1] + '))'
         + '}'
         )()
       return false

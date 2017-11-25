@@ -17,18 +17,18 @@ Game.Struct.Block = [
     if (loop)
       width = context.computeBlockPolygonCenter(index).width;
     else if (context.random() > 0.8)
-      return 300 + (context.random() * 300)
+      return 500 + (context.random() * 300)
     else
-      return 400 + (context.random() * 300)
+      return 600 + (context.random() * 300)
     return width;
   },
   function setHeight(height, loop, context, index) {
     if (loop)
       height = context.computeBlockPolygonCenter(index).height;
     else if (context.random() > 0.8)
-      return 300
+      return 500
     else 
-      return 400
+      return 600
     return height;
   },
   function setShift(shift, context) {
@@ -62,7 +62,7 @@ Game.Struct.Block = [
     if (loop)
       return 0;
     // collide previously generated blocks
-    var polygon1 = context.recomputeBlockPolygon(index)
+    var polygon1 = context.computeBlockPolygon(index, true)
     for (var i = 0; i < index; i++) {
       if (!context.getBlockCollision(i)) {
         var polygon2 = context.computeBlockPolygon(i)

@@ -28,7 +28,7 @@ Game.Struct.City = [
   },
 
   function computeInsidePolygon(context, index) {
-    return context.computePolygonOffset(context.computeCityPolygon(index), 15, -15, 0)
+    return context.computePolygonOffset(context.computeCityPolygon(index), 25, -25, 0)
   },
   function computeCleanInsidePolygon(context, index) {
     return context.computeCleanPolygon(polygonToPSLG(context.computeCityInsidePolygon(index), {clean: true}, 'x', 'y')).map(function(hole) {
