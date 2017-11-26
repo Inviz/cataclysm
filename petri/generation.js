@@ -44,6 +44,13 @@ Generation.prototype.computePolygonFromRotatedRectangle = function(x, y, width, 
   return polygon;
 }
 
+Generation.prototype.computePolygonBox = function(polygon, index) {
+  var box = getPolygonBox(polygon);
+  box.index = index;
+  box.polygon = polygon;
+  return box;
+}
+
 Generation.prototype.computeVectorFromSegment = function(x, y, distance, angle) {
   var v2 = [];
   for (var i = 0; i < 2; i++) {

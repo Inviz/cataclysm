@@ -291,7 +291,7 @@ function draw() {
       //            scale({x: this.getRoadX(index), y: this.getRoadY(index)}),
       //            scale({x: this.getRoadX(index), y: this.getRoadY(index)})
       //            ]])
-      //polys.push(p)
+      //hulls.push(p)
           if (poly.marginPoints)
             poly.marginPoints[0].forEach(function(line) {
               var x2 = line[0] + Math.cos(line[3]) * .5

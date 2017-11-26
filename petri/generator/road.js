@@ -185,6 +185,9 @@ Game.Struct.Road = [
   function computeRoadOuterPolygon(x, y, width, length, angle) {
     return this.computePolygonFromRotatedRectangle(x, y, length + 20, width + 20, angle)
   },
+  function computeRoadPolygonBox(index) {
+    return this.computePolygonBox(this.computeRoadSurroundingPolygon(index, true), index)
+  },
   function computeRoadSurroundingPolygon(x, y, width, length, angle) {
     return this.computePolygonFromRotatedRectangle(x, y, length + 30, width + 30, angle)
   },
@@ -303,6 +306,9 @@ Game.Generator.prototype.CityRoad = function(city) {
   var roadCount = this.Road.count;
   this.filterRoad(function(road) {
     return !this.getRoadCollision(road)
+  })
+  this.eachRoad(function(road) {
+    this.Road.rtree.insert(this.computeRoadPolygonBox(road))
   })
   this.computeCityRoadConnectivity(0);
   this.Road.network = this.computeCityInsidePolygon(0);

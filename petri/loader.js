@@ -26,5 +26,5 @@
 <script src="petri/nets/zone.js"></script>\
 <script src="petri/nets/creature.js"></script>\
 <script src="petri/noise.js"></script>\
-<script src="petri/mat.js"></script>\
+<script src="petri/rbush.js"></script>\
 <script src="petri/petri.js"></script>');

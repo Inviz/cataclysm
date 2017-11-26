@@ -533,7 +533,18 @@ angleBetweenLines = function(A1x, A1y, A2x, A2y, B1x, B1y, B2x, B2y) {
 
 
 
-
+getPolygonBox = function(arr, X, Y) {
+  if (X == null) X = 'x'
+  if (Y == null) Y = 'y'
+  var minX, maxX, minY, maxY;
+  for(var i=0; i< arr.length; i++){
+      minX = (arr[i][X] < minX || minX == null) ? arr[i][X] : minX;
+      maxX = (arr[i][X] > maxX || maxX == null) ? arr[i][X] : maxX;
+      minY = (arr[i][Y] < minY || minY == null) ? arr[i][Y] : minY;
+      maxY = (arr[i][Y] > maxY || maxY == null) ? arr[i][Y] : maxY;
+  }
+  return {minX: minX, minY: minY, maxX: maxX, maxY: maxY}
+}
 
 
 

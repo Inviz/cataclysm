@@ -64,7 +64,7 @@ Game.Struct.Block = [
     // collide previously generated blocks
     var polygon1 = this.computeBlockPolygon(index, true)
     for (var i = 0; i < index; i++) {
-      if (!this.getBlockCollision(i)) {
+      if (!this.getBlockCollision(i) && !this.getBlockLoop(i)) {
         var polygon2 = this.computeBlockPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
@@ -72,7 +72,10 @@ Game.Struct.Block = [
       }
     }
     var prev = this.getRoadPrevious(road)
-    for (var i = 0; i < this.Road.count; i++) {
+    var box = this.computeBlockPolygonBox(index, true)
+    var roads = this.Road.rtree.search(box);
+    for (var r = 0; r < roads.length; r++) {
+      var i = roads[r].index
       if (road == i || prev == i) continue;
       var polygon2 = this.computeRoadPolygon(i)
       if (doPolygonsIntersect(polygon1, polygon2)) {
@@ -90,6 +93,10 @@ Game.Struct.Block = [
       return rectangle
       //return this.computePolygonBinary([rectangle], this.Road.network, ClipperLib.ClipType.ctDifference)[0]
     }
+  },
+
+  function computeBlockPolygonBox(index) {
+    return this.computePolygonBox(this.computeBlockPolygon(index), index)
   },
 
   function computeBlockPolygonCenter(index) {

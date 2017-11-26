@@ -42,24 +42,31 @@ Game.Struct.Building = [
   },
   function setBuildingCollision (collision, x, y, width, length, building, index) {
     var polygon1 = this.computeBuildingPolygon(index, true)
+    var box = this.computeBuildingPolygonBox(index, true);
+    var buildings = this.Building.rtree.search(box); 
     // collide previously generated buildings
-    for (var i = 0; i < index; i++) {
-      var polygon2 = this.computeBuildingOuterPolygon(i)
-      if (doPolygonsIntersect(polygon1, polygon2)) {
-        return i + 1;
+    for (var b = 0; b < buildings.length; b++) {
+      if (doPolygonsIntersect(polygon1, buildings[b].polygon)) {
+        return b + 1
       }
     }
     // collide with road polygons
-    for (var i = 0; i < this.Road.count; i++) {
-      var polygon2 = this.computeRoadSurroundingPolygon(i)
-      if (doPolygonsIntersect(polygon1, polygon2)) {
-        return i + 1;
+    var roads = this.Road.rtree.search(box);
+    for (var r = 0; r < roads.length; r++) {
+      if (doPolygonsIntersect(polygon1, roads[r].polygon)) {
+        return roads[r].index + 1;
       }
     }
     return 0;
   },
   function computeBuildingPolygon(x, y, width, length, angle) {
     return this.computePolygonFromRotatedRectangle(x, y, width, length, angle)
+  },
+  function computeBuildingPolygonBox(index) {
+    return this.computePolygonBox(this.computeBuildingPolygon(index), index)
+  },
+  function computeBuildingOuterPolygonBox(index) {
+    return this.computePolygonBox(this.computeBuildingOuterPolygon(index), index)
   },
   function computeBuildingShape(index) {
     var loops = [];
@@ -160,10 +167,13 @@ Game.Generator.prototype.BlockBuilding = function(block, callback) {
   placement: for (var i = 0; i < count; i++) {
     var point = points[i % points.length];
     for (var attempt = 0; attempt < 26; attempt++) {
-      this.Building(this.Building.count, block, road, point[0], point[1], point[3] + (angle || 0))
+      var candidate = this.Building.count;
+      this.Building(candidate, block, road, point[0], point[1], point[3] + (angle || 0))
 
-      if (!this.getBuildingCollision(this.Building.count)) {
-        callback.call(this, this.Building.count++)
+      if (!this.getBuildingCollision(candidate)) {
+        callback.call(this, candidate)
+        this.Building.rtree.insert(this.computeBuildingOuterPolygonBox(candidate))
+        this.Building.count++;
         continue placement;
       }
     }

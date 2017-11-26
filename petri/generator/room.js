@@ -90,9 +90,13 @@ Game.Struct.Room = [
     this.computeRoomSpinePoints(index);
     return this.computePoints(points)
   },
+  function computeRoomPolygonBox(index) {
+    return this.computePolygonBox(this.computeRoomPolygon(index), index)
+  },
   function setRoomCollision (collision, x, y, width, height, building, index, number) {
     // collide previously generated buildings
     var polygon1 = this.computeRoomPolygon(index)
+    var box = this.computeRoomPolygonBox(index)
     for (var i = 0; i < this.Room.count; i++) {
       if (!this.getRoomCollision(i) && this.getRoomBuilding(i) === building) {
         var polygon2 = this.computeRoomPolygon(i)
@@ -101,20 +105,17 @@ Game.Struct.Room = [
         }
       }
     }
+    var buildings = this.Building.rtree.search(box); 
     // collide previously generated buildings
-    for (var i = 0; i < this.Building.count; i++) {
-      if (i !== building) {
-        var polygon2 = this.computeBuildingOuterPolygon(i)
-        if (doPolygonsIntersect(polygon1, polygon2)) {
-          return i + 1;
-        }
+    for (var b = 0; b < buildings.length; b++) {
+      if (doPolygonsIntersect(polygon1, buildings[b].polygon)) {
+        return b + 1
       }
     }
-    // collide with road polygons
-    for (var i = 0; i < this.Road.count; i++) {
-      var polygon2 = this.computeRoadSurroundingPolygon(i)
-      if (doPolygonsIntersect(polygon1, polygon2)) {
-        return i + 1;
+    var roads = this.Road.rtree.search(box);
+    for (var r = 0; r < roads.length; r++) {
+      if (doPolygonsIntersect(polygon1, roads[r].polygon)) {
+        return roads[r].index + 1;
       }
     }
     return 0

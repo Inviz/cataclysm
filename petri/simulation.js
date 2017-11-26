@@ -262,5 +262,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
   result.count = 0;
   result.size = size;
   result.attributes = attributes
+
+  result.rtree = rbush(4);
   return result;
 }
