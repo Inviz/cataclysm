@@ -40,20 +40,23 @@ Simulation.prototype.compileFunction = function(source, args, attributes, proper
   var prefix = 'data[start + ';
   var suffix = ']';
   // pass context to reference relations
+  var usesThis = false;
   args.forEach(function(arg) {
     if (relations[arg] && args.indexOf('this') == -1 && args.indexOf('context') == -1) {
-      args.push('context')
-      source = source.replace(')', ', context)')
+      usesThis = true;
     }
   })
-  var usesThis = false;
   source = source.replace(/this\./g, function() {
     usesThis = true;
     return 'context.';
   })
+  var computing = source.match(/function\s+compute(\w+)/);
   if (args.indexOf('context') == -1 && usesThis) {
     args.push('context')
-    source = source.replace(')', ', context)')
+    if (source.match(/^[^\(]+\(\s*\)/))
+      source = source.replace(')', 'context)')
+    else
+      source = source.replace(')', ', context)')
   }
   var name = source.match(/function\s+(\w+)/)[1]
   var call = prefix + attributes[args[0]] + suffix + ' = ' + name + '(' + args.map(function(arg, i) {
@@ -61,7 +64,6 @@ Simulation.prototype.compileFunction = function(source, args, attributes, proper
       return 'this'
     if (changed) {
       if (changed.indexOf(arg) == -1) {
-        var computing = source.match(/function\s+compute(\w+)/);
         if (changed && i == 0 && !computing)
           changed.push(arg)
         if ((properties.indexOf(arg) > -1 && !computing) || arg === 'index')
@@ -79,7 +81,7 @@ Simulation.prototype.compileFunction = function(source, args, attributes, proper
     source: source,
     call: call,
     name: name,
-    attribute: args[0]
+    attribute: computing ? null : args[0]
   }
 
   
@@ -97,6 +99,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
   // index all attributes used in function
   var allArgs = functions.map(function(fn) {
     return fn.match(/\(\s*(.*?)\s*\)/)[1].split(/\s*,\s*/).map(function(arg, index) {
+      if (arg != 'context' && arg != 'index')
       if (properties.indexOf(arg) == -1 || index == 0)
         if (attributes[arg] == null)
           attributes[arg] = size++

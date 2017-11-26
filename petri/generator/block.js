@@ -1,56 +1,56 @@
 Game.Struct.Block = [
-  function setLoop (loop) {
+  function setBlockLoop (loop) {
     return loop;
   },
-  function setRoad (road) {
+  function setBlockRoad (road) {
     return road;
   },
-  function setRoad (road) {
+  function setBlockRoad (road) {
     return road;
   },
-  function setAngle(angle, loop, road) {
+  function setBlockAngle(angle, loop, road) {
     if (!loop)
       return road.angle;
     return angle;
   },
-  function setWidth(width, loop, context, index) {
+  function setBlockWidth(width, loop, index) {
     if (loop)
-      width = context.computeBlockPolygonCenter(index).width;
-    else if (context.random() > 0.8)
-      return 500 + (context.random() * 300)
+      width = this.computeBlockPolygonCenter(index).width;
+    else if (this.random() > 0.8)
+      return 500 + (this.random() * 300)
     else
-      return 600 + (context.random() * 300)
+      return 600 + (this.random() * 300)
     return width;
   },
-  function setHeight(height, loop, context, index) {
+  function setBlockHeight(height, loop, index) {
     if (loop)
-      height = context.computeBlockPolygonCenter(index).height;
-    else if (context.random() > 0.8)
+      height = this.computeBlockPolygonCenter(index).height;
+    else if (this.random() > 0.8)
       return 500
     else 
       return 600
     return height;
   },
-  function setShift(shift, context) {
-    return - Math.floor(context.random() * 2);
+  function setBlockShift(shift) {
+    return - Math.floor(this.random() * 2);
   },
-  function setSide(side, shift, context) {
+  function setBlockSide(side, shift) {
     if (shift == 0)
       return 0
-    return Math.floor(context.random() * 3) - 1;
+    return Math.floor(this.random() * 3) - 1;
   },
-  function setX(x, road, loop, angle, width, height, context, index, shift, side) {
+  function setBlockX(x, road, loop, angle, width, height, index, shift, side) {
     if (loop)
-      x = context.computeBlockPolygonCenter(index).x;
+      x = this.computeBlockPolygonCenter(index).x;
     else {
       x = road.ex + Math.cos(angle) * shift * width / 2
                  + Math.cos(angle - Math.PI / 2) * side * (height / 2)
     }
     return x ;
   },
-  function setY(y, road, loop, angle, width, height, context, index, shift, side) {
+  function setBlockY(y, road, loop, angle, width, height, index, shift, side) {
     if (loop)
-      y = context.computeBlockPolygonCenter(index).y;
+      y = this.computeBlockPolygonCenter(index).y;
     else {
       y = road.ey + Math.sin(angle) * shift * width / 2
                  + Math.sin(angle - Math.PI / 2) * side * (height / 2) 
@@ -58,23 +58,23 @@ Game.Struct.Block = [
     return y;
   },
 
-  function setCollision (collision, road, index, loop, context) {
+  function setBlockCollision (collision, road, index, loop) {
     if (loop)
       return 0;
     // collide previously generated blocks
-    var polygon1 = context.computeBlockPolygon(index, true)
+    var polygon1 = this.computeBlockPolygon(index, true)
     for (var i = 0; i < index; i++) {
-      if (!context.getBlockCollision(i)) {
-        var polygon2 = context.computeBlockPolygon(i)
+      if (!this.getBlockCollision(i)) {
+        var polygon2 = this.computeBlockPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }
       }
     }
-    var prev = context.getRoadPrevious(road)
-    for (var i = 0; i < context.Road.count; i++) {
+    var prev = this.getRoadPrevious(road)
+    for (var i = 0; i < this.Road.count; i++) {
       if (road == i || prev == i) continue;
-      var polygon2 = context.computeRoadPolygon(i)
+      var polygon2 = this.computeRoadPolygon(i)
       if (doPolygonsIntersect(polygon1, polygon2)) {
         return i + 1;
       }
@@ -82,26 +82,26 @@ Game.Struct.Block = [
     return 0;
   },
 
-  function computePolygon(index, loop, context, x, y, width, height, angle) {
+  function computeBlockPolygon(index, loop, x, y, width, height, angle) {
     if (loop)
-      return context.Road.network[loop];
+      return this.Road.network[loop];
     else {
-      var rectangle = context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
+      var rectangle = this.computePolygonFromRotatedRectangle(x, y, width, height, angle)
       return rectangle
-      //return context.computePolygonBinary([rectangle], context.Road.network, ClipperLib.ClipType.ctDifference)[0]
+      //return this.computePolygonBinary([rectangle], this.Road.network, ClipperLib.ClipType.ctDifference)[0]
     }
   },
 
-  function computePolygonCenter(index, context) {
-    return polygonCenter(context.computeBlockPolygon(index))
+  function computeBlockPolygonCenter(index) {
+    return polygonCenter(this.computeBlockPolygon(index))
   },
 
-  function computeClippedPolygon(index, context) {
-    return context.computePolygonBinary([rectangle], context.Road.network, ClipperLib.ClipType.ctDifference)[0]
+  function computeBlockClippedPolygon(index) {
+    return this.computePolygonBinary([rectangle], this.Road.network, ClipperLib.ClipType.ctDifference)[0]
   },
 
-  function computeInnerPolygon(index, context) {
-    return context.computePolygonOffset([context.computeBlockPolygon(index)], -20, 10, 0);
+  function computeBlockInnerPolygon(index) {
+    return this.computePolygonOffset([this.computeBlockPolygon(index)], -20, 10, 0);
   }
 ]
 

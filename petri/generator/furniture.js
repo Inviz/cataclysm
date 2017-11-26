@@ -1,34 +1,34 @@
 Game.Struct.Furniture = [
-  function setAnchor (anchor) {
+  function setFurnitureAnchor (anchor) {
     return anchor;
   },
-  function setPrevious (previous) {
+  function setFurniturePrevious (previous) {
     return previous;
   },
-  function setWidth (width, type) {
+  function setFurnitureWidth (width, type) {
     return Game.Furniture[type].length;
   },
-  function setLength (height, type) {
+  function setFurnitureLength (height, type) {
     return Game.Furniture[type].width;
   },
-  function setAngle (angle, room, anchor, context, height, width) {
+  function setFurnitureAngle (angle, room, anchor, height, width) {
     if (angle == null)
       angle = 0;
     //if (height > width)
     //  angle += Math.PI / 2
-    //if ((anchor & Game.ANCHOR.CENTER) && context.random() > 0.8)
-    //  return angle += (Math.floor(context.random() * 8) * 3) * Math.PI / 180
+    //if ((anchor & Game.ANCHOR.CENTER) && this.random() > 0.8)
+    //  return angle += (Math.floor(this.random() * 8) * 3) * Math.PI / 180
     return angle// + Math.floor(Math.random() * 8) * 2// + room.angle//angle;
   },
-  function setOffsetAngle(offsetAngle, angle) {
+  function setFurnitureOffsetAngle(offsetAngle, angle) {
     return angle + (offsetAngle || 0);
   },
-  function setOffsetDistance(offsetDistance, width, type) {
+  function setFurnitureOffsetDistance(offsetDistance, width, type) {
     //if (type == Game.Furniture.chair.index)
     //  return - height / 6;
     return width / 2
   },
-  function setX (x, anchor, angle, offsetDistance, offsetAngle, height, width, context) {
+  function setFurnitureX (x, anchor, angle, offsetDistance, offsetAngle, height, width) {
     if (anchor & Game.ANCHOR.CENTER) {
       return x;
     } else if (anchor & Game.ANCHOR.CORNER) {
@@ -42,7 +42,7 @@ Game.Struct.Furniture = [
     return x
   },
 
-  function setY (y, anchor, angle, offsetDistance, offsetAngle, height, width, context) {
+  function setFurnitureY (y, anchor, angle, offsetDistance, offsetAngle, height, width) {
     if (anchor & Game.ANCHOR.CENTER) {
       return y;
     } else if (anchor & Game.ANCHOR.CORNER) {
@@ -55,22 +55,22 @@ Game.Struct.Furniture = [
     }
     return y
   },
-  function setRoom (room) {
+  function setFurnitureRoom (room) {
     return room;
   },
-  function setType(type, context) {
+  function setFurnitureType(type) {
     return type
   },
-  function setCollision (collision, x, y, width, height, room, building, previous, index, context, anchor) {
-    var polygon1 = context.computeFurniturePolygon(index, true)
-    var polygon0 = context.computeRoomPolygon(room);
+  function setFurnitureCollision (collision, x, y, width, height, room, building, previous, index, anchor) {
+    var polygon1 = this.computeFurniturePolygon(index, true)
+    var polygon0 = this.computeRoomPolygon(room);
     if (checkGivenPolygonIntersection(polygon0, polygon1)
     || !intersectPolygon(polygon1[0], polygon0, 'x', 'y', 0)) {
       return 1;
     }
-    for (var i = context.Furniture.count - 50; i < context.Furniture.count; i++) {
-      if (i != previous && context.getFurnitureRoom(i) == room && !context.getFurnitureCollision(i)) {
-        var polygon2 = context.computeFurniturePolygon(i)
+    for (var i = this.Furniture.count - 50; i < this.Furniture.count; i++) {
+      if (i != previous && this.getFurnitureRoom(i) == room && !this.getFurnitureCollision(i)) {
+        var polygon2 = this.computeFurniturePolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }
@@ -79,25 +79,25 @@ Game.Struct.Furniture = [
     return 0
   },
 
-  function computePolygon(x, y, width, height, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
+  function computeFurniturePolygon(x, y, width, height, angle) {
+    return this.computePolygonFromRotatedRectangle(x, y, width, height, angle)
   },
 
-  function computeAnchorPoints(index, context, type) {
+  function computeFurnitureAnchorPoints(index, type) {
     if (type == Game.Furniture.table.index) {
-      return context.computeAnchorPoints(context.computeFurniturePolygon(index), .2, .2, null, null, 12, 12)
+      return this.computeAnchorPoints(this.computeFurniturePolygon(index), .2, .2, null, null, 12, 12)
 
     } else {
-      return context.computeAnchorPoints(context.computeFurniturePolygon(index), .2, .2, null, null, 5, 5)
+      return this.computeAnchorPoints(this.computeFurniturePolygon(index), .2, .2, null, null, 5, 5)
     }
   },
-  function computeSpinePoints(index, context) {
-    return context.computeSpinePoints(context.computeFurniturePolygon(index))
+  function computeFurnitureSpinePoints(index) {
+    return this.computeSpinePoints(this.computeFurniturePolygon(index))
   },
-  function computePoints(index, context) {
-    var points = context.computeFurnitureAnchorPoints(index);
-    context.computeFurnitureSpinePoints(index);
-    return context.computePoints(points)
+  function computeFurniturePoints(index) {
+    var points = this.computeFurnitureAnchorPoints(index);
+    this.computeFurnitureSpinePoints(index);
+    return this.computePoints(points)
   },
 ]
 

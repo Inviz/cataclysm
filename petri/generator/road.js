@@ -1,11 +1,11 @@
 Game.Struct.Road = [
-  function setType (type) {
+  function setRoadType (type) {
     return type
   },
-  function setPrevious (previous) {
+  function setRoadPrevious (previous) {
     return previous
   },
-  function setAngle (angle, previous, ex, ey, sx, sy) {
+  function setRoadAngle (angle, previous, ex, ey, sx, sy) {
     if (angle == null) {
       if (sx != null)
         return Math.atan2(ey - sy, ex - sx)
@@ -14,78 +14,78 @@ Game.Struct.Road = [
     }
     return angle + previous.angle
   },
-  function setWidth (width, type, context) {
-    return type === 0 ? context.HIGHWAY_SEGMENT_WIDTH : context.DEFAULT_SEGMENT_WIDTH;
+  function setRoadWidth (width, type) {
+    return type === 0 ? this.HIGHWAY_SEGMENT_WIDTH : this.DEFAULT_SEGMENT_WIDTH;
   },
-  function setLength (length, type, context, ex, ey, previous, index, sx, sy) {
+  function setRoadLength (length, type, ex, ey, previous, index, sx, sy) {
     if (sx != null && ex != null) {
       return Math.sqrt(Math.pow(sx - ex, 2) + Math.pow(sy - ey, 2), 2)
     }
-    if (ex != null && (index > 2 || context.Road.count > 2)) {
+    if (ex != null && (index > 2 || this.Road.count > 2)) {
       return Math.sqrt(Math.pow(previous.ex - ex, 2) + Math.pow(previous.ey - ey, 2), 2)
     }
-    return type === 0 ? context.HIGHWAY_SEGMENT_LENGTH : context.DEFAULT_SEGMENT_LENGTH;
+    return type === 0 ? this.HIGHWAY_SEGMENT_LENGTH : this.DEFAULT_SEGMENT_LENGTH;
   },
-  function setEx (ex, previous, angle, length) {
+  function setRoadEx (ex, previous, angle, length) {
     if (ex != null)
       return ex
     return previous.ex + Math.cos(angle) * length;
   },
-  function setEy (ey, previous, angle, length) {
+  function setRoadEy (ey, previous, angle, length) {
     if (ey != null)
       return ey
     return previous.ey + Math.sin(angle) * length;
   },
-  function setX (x, ex, angle, length) {
+  function setRoadX (x, ex, angle, length) {
     return ex - Math.cos(angle) * length / 2;
   },
-  function setY (y, ey, angle, length) {
+  function setRoadY (y, ey, angle, length) {
     return ey - Math.sin(angle) * length / 2;
   },
-  function setSx (sx, ex, angle, length) {
+  function setRoadSx (sx, ex, angle, length) {
     return ex - Math.cos(angle) * length;
   },
-  function setSy (sy, ey, angle, length) {
+  function setRoadSy (sy, ey, angle, length) {
     return ey - Math.sin(angle) * length;
   },
-  function setConnectivity(connectivity, context) {
+  function setRoadConnectivity(connectivity) {
     if (connectivity) {
       return 1
     } else {
       return 0
     }
   },
-  function setPopulation(population, index, context, city) {
-    var vector = context.computeRoadVector(index);
+  function setRoadPopulation(population, index, city) {
+    var vector = this.computeRoadVector(index);
     var x = city.x;
     var y = city.y;
-    return (context.computeTripleNoise(context.getRoadSx(index) + x, context.getRoadSy(index) + y) 
-          + context.computeTripleNoise(context.getRoadEx(index) + x, context.getRoadEy(index) + y)) / 2;
+    return (this.computeTripleNoise(this.getRoadSx(index) + x, this.getRoadSy(index) + y) 
+          + this.computeTripleNoise(this.getRoadEx(index) + x, this.getRoadEy(index) + y)) / 2;
   },
-  function setStatus(status) {
+  function setRoadStatus(status) {
     return status
   },
-  function setCollision(collision, index, context, city) {
+  function setRoadCollision(collision, index, city) {
     if (collision != null)
       return collision;
     var type = null;
-    var x1 = context.getRoadSx(index)
-    var y1 = context.getRoadSy(index)
-    var x2 = context.getRoadEx(index)
-    var y2 = context.getRoadEy(index)
+    var x1 = this.getRoadSx(index)
+    var y1 = this.getRoadSy(index)
+    var x2 = this.getRoadEx(index)
+    var y2 = this.getRoadEy(index)
     var ninety = Math.PI;
-    for (var other = 0; other < context.Road.count; other++) {
-      var x3 = context.getRoadSx(other)
-      var y3 = context.getRoadSy(other);
-      var x4 = context.getRoadEx(other)
-      var y4 = context.getRoadEy(other);
-      var otherCollision = context.getRoadCollision(other)
+    for (var other = 0; other < this.Road.count; other++) {
+      var x3 = this.getRoadSx(other)
+      var y3 = this.getRoadSy(other);
+      var x4 = this.getRoadEx(other)
+      var y4 = this.getRoadEy(other);
+      var otherCollision = this.getRoadCollision(other)
       if (other == index || otherCollision === 1 || otherCollision === -1 || (other < 2 && index < 2))
         continue;
       // snap to closest road
       //var closest = closestOnLineXY(x4, y4, x1, y1, x2, y2);
       //var closestDistance = Math.sqrt(Math.pow(x2 - closest.x, 2) + Math.pow(y2 - closest.y, 2), 2);
-      //if (closestDistance < context.ROAD_SNAP_DISTANCE) {
+      //if (closestDistance < this.ROAD_SNAP_DISTANCE) {
       //  if (type <= 4 && (bestDistance == null || bestDistance > closestDistance)) {
       //    var target = other;
       //    var xx = closest.x;
@@ -108,8 +108,8 @@ Game.Struct.Road = [
           }
           var type = 3;
         // reject close roads that are too similar
-          var angleDiff = context.computeDegreeDifference(context.getRoadAngle(index), context.getRoadAngle(other))
-          if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) {
+          var angleDiff = this.computeDegreeDifference(this.getRoadAngle(index), this.getRoadAngle(other))
+          if (angleDiff < this.MINIMUM_INTERSECTION_DEVIATION) {
             return 1;
           } 
         } else if (intersection && !type) {
@@ -119,14 +119,14 @@ Game.Struct.Road = [
       // join endpoints
       if (type <= 2 || target === other) {
         var distance = Math.sqrt(Math.pow(x2 - x4, 2) + Math.pow(y2 - y4, 2), 2);
-        if (distance < context.ROAD_SNAP_DISTANCE) {
+        if (distance < this.ROAD_SNAP_DISTANCE) {
           var target = other;
           var xx = x4;
           var xy = y4;
           var type = 2;
 
-          var angleDiff = context.computeDegreeDifference(context.getRoadAngle(index), context.getRoadAngle(other))
-          if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) {
+          var angleDiff = this.computeDegreeDifference(this.getRoadAngle(index), this.getRoadAngle(other))
+          if (angleDiff < this.MINIMUM_INTERSECTION_DEVIATION) {
             return 1;
           } 
         }
@@ -135,7 +135,7 @@ Game.Struct.Road = [
       // snap to closest road
       var closest = closestOnLineXY(x2, y2, x3, y3, x4, y4);
       var closestDistance = Math.sqrt(Math.pow(x2 - closest.x, 2) + Math.pow(y2 - closest.y, 2), 2);
-      if (closestDistance < context.ROAD_SNAP_DISTANCE) {
+      if (closestDistance < this.ROAD_SNAP_DISTANCE) {
         if (type <= 1 && (bestDistance == null || bestDistance > closestDistance)) {
           var target = other;
           var xx = closest.x;
@@ -144,27 +144,27 @@ Game.Struct.Road = [
           var type = 1;
         }
 
-        var angleDiff = context.computeDegreeDifference(context.getRoadAngle(index), context.getRoadAngle(other))
-        if (angleDiff < context.MINIMUM_INTERSECTION_DEVIATION) {
+        var angleDiff = this.computeDegreeDifference(this.getRoadAngle(index), this.getRoadAngle(other))
+        if (angleDiff < this.MINIMUM_INTERSECTION_DEVIATION) {
           return 1;
         } 
       }
     }
     if (xx != null) {
       // find if intersection point can be snapped to a nearby point
-      context.eachRoad(function(other) {
+      this.eachRoad(function(other) {
         if (other == index) return;
-        var ox = context.getRoadEx(other);
-        var oy = context.getRoadEy(other);
+        var ox = this.getRoadEx(other);
+        var oy = this.getRoadEy(other);
         var d = Math.sqrt(Math.pow(ox - xx, 2) + Math.pow(oy - xy, 2), 2)
-        if (d < context.POINT_SNAP_DISTANCE) {
+        if (d < this.POINT_SNAP_DISTANCE) {
           xx = ox;
           xy = oy;
         }
       })
 
       // update current segment to snap to point on target line
-      context.Road(index, city, context.getRoadPrevious(index), null, context.getRoadType(index), xx, xy, type || 0);
+      this.Road(index, city, this.getRoadPrevious(index), null, this.getRoadType(index), xx, xy, type || 0);
 
     }
     if (target != null) {
@@ -173,23 +173,23 @@ Game.Struct.Road = [
 
     return 0;
   },
-  function computePSLG(index, context) {
-    return context.computePSLG([context.computeRoadPolygon(index)])
+  function computeRoadPSLG(index) {
+    return this.computePSLG([this.computeRoadPolygon(index)])
   },
-  function computeVector(x, y, length, angle, context) {
-    return context.computeVectorFromSegment(x, y, length, angle)
+  function computeRoadVector(x, y, length, angle) {
+    return this.computeVectorFromSegment(x, y, length, angle)
   },
-  function computePolygon(x, y, width, length, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, length, width, angle)
+  function computeRoadPolygon(x, y, width, length, angle) {
+    return this.computePolygonFromRotatedRectangle(x, y, length, width, angle)
   },
-  function computeOuterPolygon(x, y, width, length, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, length + 20, width + 20, angle)
+  function computeRoadOuterPolygon(x, y, width, length, angle) {
+    return this.computePolygonFromRotatedRectangle(x, y, length + 20, width + 20, angle)
   },
-  function computeSurroundingPolygon(x, y, width, length, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, length + 30, width + 30, angle)
+  function computeRoadSurroundingPolygon(x, y, width, length, angle) {
+    return this.computePolygonFromRotatedRectangle(x, y, length + 30, width + 30, angle)
   },
-  function computeAnchorPoints(index, context) {
-    return context.computeAnchorPoints(context.computeRoadSurroundingPolygon(index), 5, 40)
+  function computeRoadAnchorPoints(index) {
+    return this.computeAnchorPoints(this.computeRoadSurroundingPolygon(index), 5, 40)
   }
 ]
 

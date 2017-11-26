@@ -1,39 +1,39 @@
 Game.Struct.Room = [
-  function setNumber (number) {
+  function setRoomNumber (number) {
     return number;
   },
-  function setOrigin (origin, number) {
+  function setRoomOrigin (origin, number) {
     return origin;
   },
-  function setAngle (angle, building) {
+  function setRoomAngle (angle, building) {
     return building.angle;
   },
-  function setOrientation (orientation, context) {
-    return context.random() > 0.5 ? 1 : -1
+  function setRoomOrientation (orientation) {
+    return this.random() > 0.5 ? 1 : -1
   },
-  function setPlacement (placement, context) {
-    return context.random() > 0.5 ? 1 : 0
+  function setRoomPlacement (placement) {
+    return this.random() > 0.5 ? 1 : 0
   },
-  function setOffset (offset, number, context) {
-    if (number == 0 || context.random() > 0.3)
+  function setRoomOffset (offset, number) {
+    if (number == 0 || this.random() > 0.3)
       return 0
-    return Math.floor(context.random() * 3) / 3
+    return Math.floor(this.random() * 3) / 3
   },
-  function setWidth (width, number, building, placement, context) {
+  function setRoomWidth (width, number, building, placement) {
     if (number == 0 || !placement)
       return building.width;
     else
-      return building.width * (2 + (context.random() * 3)) / 3
+      return building.width * (2 + (this.random() * 3)) / 3
     return width;
   },
-  function setHeight (height, number, building, placement, context) {
+  function setRoomHeight (height, number, building, placement) {
     if (number == 0 || placement)
       return building.length;
     else
-      return building.length * (2 + (context.random() * 3)) / 3
+      return building.length * (2 + (this.random() * 3)) / 3
     return height;
   },
-  function setX (x, number, building, origin, angle, orientation, placement, width, height, offset) {
+  function setRoomX (x, number, building, origin, angle, orientation, placement, width, height, offset) {
     if (number == 0)
       return building.x;
     x = origin.x
@@ -52,7 +52,7 @@ Game.Struct.Room = [
     return x + (angleShift) * orientation + offsetShift
     //if (number == 0)
   },
-  function setY (y, number, building, origin, angle, orientation, placement, width, height, offset) {
+  function setRoomY (y, number, building, origin, angle, orientation, placement, width, height, offset) {
     if (number == 0)
       return building.y;
     y = origin.y
@@ -70,49 +70,49 @@ Game.Struct.Room = [
     var offsetShift = Math.sin((angle - Math.PI / 2)) * (offsetDistance);
     return y + (angleShift) * orientation + offsetShift
   },
-  function setBuilding (building) {
+  function setRoomBuilding (building) {
     return building;
   },
-  function setDistance (distance, x, y, building) {
+  function setRoomDistance (distance, x, y, building) {
     return Math.sqrt(Math.pow(x - building.x, 2) + Math.pow(y - building.y, 2), 2);
   },
-  function computePolygon(x, y, width, height, angle, context) {
-    return context.computePolygonFromRotatedRectangle(x, y, width, height, angle)
+  function computeRoomPolygon(x, y, width, height, angle) {
+    return this.computePolygonFromRotatedRectangle(x, y, width, height, angle)
   },
-  function computeAnchorPoints(index, context) {
-    return context.computeAnchorPoints(context.computeRoomPolygon(index), .2, .2, null, null, 10, 10)
+  function computeRoomAnchorPoints(index) {
+    return this.computeAnchorPoints(this.computeRoomPolygon(index), .2, .2, null, null, 10, 10)
   },
-  function computeSpinePoints(index, context) {
-    return context.computeSpinePoints(context.computeRoomPolygon(index))
+  function computeRoomSpinePoints(index) {
+    return this.computeSpinePoints(this.computeRoomPolygon(index))
   },
-  function computePoints(index, context) {
-    var points = context.computeRoomAnchorPoints(index);
-    context.computeRoomSpinePoints(index);
-    return context.computePoints(points)
+  function computeRoomPoints(index) {
+    var points = this.computeRoomAnchorPoints(index);
+    this.computeRoomSpinePoints(index);
+    return this.computePoints(points)
   },
-  function setCollision (collision, x, y, width, height, building, index, context, number) {
+  function setRoomCollision (collision, x, y, width, height, building, index, number) {
     // collide previously generated buildings
-    var polygon1 = context.computeRoomPolygon(index)
-    for (var i = 0; i < context.Room.count; i++) {
-      if (!context.getRoomCollision(i) && context.getRoomBuilding(i) === building) {
-        var polygon2 = context.computeRoomPolygon(i)
+    var polygon1 = this.computeRoomPolygon(index)
+    for (var i = 0; i < this.Room.count; i++) {
+      if (!this.getRoomCollision(i) && this.getRoomBuilding(i) === building) {
+        var polygon2 = this.computeRoomPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }
       }
     }
     // collide previously generated buildings
-    for (var i = 0; i < context.Building.count; i++) {
+    for (var i = 0; i < this.Building.count; i++) {
       if (i !== building) {
-        var polygon2 = context.computeBuildingOuterPolygon(i)
+        var polygon2 = this.computeBuildingOuterPolygon(i)
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }
       }
     }
     // collide with road polygons
-    for (var i = 0; i < context.Road.count; i++) {
-      var polygon2 = context.computeRoadSurroundingPolygon(i)
+    for (var i = 0; i < this.Road.count; i++) {
+      var polygon2 = this.computeRoadSurroundingPolygon(i)
       if (doPolygonsIntersect(polygon1, polygon2)) {
         return i + 1;
       }

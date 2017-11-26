@@ -1,36 +1,36 @@
 Game.Struct.Wall = [
-  function setType (type) {
+  function setWallType (type) {
     return type
   },
-  function setBuilding (building) {
+  function setWallBuilding (building) {
     return building
   },
-  function setSx (sx) {
+  function setWallSx (sx) {
     return sx
   },
-  function setSy (sy) {
+  function setWallSy (sy) {
     return sy
   },
-  function setEx (ex) {
+  function setWallEx (ex) {
     return ex
   },
-  function setEy (ey) {
+  function setWallEy (ey) {
     return ey
   },
-  function setX (x, sx, ex) {
+  function setWallX (x, sx, ex) {
     return sx + (ex - sx) / 2
   },
-  function setY (y, sy, ey) {
+  function setWallY (y, sy, ey) {
     return sy + (ey - sy) / 2
   },
-  function setLength (length, sx, sy, ex, ey) {
+  function setWallLength (length, sx, sy, ex, ey) {
     return Math.sqrt(Math.pow(ex - sx, 2) + Math.pow(ey - sy, 2), 2)
   },
-  function setAngle (angle, ex, ey, sx, sy) {
+  function setWallAngle (angle, ex, ey, sx, sy) {
     return Math.atan2(ey - sy, ex - sx)
   },
-  function setWidth (width, type, context) {
-    return type === 0 ? context.HIGHWAY_SEGMENT_WIDTH : context.DEFAULT_SEGMENT_WIDTH;
+  function setWallWidth (width, type) {
+    return 10;
   }
 
 ]
