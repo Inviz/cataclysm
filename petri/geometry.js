@@ -254,7 +254,7 @@ function intersectRectangle (x1, y1, x2, y2, minX, minY, maxX, maxY) {
 
 distanceToPolygon = function (point, poly) {
   var minDistance = Infinity;
-  for (var i = 1; i < poly.length; i++) {
+  for (var i = 0; i < poly.length; i++) {
     var p1 = poly[i];
     var prev = (i == 0 ? poly.length : i) - 1,
         p2 = poly[prev]
@@ -294,23 +294,32 @@ angleToPolygon = function (point, poly, relative, round) {
   }
 }
 
-equidistantPointsFromPolygon = function(poly, length, binary, inBetween) {
+equidistantPointsFromPolygon = function(poly, length, binary, inBetween, X, Y) {
   if (length == null)
     length = 100;
+  if (X == null)
+    X = 0;
+  if (Y == null)
+    Y = 1;
   var result = [];
   for (var i = 0; i < poly.length; i++) {
     var p1 = poly[i];
     var prev = (i == 0 ? poly.length : i) - 1,
         p2 = poly[prev]
 
-    var x1 = p1[0]
-    var y1 = p1[1]
-    var x2 = p2[0]
-    var y2 = p2[1]
+    var x1 = p1[X]
+    var y1 = p1[Y]
+    var x2 = p2[X]
+    var y2 = p2[Y]
     var L = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2), 2);
     if (!L) {
-      if (!result.length)
-        result.push([x1, y1])
+      if (!result.length) {
+        
+        if (X == 0)
+          result.push([xs, ys])
+        else
+          result.push({x: xs, y: ys})
+      }
       continue
     }
     if (binary) {
@@ -327,14 +336,17 @@ equidistantPointsFromPolygon = function(poly, length, binary, inBetween) {
       var ys = y2+p*(y1-y2)
       for (var j = 0; j < result.length; j++) {
         if (j == prev) continue;
-        var x0 = result[j][0]
-        var y0 = result[j][1]
+        var x0 = result[j][X]
+        var y0 = result[j][Y]
         var l = Math.sqrt(Math.pow(x0 - xs, 2) + Math.pow(y0 - ys, 2), 2);
         if (l < length) {
           continue segmenting
         }
       }
-      result.push([xs, ys])
+      if (X == 0)
+        result.push([xs, ys])
+      else
+        result.push({x: xs, y: ys})
     }
 
 
@@ -348,8 +360,8 @@ equidistantPointsFromPolygon = function(poly, length, binary, inBetween) {
       var prev = result[i];
 
       shifted.push([
-        prev[0] + (next[0] - prev[0]) / 2,
-        prev[1] + (next[1] - prev[1]) / 2
+        prev[X] + (next[X] - prev[X]) / 2,
+        prev[Y] + (next[Y] - prev[Y]) / 2
       ])
     }
     return shifted

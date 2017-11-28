@@ -24,8 +24,8 @@ Game.Struct.Furniture = [
     return angle + (offsetAngle || 0);
   },
   function setFurnitureOffsetDistance(offsetDistance, width, type) {
-    //if (type == Game.Furniture.chair.index)
-    //  return - height / 6;
+    if (type == Game.Furniture.chair.index && this.random() > 0.2)
+      return - width / 6;
     return width / 2
   },
   function setFurnitureX (x, anchor, angle, offsetDistance, offsetAngle, height, width) {
@@ -63,7 +63,7 @@ Game.Struct.Furniture = [
   },
   function setFurnitureCollision (collision, x, y, width, height, room, building, previous, index, anchor) {
     var polygon1 = this.computeFurniturePolygon(index, true)
-    var polygon0 = this.computeRoomPolygon(room);
+    var polygon0 = this.computeRoomShrunkPolygon(room);
     if (checkGivenPolygonIntersection(polygon0, polygon1)
     || !intersectPolygon(polygon1[0], polygon0, 'x', 'y', 0)) {
       return 1;
@@ -102,6 +102,8 @@ Game.Struct.Furniture = [
 ]
 
 Game.Generator.prototype.BuildingRoomFurniture = function(building, room, callback, previous, blueprint) {
+  if (this.getRoomNumber(room) == 100) // corridor
+    return
   if (previous != null) {
     var points = this.computeFurniturePoints(previous).allPoints
     var angle = this.getFurnitureAngle(previous)

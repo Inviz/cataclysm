@@ -1518,6 +1518,7 @@
    */
   ClipperLib.Clipper = function (InitOptions)
   {
+    
     if (typeof (InitOptions) === "undefined") InitOptions = 0;
     this.m_PolyOuts = null;
     this.m_ClipType = ClipperLib.ClipType.ctIntersection;

@@ -28,7 +28,7 @@ Game.Generator = function(seed, step, previous) {
 
     Game.Generator.prototype.Room = Game.Generator.prototype.compile(
       Game.Struct.Room,      
-      ['building', 'number', 'origin'], 
+      ['building', 'number', 'origin', 'collision', 'x', 'y', 'width', 'height'], 
       {building: 'buildings', origin: 'rooms'}, 'room', 'rooms');
 
     Game.Generator.prototype.Furniture = Game.Generator.prototype.compile(
@@ -69,12 +69,22 @@ Game.Generator.prototype.advance = function() {
   // fill blocks with multi-room buildings and furniture
   this.eachBlock(function(block) {
     this.BlockBuilding(block, function(building) {
-      this.BuildingRoom(building, function(building, room) {
-        this.BuildingRoomFurniture(building, room, function(building, room, furniture) {
-          this.BuildingRoomFurnitureFurniture(building, room, furniture)
-        })
+      this.BuildingRoom(building)
+      this.BuildingCorridorRoom(building, function(building, corridor) {
+        this.BuildingWallDoor(building, corridor)
       })
-      this.BuildingWall(building)
+      this.BuildingDividedRoom(building)
+      this.BuildingWallDoor(building)
+      
+    })
+  })
+  this.eachBuilding(function(building) {
+    this.BuildingWall(building)
+  })
+  this.eachRoom(function(room) {
+    var building = this.getRoomBuilding(room);
+    this.BuildingRoomFurniture(building, room, function(building, room, furniture) {
+      this.BuildingRoomFurnitureFurniture(building, room, furniture)
     })
   })
 

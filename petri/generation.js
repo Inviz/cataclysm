@@ -119,7 +119,28 @@ Generation.prototype.computeNavigationNetwork = function(pslg, callback) {
   }
   return network
 }
-
+Generation.prototype.computePSLGPath = function(pslg, solution, a, b) {
+  var path = [];
+  var length = pslg.points.length;
+  var last = a.index
+  var target = last * length;
+  for (var current = b; current; ) {
+    path.unshift(current)
+    if (current.index == last)
+      break
+    current = pslg.points[solution.transitions[current.index + target]]
+  }
+  return path
+};
+Generation.prototype.computeLineOffset = function(path, padding, type) {
+  if (type == null)
+    type = 1;
+  var co = new ClipperLib.ClipperOffset(2, 0.25); // constructor
+  var offseted_paths = new ClipperLib.Paths(); // empty solution
+  co.AddPaths([path], type, ClipperLib.EndType.etOpenSquare);
+  co.Execute(offseted_paths, padding);
+  return offseted_paths
+}
 Generation.prototype.computePolygonOffset = function(paths, margin, padding, type) {
   if (type == null)
     type = 1;
@@ -172,7 +193,7 @@ Generation.prototype.computePolygonBinary = function(subj_paths, clip_paths, typ
   if (type == null)
     type = ClipperLib.ClipType.ctUnion
 
-  var cpr = new ClipperLib.Clipper();
+  var cpr = new ClipperLib.Clipper(/*2*/);
   cpr.AddPaths(subj_paths, ClipperLib.PolyType.ptSubject, true);  // true means closed path
   cpr.AddPaths(clip_paths, ClipperLib.PolyType.ptClip, true);
 
@@ -194,8 +215,10 @@ Generation.prototype.computePolygonHull = function(polygon, concavity, distance)
       });
 }
 
-Generation.prototype.computeDistances = function() {
-    var length = this.totalPoints
+Generation.prototype.computeDistances = function(pslg, solution) {
+    var length = pslg.points.length
+    var distances = solution.distances;
+    var transitions = solution.transitions
     var i,j,k,d
     for (k = 0; k < length; ++k) {
       for (i = 0; i < length; ++i) {
@@ -291,7 +314,7 @@ Generation.prototype.computeAnchorPoints = function(points, padding, margin, con
 }
 Generation.prototype.computePoints = function(points, straight) {
   var margin = straight ? points.marginStraightPoints[0] : points.marginPoints[0]
-  points.allPoints = margin.concat(points.paddingPoints[0], points.spines)
+  points.allPoints = margin.concat(points.paddingPoints[0] || [], points.spines || [])
   points.allPointsShuffled = this.shuffleArray(points.allPoints);
   return points;
 }

@@ -153,7 +153,7 @@ Simulation.prototype.compile = function(functions, properties, relations, name, 
         + 'var data = this.' + collection + ';\n'
         + 'var start = index * ' + size + ';\n'
         + 'if (!this.computed' + propertyName + ') this.' + memo + '.push(this.computed' + propertyName + ' = {});\n' 
-        + 'return ((!update && this.computed' + propertyName + '[index]) || (this.computed' + propertyName + '[index] = ' + invocation.split('=')[1] + '))'
+        + 'return (!update && this.computed' + propertyName + '[index] !== undefined ? this.computed' + propertyName + '[index] : (this.computed' + propertyName + '[index] = ' + invocation.split('=')[1] + '))'
         + '}'
         )()
       return false

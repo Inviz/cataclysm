@@ -317,6 +317,16 @@ function draw() {
     Game.World.eachBuilding(function(b) {
        var pslg = this.computeBuildingPSLG(b)
        var network = this.computeBuildingNavigationNetwork(b)
+
+       var corridor = this.computeBuildingCorridorPolygon(b);
+       if (corridor) {
+         hulls.push(['red', 3, corridor.map(scale)])
+         debugger
+         var points = equidistantPointsFromPolygon(corridor, 20, true, null, 'x', 'y')
+          points.forEach(function(p) {
+            dots.push(['purple', 5, [scale(p),scale(p)]])
+          })
+       }
        pslg.edges.forEach(function(edge, index) {
          var p1 = pslg.points[edge[0]]
          var p2 = pslg.points[edge[1]];
@@ -327,26 +337,28 @@ function draw() {
        }, this)
        var polygon = this.computeBuildingFinalSpinePoints(b)
 
-       polygon.forEach(function(point) {
-        return dots.push(['red', 5, [ scale(point),  scale(point)]])
-       })
-       polygon.backbone.forEach(function(line) {
-
-          lines.push(['red', 5, [
-                      scale(line[0]),
-                      scale(line[1])
-                      ]])
-       })
-       polygon.skeleton.spokes.forEach(function(line, index) {
-          lines.push(['green', 2, [
-                      scale(line.start),
-                      scale(line.end)
-                      ]])
-        })
+       //polygon.forEach(function(point) {
+       // return dots.push(['red', 5, [ scale(point),  scale(point)]])
+       //})
+       //polygon.backbone.forEach(function(line) {
+//
+       //   lines.push(['red', 5, [
+       //               scale(line[0]),
+       //               scale(line[1])
+       //               ]])
+       //})
+       //polygon.skeleton.spokes.forEach(function(line, index) {
+       //   lines.push(['green', 2, [
+       //               scale(line.start),
+       //               scale(line.end)
+       //               ]])
+       // })
     })
     Game.World.eachRoom(function(r) {
-       
-         this.computeRoomPolygon(r).paddingPoints[0].forEach(function(point) {
+      if (this.getRoomNumber(r) == 0)
+          hulls.push(['blue', 6, this.computeRoomPolygon(r).map(scale)])
+         if (this.computeRoomPolygon(r).paddingPoints)
+          this.computeRoomPolygon(r).paddingPoints[0].forEach(function(point) {
              var x2 = point[0] + Math.cos(point[3]) * 3
              var y2 = point[1] + Math.sin(point[3]) * 3
            lines.push(['red', 1, [
@@ -378,10 +390,6 @@ function draw() {
         //}
         sidewalks.push.apply(sidewalks, p.map(function(l) {return l.map(scale)})) 
       }
-    })
-
-    sidewalks.forEach(function(poly) {
-       hulls.push(['lightgrey', 3, poly.map(scale)])
     })
 
    Game.World.eachFurniture(function(f) {
@@ -478,7 +486,7 @@ function draw() {
     for (var i = lines.length - 1; i >= 0; i--) {
       ctx.beginPath();
         ctx.strokeStyle = lines[i][0]
-        ctx.globalAlpha = 0.1;
+        ctx.globalAlpha = 0.3;
         ctx.lineWidth = lines[i][1];
       ctx.moveTo(lines[i][2][0].x * window.devicePixelRatio , lines[i][2][0].y * window.devicePixelRatio);
       ctx.lineTo(lines[i][2][1].x * window.devicePixelRatio,  lines[i][2][1].y * window.devicePixelRatio);
