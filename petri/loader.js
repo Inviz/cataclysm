@@ -5,8 +5,6 @@
 <script src="petri/../vendor/hull.js"></script>\
 <script src="petri/geo.js"></script>\
 <script src="petri/clipper.js"></script>\
-<script src="petri/martinez.js"></script>\
-<script src="petri/offset.js"></script>\
 <script src="petri/geometry.js"></script>\
 <script src="petri/simulation.js"></script>\
 <script src="petri/generation.js"></script>\

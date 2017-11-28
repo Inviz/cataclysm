@@ -65,9 +65,12 @@ Generation.prototype.computeVectorFromSegment = function(x, y, distance, angle) 
 }
 Generation.prototype.computePSLG = function(polygons) {
   return polygonToPSLG(polygons.map(function(loop) {
-      return loop.map(function(pt) {
+      var newLoop = loop.map(function(pt) {
         return [pt.x, pt.y]//[Math.floor(pt.x * 1) / 1, Math.floor(pt.y * 1) / 1]
       })
+      //if (loop.colors)
+      //  newLoop.colors = loop.colors
+      return newLoop
     }), {clean: true}, 0, 1);
 }
 Generation.prototype.computeCleanPolygon = function(pslg) {
@@ -166,11 +169,13 @@ Generation.prototype.computePolygonOffset = function(paths, margin, padding, typ
 
   return offsetted_paths;
 }
-Generation.prototype.computePolygonSimplification = function(polygon, distance) {
+Generation.prototype.computePolygonSimplification = function(polygon, distance, simplify) {
   var simplified_path = new ClipperLib.Paths(); // empty solution
   var simplified_path2 = new ClipperLib.Paths(); // empty solution
   simplified_path = ClipperLib.JS.Lighten(polygon, distance || .5);
   simplified_path[0] = simplifyColinearLines(simplified_path[0], 'x', 'y')
+  if (simplify)
+    ClipperLib.Clipper.SimplifyPolygons(simplified_path, 0)
   return simplified_path
 }
 Generation.prototype.computeScaledPolygon = function(poly, scale) {
@@ -188,12 +193,12 @@ Generation.prototype.computeScaledPolygon = function(poly, scale) {
 
   })
 }
-Generation.prototype.computePolygonBinary = function(subj_paths, clip_paths, type) {
+Generation.prototype.computePolygonBinary = function(subj_paths, clip_paths, type, flag) {
   //var off_result = ClipperLib.Clipper.SimplifyPolygons(paths, 0)
   if (type == null)
     type = ClipperLib.ClipType.ctUnion
 
-  var cpr = new ClipperLib.Clipper(/*2*/);
+  var cpr = new ClipperLib.Clipper(flag);
   cpr.AddPaths(subj_paths, ClipperLib.PolyType.ptSubject, true);  // true means closed path
   cpr.AddPaths(clip_paths, ClipperLib.PolyType.ptClip, true);
 

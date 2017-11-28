@@ -3,7 +3,7 @@ Game.Struct.Room = [
     return number;
   },
   function setRoomOrigin (origin, number) {
-    return origin;
+    return origin || 0;
   },
   function setRoomAngle (angle, building) {
     return building.angle;
@@ -74,7 +74,7 @@ Game.Struct.Room = [
       var offsetDistance = offset * origin.width
     }
 
-    var angleShift = Math.sin(angle) * (distance + .00000001);
+    var angleShift = Math.sin(angle) * (distance + .000000000001);
     var offsetShift = Math.sin((angle - Math.PI / 2)) * (offsetDistance);
     return y + (angleShift) * orientation + offsetShift
   },
@@ -93,9 +93,11 @@ Game.Struct.Room = [
   },
   function computeRoomShrunkPolygon(index, building, number) {
     var corridor = this.computeBuildingCorridorPolygon(building);
-    var polygon = this.computeRoomPolygon(index);
+    var polygon = this.computeRoomPolygon(index, true);
     if (corridor && number !== 100) {
-      return this.computePolygonSimplification(this.computePolygonBinary([polygon], [corridor], ClipperLib.ClipType.ctDifference))[0];
+      var diff = this.computePolygonBinary([polygon], [corridor], ClipperLib.ClipType.ctDifference);
+      diff = this.computePolygonOffset(diff, -1, 1, 2)
+      return this.computePolygonSimplification(diff)[0]
     } else {
       return polygon
     }
@@ -118,7 +120,7 @@ Game.Struct.Room = [
     if (collision != null)
       return collision
     // collide previously generated buildings
-    var polygon1 = this.computeRoomPolygon(index)
+    var polygon1 = this.computeRoomPolygon(index, true)
     var box = this.computeRoomPolygonBox(index)
     for (var i = 0; i < this.Room.count; i++) {
       if (!this.getRoomCollision(i) && this.getRoomBuilding(i) === building) {
@@ -166,7 +168,9 @@ Game.Generator.prototype.BuildingRoom = function(building, callback) {
     }
     
     if (isFinite(minDistance)) {
-      callback.call(this, building, this.Room.count++)
+      if (callback)
+        callback.call(this, building, this.Room.count)
+      this.Room.count++
     }
   }
 }
@@ -177,7 +181,11 @@ Game.Generator.prototype.BuildingCorridorRoom = function(building, callback) {
   if (corridor) {
     this.eachRoom(function(room) {
       if (this.getRoomBuilding(room) != building|| this.getRoomNumber(room) != 0) return;
-      this.Room(this.Room.count++, building, 100, room, 0)
+      var count = this.Room.count++;
+      this.Room(count, building, 100, room, 0)
+      if (callback)
+        callback.call(this, building, count)
+      count++
     })
   }
 }
@@ -192,14 +200,14 @@ Game.Generator.prototype.BuildingDividedRoom = function(building, callback) {
     rooms.push(room)
   })
   rooms.forEach(function(room) {
-    this.BuildingDividedRoomPair(building, room, max)
+    this.BuildingDividedRoomPair(building, room, max, callback)
   }, this)
   this.computeBuildingShape(building, true)
   this.computeBuildingPSLG(building, true)
 }
 
 
-Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, max) {
+Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, max, callback) {
   var ratios = [0.5, 2 / 3, 1.5 / 1, 1, 1, 1 / 1.5, 3 / 2, 2]
   var x = this.getRoomX(room);
   var y = this.getRoomY(room);
@@ -243,13 +251,14 @@ Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, max)
         y + Math.sin(angle + Math.PI / 2) * (b - height) / 2,
         width, b)
     }
-    debugger
     // ensure at least 40 units of width 
     if (this.computePolygonOffset([this.computeRoomShrunkPolygon(candidate1)], 0, -minSize / 2, 2).length == 1
     && this.computePolygonOffset([this.computeRoomShrunkPolygon(candidate2)], 0, -minSize / 2, 2).length == 1) {
-      debugger
       this.moveRoom(candidate1, room)
-      this.moveRoom(candidate2, this.Room.count++)
+      this.moveRoom(candidate2, this.Room.count)
+      if (callback)
+        callback.call(this, building, room, this.Room.count)
+      this.Room.count++
       break;
     }
   }

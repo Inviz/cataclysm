@@ -87,6 +87,7 @@
               euler: new THREE.Euler(0, Math.PI - this.getWallAngle(wall), 0),
               depth: buildingHeight,
               width: 2,
+              type: this.getWallType(wall),
               length: this.getWallLength(wall)
             }))
           })

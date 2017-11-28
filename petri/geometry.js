@@ -314,7 +314,7 @@ equidistantPointsFromPolygon = function(poly, length, binary, inBetween, X, Y) {
     var L = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2), 2);
     if (!L) {
       if (!result.length) {
-        
+
         if (X == 0)
           result.push([xs, ys])
         else
@@ -493,10 +493,14 @@ function polygonToPSLG(loops, options, X, Y) {
   //First we just unroll all the points in the dumb/obvious way
   var points = []
   var edges = []
+  var colors = []
   for(var i=0; i<loops.length; ++i) {
     var loop = loops[i]
     var offset = points.length
     for(var j=0; j<loop.length; ++j) {
+      if (loop.colors) {
+        colors.push(loop.colors[j])
+      }
       points.push([loop[j][X], loop[j][Y]])
       edges.push([ offset+j, offset+(j+1)%loop.length ])
     }
@@ -504,14 +508,16 @@ function polygonToPSLG(loops, options, X, Y) {
 
   //Then we run snap rounding to clean up self intersections and duplicate verts
   var clean = 'clean' in options ? true : !!options.clean
+  var c = edges.length
   if(clean) {
-    cleanPSLG(points, edges)
+    cleanPSLG(points, edges, colors.length ? colors : undefined)
   }
 
   //Finally, we return the resulting PSLG
   return {
     points: points,
-    edges:  edges
+    edges:  edges,
+    colors: colors
   }
 }
 

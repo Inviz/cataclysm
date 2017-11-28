@@ -1865,6 +1865,72 @@ function snapRound (points, edges, useColor) {
 
 // Main loop, runs PSLG clean up until completion
 function cleanPSLG (points, edges, colors, snap) {
+  if (snap !== false) {
+  for (var p = 0; p < points.length; p++) {
+    for (var o = 0; o < p; o++) {
+      var a = points[p]
+      var b = points[o]
+      var d = Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2), 2)
+      if (d < 0.02) {
+        for (var e = 0; e < edges.length; e++) {
+          if (edges[e][0] == p)
+            edges[e][0] = o;
+          if (edges[e][1] == p)
+            edges[e][1] = o;
+        }
+        //points.splice(p--, 1)
+        break;
+      }
+    }
+  }
+  for (var p = 0; p < points.length; p++) {
+    for (var i = 0; i < edges.length; ++i) {
+      var e = edges[i]
+      var p1 = points[e[0]]
+      var p2 = points[e[1]]
+  
+      if (p == e[0] || p == e[1]) continue;
+      var t1 = points[p]
+      var c1 = closestOnLineArray(t1, p1, p2);
+      var d = Math.sqrt(Math.pow(c1[0] - t1[0], 2) + Math.pow(c1[1] - t1[1], 2), 2)
+      if (d <  0.05) {
+        edges.push([e[0], p])
+        edges.push([p, e[1]])
+        edges.splice(i, 1)
+        if (colors) {
+          colors.push(colors[i])
+          colors.push(colors[i])
+          colors.splice(i, 1)
+        }
+        i--
+      }
+    }
+  }
+  }
+  for (var i = 0; i < edges.length; ++i) {
+
+    var a = points[edges[i][0]]
+    var b = points[edges[i][1]]
+    var d = Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2), 2)
+    if (d < 0.03) {
+      if (colors)
+        colors.splice(i, 1)
+      edges.splice(i--, 1)
+    }
+  }
+  //for (var e = 0; e < edges.length; e++) {
+  //  for (var o = 0; o < e; o++) {
+  //    if (edges[e][0] == edges[o][0] && edges[e][1] == edges[o][1]
+  //    || edges[e][1] == edges[o][0] && edges[e][0] == edges[o][1]
+  //    || edges[e][0] == edges[e][1]) {
+  //      if (colors)
+  //        colors.splice(e, 1)
+  //      edges.splice(e--, 1)
+  //      
+  //      break;
+  //    }
+  //  }
+  //}
   // If using colors, augment edges with color data
   var prevEdges
   if (colors) {
@@ -1875,27 +1941,6 @@ function cleanPSLG (points, edges, colors, snap) {
       augEdges[i] = [e[0], e[1], colors[i]]
     }
     edges = augEdges
-  }
-  if (snap !== false) {
-  var z = edges
-  for (var p = 0; p < points.length; p++) {
-    for (var i = 0; i < z.length; ++i) {
-      var e = z[i]
-      var p1 = points[e[0]]
-      var p2 = points[e[1]]
-  
-      if (p == e[0] || p == e[1]) continue;
-      var t1 = points[p]
-      var c1 = closestOnLineArray(t1, p1, p2);
-      var d = Math.sqrt(Math.pow(c1[0] - t1[0], 2) + Math.pow(c1[1] - t1[1], 2), 2)
-      if (d <  0.02) {
-        edges.push([e[0], p])
-        edges.push([p, e[1]])
-        edges.splice(i--, 1)
-      }
-    }
-  
-  }
   }
   // First round: remove duplicate edges and points
   var modified = preRound(points, edges, !!colors)
@@ -1915,7 +1960,49 @@ function cleanPSLG (points, edges, colors, snap) {
       colors.push(e[2])
     }
   }
+  for (var p = 0; p < points.length; p++) {
+    for (var o = 0; o < p; o++) {
+      var a = points[p]
+      var b = points[o]
+      var d = Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2), 2)
+      if (d < 0.02) {
+        for (var e = 0; e < edges.length; e++) {
+          if (edges[e][0] == p)
+            edges[e][0] = o;
+          if (edges[e][1] == p)
+            edges[e][1] = o;
+        }
+        //points.splice(p--, 1)
+        break;
+      }
+    }
+  }
 
+  for (var i = 0; i < edges.length; ++i) {
+
+    var a = points[edges[i][0]]
+    var b = points[edges[i][1]]
+    var d = Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2), 2)
+    if (d < 0.02) {
+      if (colors)
+        colors.splice(i, 1)
+      edges.splice(i--, 1)
+    }
+  }
+
+  for (var e = 0; e < edges.length; e++) {
+    for (var o = 0; o < e; o++) {
+      if (edges[e][0] == edges[o][0] && edges[e][1] == edges[o][1]
+      || edges[e][1] == edges[o][0] && edges[e][0] == edges[o][1]
+      || edges[e][0] == edges[e][1]) {
+        if (colors)
+          colors.splice(e, 1)
+        edges.splice(e--, 1)
+        
+        break;
+      }
+    }
+  }
   return modified
 }
 

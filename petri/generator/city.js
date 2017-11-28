@@ -31,11 +31,7 @@ Game.Struct.City = [
     return this.computePolygonOffset(this.computeCityPolygon(index), 25, -25, 0)
   },
   function computeCleanInsidePolygon(index) {
-    return this.computeCleanPolygon(polygonToPSLG(this.computeCityInsidePolygon(index), {clean: true}, 'x', 'y')).map(function(hole) {
-      return hole.map(function(p) {
-        return {x: p[0], y: p[1]}
-      })
-    })
+    return this.computePolygonSimplification(this.computeCityInsidePolygon(index), null, true)
   },
 
   function computeRoadConnectivity(index) {

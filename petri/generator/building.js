@@ -72,11 +72,11 @@ Game.Struct.Building = [
     var loops = [];
     this.eachRoom(function(room) {
 
-      if (this.getRoomBuilding(room) == index && !this.getRoomCollision(room)) {
+      if (this.getRoomBuilding(room) == index && !this.getRoomCollision(room) && this.getRoomNumber(room) != 100) {
         loops.push(this.computeRoomPolygon(room))
       }
     })
-    return loops
+    return this.computePolygonOffset(loops, -1, 1, 2)
   },
   function computeBuildingPSLG(index) {
     return this.computePSLG(this.computeBuildingShape(index))
@@ -86,7 +86,25 @@ Game.Struct.Building = [
     this.eachRoom(function(room) {
 
       if (this.getRoomBuilding(room) == index && !this.getRoomCollision(room)) {
-        loops.push(this.computeRoomShrunkPolygon(room))
+        var loop = this.computeRoomShrunkPolygon(room);
+        loops.push(loop)
+        loop.colors = loop.map(function() {
+          return 0;
+        })
+      }
+    })
+    this.eachWall(function(wall) {
+      if (this.getWallBuilding(wall) == index &&
+          this.getWallType(wall) == 100) {
+        var loop = [{
+          x: this.getWallSx(wall),
+          y: this.getWallSy(wall)
+        }, {
+          x: this.getWallEx(wall),
+          y: this.getWallEy(wall)
+        }]
+        loop.colors = [100, 100]
+        loops.push(loop)
       }
     })
     return loops
@@ -95,7 +113,7 @@ Game.Struct.Building = [
     return this.computePSLG(this.computeBuildingInternalShape(index))
   },
   function computeBuildingCleanPolygon(index) {
-    return this.computePolygonSimplification(this.computeCleanPolygon(this.computeBuildingPSLG(index)))
+    return this.computePolygonSimplification(this.computeCleanPolygon(this.computeBuildingPSLG(index)), null, true)
   },
   function computeBuildingOuterPolygon(index) {
     return this.computePolygonOffset(this.computeBuildingCleanPolygon(index), 20, null, 2)[0]
@@ -240,10 +258,8 @@ Game.Struct.Building = [
     var skeletonPath = new CompGeo.shapes.Path( polygon.skeleton.spokes );
     var shape = new CompGeo.shapes.Shape( polygon.skeletonInput.concat( skeletonPath) );
     if (isFinite(this.getBuildingRoofHeight(index)))
-      var interior = this.computePolygonOffset([polygon], -this.getBuildingRoofHeight(index), null, 2)[0]
-    var geometry = shape.triangulate(interior, polygon, function(poly) {
-      return this.computePolygonBinary([poly], [polygon], ClipperLib.ClipType.ctDifference)[0]
-    });
+      var interior = this.computePolygonOffset([polygon], -this.getBuildingRoofHeight(index), null, 2)
+      var geometry = shape.triangulate(interior);
     return geometry
   }
 ]

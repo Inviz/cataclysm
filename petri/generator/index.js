@@ -13,7 +13,7 @@ Game.Generator = function(seed, step, previous) {
 
     Game.Generator.prototype.Wall = Game.Generator.prototype.compile(
       Game.Struct.Wall,      
-      ['building', 'sx', 'sy', 'ex', 'ey', 'type'], 
+      ['building', 'sx', 'sy', 'ex', 'ey', 'type', 'from', 'to'], 
       {building: 'buildings'}, 'wall', 'walls');
 
     Game.Generator.prototype.Block = Game.Generator.prototype.compile(
@@ -73,11 +73,14 @@ Game.Generator.prototype.advance = function() {
       this.BuildingCorridorRoom(building, function(building, corridor) {
         this.BuildingWallDoor(building, corridor)
       })
-      this.BuildingDividedRoom(building)
       this.BuildingWallDoor(building)
-      
+      this.BuildingDividedRoom(building, function(building, from, to) {
+
+        this.BuildingWallDoor(building, from, to)
+      })
     })
   })
+
   this.eachBuilding(function(building) {
     this.BuildingWall(building)
   })

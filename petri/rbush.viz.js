@@ -319,14 +319,14 @@ function draw() {
        var network = this.computeBuildingNavigationNetwork(b)
 
        var corridor = this.computeBuildingCorridorPolygon(b);
-       if (corridor) {
-         hulls.push(['red', 3, corridor.map(scale)])
-         debugger
-         var points = equidistantPointsFromPolygon(corridor, 20, true, null, 'x', 'y')
-          points.forEach(function(p) {
-            dots.push(['purple', 5, [scale(p),scale(p)]])
-          })
-       }
+       //if (corridor) {
+       //  hulls.push(['red', 3, corridor.map(scale)])
+       //  debugger
+       //  var points = equidistantPointsFromPolygon(corridor, 20, true, null, 'x', 'y')
+       //   points.forEach(function(p) {
+       //     dots.push(['purple', b == 26 ? 3 : 5, [scale(p),scale(p)]])
+       //   })
+       //}
        pslg.edges.forEach(function(edge, index) {
          var p1 = pslg.points[edge[0]]
          var p2 = pslg.points[edge[1]];

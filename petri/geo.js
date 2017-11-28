@@ -6385,7 +6385,7 @@ function validate(vec) {
   return true;
 }
 
-function triangulate(segments, borders) {
+function triangulate(shapes, borders) {
   var minVertexDistance = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0.00001;
 
   var geometry = new THREE.Geometry();
@@ -6428,44 +6428,49 @@ function triangulate(segments, borders) {
   cleanPSLG(points, edges, null, false);
 
 
-  if (segments) {
-    var interior = [];
-    segments.forEach(function(point, index) {
-      var next = segments[index + 1] || segments[0];
-      var bestSDistance = Infinity;
-      var bestS;
-      points.forEach(function(p, j) {
-        var d = Math.sqrt(Math.pow(p[0] - point.x, 2) + Math.pow(p[1] - point.y, 2), 2);
-        if (d < bestSDistance && d < 5) {
-          bestSDistance = d;
-          bestS = j;
+  if (shapes) {
+    var interiors = [];
+    shapes.forEach(function(segments) {
+      var interior = [];
+      
+      segments.forEach(function(point, index) {
+        var next = segments[index + 1] || segments[0];
+        var bestSDistance = Infinity;
+        var bestS;
+        points.forEach(function(p, j) {
+          var d = Math.sqrt(Math.pow(p[0] - point.x, 2) + Math.pow(p[1] - point.y, 2), 2);
+          if (d < bestSDistance && d < 5) {
+            bestSDistance = d;
+            bestS = j;
+          }
+        })
+        var bestEDistance = Infinity;
+        var bestE;
+        points.forEach(function(p, j) {
+          var d = Math.sqrt(Math.pow(p[0] - next.x, 2) + Math.pow(p[1] - next.y, 2), 2);
+          if (d < bestEDistance && d < 5) {
+            bestEDistance = d;
+            bestE = j;
+          }
+        })
+        if (bestS != null && bestE != null) {
+          for (var e = 0; e < edges.length; e++) {
+            if ((edges[e][0] == bestS && edges[e][1] == bestE) ||
+               (edges[e][0] == bestE && edges[e][1] == bestS))
+              return
+          }
+          interior.push([bestS, bestE]);
+          edges.push([bestS, bestE]);
         }
       })
-      var bestEDistance = Infinity;
-      var bestE;
-      points.forEach(function(p, j) {
-        var d = Math.sqrt(Math.pow(p[0] - next.x, 2) + Math.pow(p[1] - next.y, 2), 2);
-        if (d < bestEDistance && d < 5) {
-          bestEDistance = d;
-          bestE = j;
-        }
-      })
-      if (bestS != null && bestE != null) {
-        for (var e = 0; e < edges.length; e++) {
-          if ((edges[e][0] == bestS && edges[e][1] == bestE) ||
-             (edges[e][0] == bestE && edges[e][1] == bestS))
-            return
-        }
-        interior.push([bestS, bestE]);
-        edges.push([bestS, bestE]);
-      }
+      interior = cdt2d(points, interior, { exterior: false, delaunay: true })
+      interiors.push.apply(interiors, interior)
     })
-    interior = cdt2d(points, interior, { exterior: false, delaunay: true })
   }
 
   var triangulation = cdt2d(points, edges, { exterior: false, delaunay: true });
-  if (interior) {
-    triangulation = triangulation.concat(interior)
+  if (interiors) {
+    triangulation = triangulation.concat(interiors)
   }
 
   var points3D = points.map(function (_ref4) {
