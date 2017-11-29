@@ -318,18 +318,19 @@ function draw() {
        var pslg = this.computeBuildingInternalPSLG(b)
 
        var corridor = this.computeBuildingCorridorPolygon(b);
-       //if (corridor) {
-       //  hulls.push(['red', 3, corridor.map(scale)])
+       //var poly = this.computeBuildingCleanPolygon(b).forEach(function(b) {
+//
+       //  polys.push(['red', 23, b.map(scale)])
+       //})
        //  debugger
-       //  var points = equidistantPointsFromPolygon(corridor, 20, true, null, 'x', 'y')
-       //   points.forEach(function(p) {
-       //     dots.push(['purple', b == 26 ? 3 : 5, [scale(p),scale(p)]])
-       //   })
-       //}
+       var p = this.computePolygonOffset(this.computeBuildingCleanPolygon(b), -this.getBuildingRoofHeight(b), null, 2)
+       if (p.length) {
+         hulls.push(['red', 5, p[0].map(scale)])
+       }
        pslg.edges.forEach(function(edge, index) {
          var p1 = pslg.points[edge[0]]
          var p2 = pslg.points[edge[1]];
-         lines.push([pslg.points.length % 4 ? 'red' : 'grey', 3, [
+         lines.push(['grey', 3, [
            scale(pslg.points[edge[0]]),
            scale(pslg.points[edge[1]])
            ]])
@@ -509,6 +510,7 @@ function draw() {
       ctx.beginPath();
         ctx.fillStyle = 'grey'
         ctx.globalAlpha = 0.1;
+        ctx.lineWidth = polys[i][1];
       for (var j = 0; j < poly.length; j++) {
         ctx.moveTo(poly[j][0].x * window.devicePixelRatio, poly[j][0].y * window.devicePixelRatio);
         for (var p = 0; p < poly[j].length; p++) {

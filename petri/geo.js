@@ -6425,8 +6425,8 @@ function triangulate(shapes, borders) {
   });
 
   //  clean up skeleton + contour because it's not a valid edge loop
-  cleanPSLG(points, edges, null, false);
 
+  cleanPSLG(points, edges, null, false);
 
   if (shapes) {
     var interiors = [];
@@ -6439,7 +6439,7 @@ function triangulate(shapes, borders) {
         var bestS;
         points.forEach(function(p, j) {
           var d = Math.sqrt(Math.pow(p[0] - point.x, 2) + Math.pow(p[1] - point.y, 2), 2);
-          if (d < bestSDistance && d < 5) {
+          if (d < bestSDistance && d < 10) {
             bestSDistance = d;
             bestS = j;
           }
@@ -6448,23 +6448,22 @@ function triangulate(shapes, borders) {
         var bestE;
         points.forEach(function(p, j) {
           var d = Math.sqrt(Math.pow(p[0] - next.x, 2) + Math.pow(p[1] - next.y, 2), 2);
-          if (d < bestEDistance && d < 5) {
+          if (d < bestEDistance && d < 10) {
             bestEDistance = d;
             bestE = j;
           }
         })
         if (bestS != null && bestE != null) {
+          interior.push([bestS, bestE]);
           for (var e = 0; e < edges.length; e++) {
             if ((edges[e][0] == bestS && edges[e][1] == bestE) ||
                (edges[e][0] == bestE && edges[e][1] == bestS))
               return
           }
-          interior.push([bestS, bestE]);
           edges.push([bestS, bestE]);
         }
       })
-      interior = cdt2d(points, interior, { exterior: false, delaunay: true })
-      interiors.push.apply(interiors, interior)
+      interiors.push.apply(interiors, cdt2d(points, interior, { exterior: false, delaunay: true }))
     })
   }
 

@@ -9,10 +9,10 @@ P.instances = function() {
     P.Icon.prototype.instances       = P.Icon.instances       = P.Icon.instanced(),
     P.Label.prototype.instances      = P.Label.instances      = P.Label.instanced(),
     P.Panel.prototype.instances      = P.Panel.instances      = P.Panel.instanced(),
-    P.Wall.prototype.instances       = P.Wall.instances       = P.Wall.instanced(),
     P.Overlay.prototype.instances    = P.Overlay.instances    = P.Overlay.instanced(),
     P.Furniture.prototype.instances  = P.Furniture.instances  = P.Furniture.instanced(),
-    P.Box.prototype.instances        = P.Box.instances        = P.Box.instanced()
+    P.Box.prototype.instances        = P.Box.instances        = P.Box.instanced(),
+    P.Wall.prototype.instances       = P.Wall.instances       = P.Wall.instanced()
   ]
   P.instances.distinct.map(function(instances) {
     return P.Scene.add(instances)

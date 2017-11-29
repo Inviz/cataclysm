@@ -73,15 +73,15 @@ Game.Generator.prototype.advance = function() {
       this.BuildingWallEntrance(building)
       this.BuildingCorridorRoom(building, function(building, corridor) {
         // connect rooms with corridor
-        this.BuildingWallDoor(building, corridor)
+        this.BuildingRoomWallDoor(building, corridor)
       })
       // connect adjacent rooms unless both of them connect to corridor
-      this.BuildingWallDoor(building)
+      this.BuildingRoomWallDoor(building)
 
       // divide rooms
       this.BuildingDividedRoom(building, function(building, from, to) {
         // connect divided rooms
-        this.BuildingWallDoor(building, from, to)
+        this.BuildingRoomWallDoor(building, from, to)
       })
     })
   })

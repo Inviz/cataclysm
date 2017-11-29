@@ -51,7 +51,16 @@ Game.Struct.Wall = [
 Game.Generator.prototype.BuildingWallEntrance = function(building) {
   this.eachRoom(function(room) {
     if (this.getRoomBuilding(room) == building &&  this.getRoomNumber(room) == 0) {
-      this.BuildingWallDoor(building, room, -1)
+      this.BuildingRoomWallDoor(building, room, -1)
+    }
+  })
+}
+
+Game.Generator.prototype.BuildingWallWindows = function(building) {
+  this.getBuildingCleanPolygon
+  this.eachRoom(function(room) {
+    if (this.getRoomBuilding(room) == building &&  this.getRoomNumber(room) == 0) {
+      this.BuildingRoomWallDoor(building, room, -1)
     }
   })
 }
@@ -89,7 +98,7 @@ Game.Generator.prototype.BuildingWall = function(building) {
     this.Wall(this.Wall.count++, building, p1[0], p1[1], p2[0], p2[1])
   }, this)
 }
-Game.Generator.prototype.BuildingWallDoor = function(building, from, to) {
+Game.Generator.prototype.BuildingRoomWallDoor = function(building, from, to) {
   if (from == null || to == null) {
     var rooms = [];
     this.eachRoom(function(room) {
@@ -98,7 +107,7 @@ Game.Generator.prototype.BuildingWallDoor = function(building, from, to) {
     });
     rooms.forEach(function(room, index) {
       if (from != null) {
-        return this.BuildingWallDoor(building, from, room)
+        return this.BuildingRoomWallDoor(building, from, room)
       } else{
         if (this.getRoomNumber(room) != 100 && this.getRoomNumber(room)) {
           var theirCorridorDoor;
@@ -110,7 +119,7 @@ Game.Generator.prototype.BuildingWallDoor = function(building, from, to) {
               ourCorridorDoor = true;
           })
           if (!theirCorridorDoor || !ourCorridorDoor)
-            this.BuildingWallDoor(building, room, this.getRoomOrigin(room))
+            this.BuildingRoomWallDoor(building, room, this.getRoomOrigin(room))
         }
       }
     }, this)
@@ -121,7 +130,7 @@ Game.Generator.prototype.BuildingWallDoor = function(building, from, to) {
     if (to != -1)
       var polygon2 = this.computeRoomShrunkPolygon(to, true);
     else
-      var polygon2 = this.computeBuildingCleanPolygon(building, true)[0];
+      var polygon2 = this.computeBuildingCleanPolygon(building)[0];
     var points = equidistantPointsFromPolygon(polygon1, 20, true, null, 'x', 'y')
     var placements = [];
     var minDistance = Infinity

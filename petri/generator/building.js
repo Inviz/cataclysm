@@ -6,10 +6,10 @@ Game.Struct.Building = [
     return 80 + this.random() * 50
   },
   function setBuildingHeight(height) {
-    return Math.max(30, Math.floor(this.random() * 1) * 30)
+    return Math.max(35, Math.floor(this.random() * 1) * 30)
   },
   function setBuildingTransparent(transparent) {
-    return 1//this.random() > 0.5
+    return 0//this.random() > 0.5
   },
   function setBuildingOffsetAngle(offsetAngle, road) {
     return (Math.PI + offsetAngle)//360 * Math.random()
@@ -18,7 +18,7 @@ Game.Struct.Building = [
     return block
   },
   function setBuildingRoofHeight(roofHeight) {
-    return this.random() > 0.5 ? 45 : this.random() > 0.5 ? 10 : 20;
+    return this.random() > 0.5 ? 55 : this.random() > 0.5 ? 10 : 20;
   },
   function setBuildingOffsetDistance(offsetDistance, width, length, road) {
     return width / 2 + 5 //100// * Math.random()
@@ -271,8 +271,10 @@ Game.Struct.Building = [
     var polygon = this.computeBuildingFinalSpinePoints(index)
     var skeletonPath = new CompGeo.shapes.Path( polygon.skeleton.spokes );
     var shape = new CompGeo.shapes.Shape( polygon.skeletonInput.concat( skeletonPath) );
-    if (isFinite(this.getBuildingRoofHeight(index)))
+    //if (isFinite(this.getBuildingRoofHeight(index)))
       var interior = this.computePolygonOffset([polygon], -this.getBuildingRoofHeight(index), null, 2)
+      if (index == 38)
+        debugger
       var geometry = shape.triangulate(interior);
     return geometry
   }
@@ -303,13 +305,14 @@ Game.Generator.prototype.BlockBuilding = function(block, callback) {
   var loop = this.getBlockLoop(block)
   //if (loop) {
     var polygon = this.computeBlockInnerPolygon(block)[0]
-    var polygon = this.computeAnchorPoints(polygon, 10, -30, null, null, 50, 50)
   if (loop) {
     var angle = Math.PI
+    var polygon = this.computeAnchorPoints(polygon, 10, -30, null, null, 50, 50)
+    var points = polygon.paddingPointsShuffled[0];
+  } else {
+    var polygon = this.computeAnchorPoints(polygon, 150, 0, null, null, 50, 50)
     var points = polygon.paddingPointsShuffled[0];
   }
-  else
-    var points = polygon.marginPointsShuffled[0];
   //} else {
   //  var polygon = this.computeRoadSurroundingPolygon(road)
   //  var polygon = this.computeAnchorPoints(polygon, 500, 500)
