@@ -359,7 +359,7 @@ equidistantPointsFromPolygon = function(poly, length, binary, inBetween, X, Y) {
 
 
   }
-  result.push(result[0])
+  //result.push(result[0])
 
   if (inBetween) {
     var shifted = [];

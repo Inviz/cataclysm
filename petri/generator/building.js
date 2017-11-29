@@ -9,7 +9,7 @@ Game.Struct.Building = [
     return Math.max(35, Math.floor(this.random() * 1) * 30)
   },
   function setBuildingTransparent(transparent) {
-    return 0//this.random() > 0.5
+    return 1//this.random() > 0.5
   },
   function setBuildingOffsetAngle(offsetAngle, road) {
     return (Math.PI + offsetAngle)//360 * Math.random()
@@ -101,7 +101,7 @@ Game.Struct.Building = [
     })
     this.eachWall(function(wall) {
       if (this.getWallBuilding(wall) == index &&
-          this.getWallType(wall) == 100) {
+          this.getWallType(wall) >= 100) {
         var loop = [{
           x: this.getWallSx(wall),
           y: this.getWallSy(wall)

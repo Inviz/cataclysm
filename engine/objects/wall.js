@@ -12,6 +12,8 @@ P.Wall.prototype.opacity = 0.3
 P.Wall.prototype.computeColor = function() {
   if (this.type == 100)
     this.color = new THREE.Color(0.2,0.5,0.2)
+  if (this.type == 200)
+    this.color = new THREE.Color(0.2,0.2,0.5)
   return this.color
 }
 

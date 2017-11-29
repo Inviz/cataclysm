@@ -83,15 +83,19 @@ Game.Generator.prototype.advance = function() {
         // connect divided rooms
         this.BuildingRoomWallDoor(building, from, to)
       })
+
     })
   })
-
+  // generate windows in rooms
+  this.eachRoom(function(room) {
+    this.BuildingRoomWallWindows(this.getRoomBuilding(room), room)
+  });
+  // generate walls sans windows
   this.eachBuilding(function(building) {
-    this.BuildingWall(building)
+    this.BuildingWalls(building);
   })
   this.eachRoom(function(room) {
-    var building = this.getRoomBuilding(room);
-    this.BuildingRoomFurniture(building, room, function(building, room, furniture) {
+    this.BuildingRoomFurniture(this.getRoomBuilding(room), room, function(building, room, furniture) {
       this.BuildingRoomFurnitureFurniture(building, room, furniture)
     })
   })

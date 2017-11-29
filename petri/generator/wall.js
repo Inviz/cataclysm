@@ -43,6 +43,30 @@ Game.Struct.Wall = [
   },
   function computeWallOuterPolygon(x, y, width, length, angle, number, building) {
     return this.computePolygonFromRotatedRectangle(x, y, length + 4, width + 38, angle)
+  },
+  function setWallCollision (collision, building, index) {
+    var polygon1 = this.computeWallPolygon(index, true)
+    var intersectedRooms = 0;
+    for (var i = 0; i < this.Room.count; i++) {
+      if (this.getRoomBuilding(i) == building) {
+        var polygon2 = this.computeRoomShrunkPolygon(i)
+        if (doPolygonsIntersect(polygon1, polygon2)) {
+          intersectedRooms++;
+        }
+      }
+    }
+    if (intersectedRooms > 1)
+      return intersectedRooms;
+
+    for (var i = 0; i < this.Wall.count; i++) {
+      if (this.getWallBuilding(i) == building) {
+        var polygon2 = this.computeWallPolygon(i)
+        if (doPolygonsIntersect(polygon1, polygon2)) {
+          return 1;
+        }
+      }
+    }
+    return 0;
   }
 
 ]
@@ -56,15 +80,32 @@ Game.Generator.prototype.BuildingWallEntrance = function(building) {
   })
 }
 
-Game.Generator.prototype.BuildingWallWindows = function(building) {
-  this.getBuildingCleanPolygon
-  this.eachRoom(function(room) {
-    if (this.getRoomBuilding(room) == building &&  this.getRoomNumber(room) == 0) {
-      this.BuildingRoomWallDoor(building, room, -1)
+Game.Generator.prototype.BuildingRoomWallWindows = function(building, room) {
+  var polygon0 = this.computeBuildingCleanPolygon(building)[0];
+  var polygon1 = this.computeRoomPolygon(room);
+  if (this.getRoomNumber(room) == 0 && Math.random() > 0.5) {
+    var points = equidistantPointsFromPolygon(polygon1, 30, true, null, 'x', 'y');
+    var chance = 0.5;
+  }
+  else {
+    var points = equidistantPointsFromPolygon(polygon1, 20, true, null, 'x', 'y');
+    var chance = 0.3;
+  }
+
+  points.forEach(function(point, index) {
+    var next = points[index + 1] || points[0];
+    if (distanceToPolygon(point, polygon0) > 2
+    || distanceToPolygon(next, polygon0) > 2) 
+      return
+    if (this.random() > 0.3)
+      return; 
+    this.Wall(this.Wall.count, building, point.x, point.y, next.x, next.y, 200)
+    if (!this.getWallCollision(this.Wall.count)) {
+      this.Wall.count++
     }
-  })
+  }, this)
 }
-Game.Generator.prototype.BuildingWall = function(building) {
+Game.Generator.prototype.BuildingWalls = function(building) {
   var shape = this.computeBuildingInternalShape(building)
   var pslg = this.computeBuildingInternalPSLG(building)
   var edges = pslg.edges.filter(function(edge, index) {
@@ -77,7 +118,7 @@ Game.Generator.prototype.BuildingWall = function(building) {
     var hasWindow = false;
     this.eachWall(function(wall) {
       if (this.getWallBuilding(wall) != building) return;
-      if (this.getWallType(wall) != 100) return;
+      if (this.getWallType(wall) < 100) return;
       var sx = this.getWallSx(wall)
       var sy = this.getWallSy(wall)
       var ex = this.getWallEx(wall)
@@ -154,7 +195,6 @@ Game.Generator.prototype.BuildingRoomWallDoor = function(building, from, to) {
           }
         }
         placements.push([p1, p2])
-        //this.BuildingWall(building)
       }
     }
     if (placements.length) {
