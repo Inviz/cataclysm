@@ -121,10 +121,10 @@ Game.Generator.prototype.BuildingWallDoor = function(building, from, to) {
     if (to != -1)
       var polygon2 = this.computeRoomShrunkPolygon(to, true);
     else
-      return
-    // var polygon2 = this.computeBuildingOuterPolygon(building);
+      var polygon2 = this.computeBuildingCleanPolygon(building, true)[0];
     var points = equidistantPointsFromPolygon(polygon1, 20, true, null, 'x', 'y')
     var placements = [];
+    var minDistance = Infinity
     for (var p = 0; p < points.length; p++) {
       var p1 = points[p]
       var p2 = points[(p + 1) % points.length]
@@ -134,6 +134,16 @@ Game.Generator.prototype.BuildingWallDoor = function(building, from, to) {
       if (distanceToPolygon(p1, polygon2) < 0.3 &&
           (distanceToPolygon(p2, polygon2) < 0.3)) {
 
+        // put entrance as close to anchor point as possible
+        if (to == -1) {
+          var distance = Math.sqrt(Math.pow(p1.x - this.getBuildingAnchorX(building), 2) + Math.pow(p1.y - this.getBuildingAnchorY(building), 2), 2)
+          if (minDistance > distance) {
+            minDistance = distance;
+            placements.length = 0;
+          } else {
+            continue;
+          }
+        }
         placements.push([p1, p2])
         //this.BuildingWall(building)
       }

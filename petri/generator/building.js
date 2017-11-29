@@ -23,6 +23,12 @@ Game.Struct.Building = [
   function setBuildingOffsetDistance(offsetDistance, width, length, road) {
     return width / 2 + 5 //100// * Math.random()
   },
+  function setBuildingAnchorX(anchorX, x) {
+    return x;
+  },
+  function setBuildingAnchorY(anchorY, y) {
+    return y;
+  },
   function setBuildingX (x, road, offsetDistance, offsetAngle) {
     if (x == null)
       x = road.x;
