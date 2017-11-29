@@ -13,7 +13,7 @@ Game.Generator = function(seed, step, previous) {
 
     Game.Generator.prototype.Wall = Game.Generator.prototype.compile(
       Game.Struct.Wall,      
-      ['building', 'sx', 'sy', 'ex', 'ey', 'type', 'from', 'to'], 
+      ['building', 'sx', 'sy', 'ex', 'ey', 'type', 'from', 'to', 'capStart', 'capEnd'], 
       {building: 'buildings'}, 'wall', 'walls');
 
     Game.Generator.prototype.Block = Game.Generator.prototype.compile(
@@ -153,5 +153,12 @@ Game.compile.Furniture = function() {
     Game.Furniture[index] = Game.Furniture[property]
     Game.Furniture[property].index = index++;
     Game.Furniture[property].name = property;
+  }
+  var index = 0;
+  for (var property in Game.Constructions) {
+    var number = Game.Constructions[property].index || index++;
+    Game.Constructions[number] = Game.Constructions[property]
+    Game.Constructions[property].index = number;
+    Game.Constructions[property].name = property;
   }
 }

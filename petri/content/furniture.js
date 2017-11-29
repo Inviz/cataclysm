@@ -33,9 +33,221 @@ Game.Boxes = {
     width: 2,
     length: 10,
     depth: 2
+  },
+  long_bar: {
+    width: 2,
+    length: 20,
+    depth: 2
+  },
+  wall_part: {
+    width: 2,
+    length: 20,
+    depth: 2
   }
 }
+Game.Constructions = {
+  door: {
+    index: 100,
+    width: 20,
+    length: 20,
+    depth: 2,
+    children: [
+      // wall above
+      {
+        type: 'wall_part', 
+        placement: new THREE.Vector3(0, 14.5, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        depth: 6
+      },
+      // vertical beams
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, -3, -9),
+        euler: new THREE.Euler(Math.PI / 2,0,0),
+        length: 29,
+        width: 2.4
+      },
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, -3, 9),
+        euler: new THREE.Euler(Math.PI / 2,0,0),
+        length: 29,
+        width: 2.4
+      },
+      // horizontal beams
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 12, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        width: 2.4
+      }
+    ]
+  },
 
+  window: {
+    index: 200,
+    width: 20,
+    length: 20,
+    depth: 2,
+    children: [
+      // wall above and below
+      {
+        type: 'wall_part', 
+        placement: new THREE.Vector3(0, 14.5, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        depth: 6
+      },
+      {
+        type: 'wall_part', 
+        placement: new THREE.Vector3(0, -11.25, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        depth: 12.5
+      },
+      // vertical beams
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 4, -9),
+        euler: new THREE.Euler(Math.PI / 2,0,0),
+        length: 18,
+        width: 2.4
+      },
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 4, 9),
+        euler: new THREE.Euler(Math.PI / 2,0,0),
+        length: 18,
+        width: 2.4
+      },
+      //horizontal beams
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 12, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        width: 2.4
+      },
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, -4, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        width: 2.4
+      }
+    ]
+  },
+
+  window_long: {
+    index: 201,
+    width: 30,
+    length: 20,
+    depth: 2,
+    children: [
+      // wall above and below
+      {
+        type: 'wall_part', 
+        placement: new THREE.Vector3(0, 14.5, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 30,
+        depth: 6
+      },
+      {
+        type: 'wall_part', 
+        placement: new THREE.Vector3(0, -11.25, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 30,
+        depth: 12.5
+      },
+      // vertical beams
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 4, -14),
+        euler: new THREE.Euler(Math.PI / 2,0,0),
+        length: 18,
+        width: 2.4
+      },
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 4, 14),
+        euler: new THREE.Euler(Math.PI / 2,0,0),
+        length: 18,
+        width: 2.4
+      },
+      //horizontal beams
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 12, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 30,
+        width: 2.4
+      },
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, -4, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 30,
+        width: 2.4
+      }
+    ]
+  },
+
+  window_square: {
+    index: 202,
+    width: 20,
+    length: 20,
+    depth: 2,
+    children: [
+      // wall above and below
+      {
+        type: 'wall_part', 
+        placement: new THREE.Vector3(0, 14.5, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        depth: 6
+      },
+      {
+        type: 'wall_part', 
+        placement: new THREE.Vector3(0, -12.25, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        depth: 10.5
+      },
+      // vertical beams
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 3, -9),
+        euler: new THREE.Euler(Math.PI / 2,0,0),
+        length: 20,
+        width: 2.4
+      },
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 3, 9),
+        euler: new THREE.Euler(Math.PI / 2,0,0),
+        length: 20,
+        width: 2.4
+      },
+      //horizontal beams
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, 12, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        width: 2.4
+      },
+      {
+        type: 'long_bar', 
+        placement: new THREE.Vector3(0, -6, 0),
+        euler: new THREE.Euler(0,0,0),
+        length: 20,
+        width: 2.4
+      }
+    ]
+  }
+}
 Game.Furniture = {
   table: {
     width: 30,

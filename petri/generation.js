@@ -63,6 +63,30 @@ Generation.prototype.computeVectorFromSegment = function(x, y, distance, angle) 
   }
   return v2;
 }
+Generation.prototype.computePSLGCapping = function(pslg) {
+  var points = pslg.points;
+  var edges = pslg.edges;
+  var caps = pslg.caps = edges.map(function(e) {
+    return [0,0]
+  });
+  for (var p = 0; p < points.length; p++) {
+    var point = points[p];
+    var matches = [];
+    for (var e = 0; e < edges.length; e++) {
+      if (edges[e][0] == p || edges[e][1] == p) {
+        matches.push([e, edges[e][0] == p ? 0 : 1]);
+      }
+    }
+    if (matches.length > 1) {
+      matches.forEach(function(match, index) {
+        var index = match[0];
+        var side = match[1];
+        caps[index][side] = (index == 0) ? 0.5 : -0.5;
+      })
+    }
+  }
+  return pslg;
+}
 Generation.prototype.computePSLG = function(polygons) {
   var colors
   var points = []

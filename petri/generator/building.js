@@ -9,7 +9,7 @@ Game.Struct.Building = [
     return Math.max(35, Math.floor(this.random() * 1) * 30)
   },
   function setBuildingTransparent(transparent) {
-    return 1//this.random() > 0.5
+    return 0//this.random() > 0.5
   },
   function setBuildingOffsetAngle(offsetAngle, road) {
     return (Math.PI + offsetAngle)//360 * Math.random()
@@ -116,7 +116,7 @@ Game.Struct.Building = [
     return loops
   },
   function computeBuildingInternalPSLG(index) {
-    return this.computePSLG(this.computeBuildingInternalShape(index))
+    return this.computePSLGCapping(this.computePSLG(this.computeBuildingInternalShape(index)))
   },
   function computeBuildingCleanPolygon(index) {
     return this.computePolygonSimplification(this.computeCleanPolygon(this.computeBuildingPSLG(index)), null, true)
@@ -273,8 +273,6 @@ Game.Struct.Building = [
     var shape = new CompGeo.shapes.Shape( polygon.skeletonInput.concat( skeletonPath) );
     //if (isFinite(this.getBuildingRoofHeight(index)))
       var interior = this.computePolygonOffset([polygon], -this.getBuildingRoofHeight(index), null, 2)
-      if (index == 38)
-        debugger
       var geometry = shape.triangulate(interior);
     return geometry
   }

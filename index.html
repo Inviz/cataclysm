@@ -85,12 +85,12 @@
               },
               zone: zone,
               euler: new THREE.Euler(0, Math.PI - this.getWallAngle(wall), 0),
-              depth: buildingHeight,
+              depth: this.getWallHeight(wall),
               width: 2,
               type: this.getWallType(wall),
               length: this.getWallLength(wall),
               id: wall
-              //,shift: new THREE.Vector3(0,0 + Math.random() * 50,0)
+              //,shift: new THREE.Vector3(0,0 + Math.random() * 3 - 1.5,0)
             }))
           })
           zone.furniture = []

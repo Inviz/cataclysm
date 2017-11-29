@@ -103,7 +103,7 @@ Game.Struct.Room = [
     }
   },
   function computeRoomAnchorPoints(index) {
-    return this.computeAnchorPoints(this.computeRoomShrunkPolygon(index), .2, .2, null, null, 10, 10)
+    return this.computeAnchorPoints(this.computeRoomShrunkPolygon(index), 1.2, 1.2, null, null, 10, 10)
   },
   function computeRoomSpinePoints(index) {
     return this.computeSpinePoints(this.computeRoomShrunkPolygon(index))

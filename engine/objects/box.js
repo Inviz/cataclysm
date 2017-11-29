@@ -30,6 +30,12 @@ P.Box.prototype.computeOpacity = function() {
   return this.opacity;
 }
 
+P.Box.prototype.computeColor = function() {
+  if (this.type == 'wall_part')
+    return P.Wall.prototype.color
+  return this.color;
+}
+
 P.Box.instanced = function() {
   return THREE.InstancedMesh.create(
     new THREE.BoxBufferGeometry( 1, 1, 1, 1),
@@ -38,7 +44,7 @@ P.Box.instanced = function() {
     {
       name: 'boxes',
       buildList: function() {
-        return this.collectFromInstances('boxes', P.Furniture.instances.lastVisible)
+        return this.collectFromInstances('boxes', P.Wall.instances.lastVisible, P.Furniture.instances.lastVisible)
       }
     }
   )

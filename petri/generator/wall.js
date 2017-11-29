@@ -1,27 +1,53 @@
 Game.Struct.Wall = [
   function setWallType (type) {
-    return type
+    return type || 0
   },
   function setWallBuilding (building) {
     return building
   },
-  function setWallSx (sx) {
-    return sx
+  function setWallAngle (angle, ex, ey, sx, sy) {
+    return Math.atan2(ey - sy, ex - sx)
   },
-  function setWallSy (sy) {
-    return sy
+  function setCapStart(capStart) {
+    return capStart || 0;
   },
-  function setWallEx (ex) {
-    return ex
+  function setCapEnd(capEnd) {
+    return capEnd || 0;
   },
-  function setWallEy (ey) {
-    return ey
+  function setWallWidth (width, type) {
+    return 2;
   },
-  function setWallX (x, sx, ex) {
-    return sx + (ex - sx) / 2
+  function setWallX (x, sx, ex, capStart, capEnd, angle, width) {
+    var cap = (capStart + capEnd) * width / 2
+    return sx + (ex - sx) / 2// + Math.cos(angle) * cap
   },
-  function setWallY (y, sy, ey) {
-    return sy + (ey - sy) / 2
+  function setWallY (y, sy, ey, capStart, capEnd, angle, width) {
+    var cap = (capStart + capEnd) * width / 2
+    return sy + (ey - sy) / 2// + Math.sin(angle) * cap
+  },
+  function setWallSx (sx, x, angle, type, capStart, width) {
+    if (type == 0)
+      return sx + Math.cos(angle) * capStart * (width);
+    var width = Game.Constructions[type].width;
+    return x - Math.cos(angle) * width / 2
+  },
+  function setWallSy (sy, y, angle, type, capStart, width) {
+    if (type == 0)
+      return sy + Math.sin(angle) * capStart * (width);
+    var width = Game.Constructions[type].width;
+    return y - Math.sin(angle) * width / 2
+  },
+  function setWallEx (ex, x, angle, type, capEnd, width) {
+    if (type == 0)
+      return ex - Math.cos(angle) * capEnd * (width);
+    var width = Game.Constructions[type].width;
+    return x + Math.cos(angle) * width / 2
+  },
+  function setWallEy (ey, y, angle, type, capEnd, width) {
+    if (type == 0)
+      return ey - Math.sin(angle) * capEnd * (width);
+    var width = Game.Constructions[type].width;
+    return y + Math.sin(angle) * width / 2
   },
   function setWallFrom (from) {
     return from || 0
@@ -29,14 +55,11 @@ Game.Struct.Wall = [
   function setWallTo (to) {
     return to || 0
   },
-  function setWallLength (length, sx, sy, ex, ey) {
-    return Math.sqrt(Math.pow(ex - sx, 2) + Math.pow(ey - sy, 2), 2)
+  function setWallLength (length, sx, sy, ex, ey, capStart, capEnd, width) {
+    return Math.sqrt(Math.pow(ex - sx, 2) + Math.pow(ey - sy, 2), 2)// + (capStart + capEnd) * width
   },
-  function setWallAngle (angle, ex, ey, sx, sy) {
-    return Math.atan2(ey - sy, ex - sx)
-  },
-  function setWallWidth (width, type) {
-    return 2;
+  function setWallHeight (height, building) {
+    return this.getBuildingHeight(building)
   },
   function computeWallPolygon(x, y, width, length, angle, number, building) {
     return this.computePolygonFromRotatedRectangle(x, y, length + 2, width + 2, angle)
@@ -44,9 +67,14 @@ Game.Struct.Wall = [
   function computeWallOuterPolygon(x, y, width, length, angle, number, building) {
     return this.computePolygonFromRotatedRectangle(x, y, length + 4, width + 38, angle)
   },
-  function setWallCollision (collision, building, index) {
+  function setWallCollision (collision, building, index, x, y) {
+    var polygon0 = this.computeBuildingCleanPolygon(building)[0]
     var polygon1 = this.computeWallPolygon(index, true)
     var intersectedRooms = 0;
+    var pt = {x: x, y: y}
+    if (!intersectPolygon(pt, polygon0) &&
+        distanceToPolygon(pt, polygon0) > 1)
+      return 1;
     for (var i = 0; i < this.Room.count; i++) {
       if (this.getRoomBuilding(i) == building) {
         var polygon2 = this.computeRoomShrunkPolygon(i)
@@ -84,12 +112,14 @@ Game.Generator.prototype.BuildingRoomWallWindows = function(building, room) {
   var polygon0 = this.computeBuildingCleanPolygon(building)[0];
   var polygon1 = this.computeRoomPolygon(room);
   if (this.getRoomNumber(room) == 0 && Math.random() > 0.5) {
-    var points = equidistantPointsFromPolygon(polygon1, 30, true, null, 'x', 'y');
+    var points = equidistantPointsFromPolygon(polygon0, 35, true, null, 'x', 'y');
     var chance = 0.5;
+    var type = 201;
   }
   else {
-    var points = equidistantPointsFromPolygon(polygon1, 20, true, null, 'x', 'y');
+    var points = equidistantPointsFromPolygon(polygon0, 25, true, null, 'x', 'y');
     var chance = 0.3;
+    var type = 200;
   }
 
   points.forEach(function(point, index) {
@@ -99,7 +129,8 @@ Game.Generator.prototype.BuildingRoomWallWindows = function(building, room) {
       return
     if (this.random() > 0.3)
       return; 
-    this.Wall(this.Wall.count, building, point.x, point.y, next.x, next.y, 200)
+    if (distanceToPolygon(point, polygon1) < 5)
+    this.Wall(this.Wall.count, building, point.x, point.y, next.x, next.y, type)
     if (!this.getWallCollision(this.Wall.count)) {
       this.Wall.count++
     }
@@ -116,6 +147,7 @@ Game.Generator.prototype.BuildingWalls = function(building) {
     var x = Sx + (Ex - Sx) / 2
     var y = Sy + (Ey - Sy) / 2
     var hasWindow = false;
+    edge.cap = pslg.caps[index]
     this.eachWall(function(wall) {
       if (this.getWallBuilding(wall) != building) return;
       if (this.getWallType(wall) < 100) return;
@@ -127,6 +159,8 @@ Game.Generator.prototype.BuildingWalls = function(building) {
           Math.sqrt(Math.pow(ex - Ex, 2) + Math.pow(ey - Ey, 2), 2) < 3 ||
           Math.sqrt(Math.pow(ex - Sx, 2) + Math.pow(ey - Sy, 2), 2) < 3 &&
           Math.sqrt(Math.pow(sx - Ex, 2) + Math.pow(sy - Ey, 2), 2) < 3) {
+            this.uncomputeWall(wall)
+            this.Wall(wall, building, Sx, Sy, Ex, Ey, this.getWallType(wall), this.getWallFrom(wall), this.getWallTo(wall), edge.cap[0], edge.cap[1])
             hasWindow = true;
           }
     })
@@ -136,7 +170,7 @@ Game.Generator.prototype.BuildingWalls = function(building) {
   edges.forEach(function(edge, index) {
     var p1 = pslg.points[edge[0]];
     var p2 = pslg.points[edge[1]];
-    this.Wall(this.Wall.count++, building, p1[0], p1[1], p2[0], p2[1])
+    this.Wall(this.Wall.count++, building, p1[0], p1[1], p2[0], p2[1], null, null, null, edge.cap[0], edge.cap[1])
   }, this)
 }
 Game.Generator.prototype.BuildingRoomWallDoor = function(building, from, to) {
