@@ -372,6 +372,15 @@ P.geometry.comparePolygonPoints = function(a, b, center) {
   return d1 > d2;
 }
 
+P.geometry.distanceBetweenPolygons = function (poly1, poly2) {
+  var minDistance = Infinity;
+  for (var p = 0; p < poly1.length; p++) {
+    var distance = distanceToPolygon(poly1[p], poly2);
+    if (distance < minDistance)
+      minDistance = distance;
+  }
+  return minDistance
+}
 
 P.geometry.distanceToPolygon = function (point, poly) {
   var minDistance = Infinity;

@@ -88,7 +88,9 @@
               depth: buildingHeight,
               width: 2,
               type: this.getWallType(wall),
-              length: this.getWallLength(wall)
+              length: this.getWallLength(wall),
+              id: wall
+              //,shift: new THREE.Vector3(0,0 + Math.random() * 50,0)
             }))
           })
           zone.furniture = []
@@ -106,7 +108,7 @@
                 },
                 euler: new THREE.Euler(0, Math.PI -this.getFurnitureAngle(furniture), 0),
                 type: Game.Furniture[this.getFurnitureType(furniture)].name,
-                boxColor: new THREE.Color(Math.random() * 0xffffff)
+                boxColor: new THREE.Color(0x999999)//new THREE.Color(Math.random() * 0xffffff)
               }))
             })
           })

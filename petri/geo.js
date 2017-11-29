@@ -6396,7 +6396,7 @@ function triangulate(shapes, borders) {
   var vertices = [];
 
   var count = 0;
-  console.error(this.contour.segments.length, 'countours')
+  //console.error(this.contour.segments.length, 'countours')
   this.contour.segments.forEach(function (_ref, index) {
     var start = _ref.start,
         end = _ref.end;
@@ -6432,7 +6432,7 @@ function triangulate(shapes, borders) {
     var interiors = [];
     shapes.forEach(function(segments) {
       var interior = [];
-      
+
       segments.forEach(function(point, index) {
         var next = segments[index + 1] || segments[0];
         var bestSDistance = Infinity;

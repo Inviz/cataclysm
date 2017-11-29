@@ -1918,19 +1918,19 @@ function cleanPSLG (points, edges, colors, snap) {
       edges.splice(i--, 1)
     }
   }
-  //for (var e = 0; e < edges.length; e++) {
-  //  for (var o = 0; o < e; o++) {
-  //    if (edges[e][0] == edges[o][0] && edges[e][1] == edges[o][1]
-  //    || edges[e][1] == edges[o][0] && edges[e][0] == edges[o][1]
-  //    || edges[e][0] == edges[e][1]) {
-  //      if (colors)
-  //        colors.splice(e, 1)
-  //      edges.splice(e--, 1)
-  //      
-  //      break;
-  //    }
-  //  }
-  //}
+  for (var e = 0; e < edges.length; e++) {
+    for (var o = 0; o < e; o++) {
+      if (edges[e][0] == edges[o][0] && edges[e][1] == edges[o][1]
+      || edges[e][1] == edges[o][0] && edges[e][0] == edges[o][1]
+      || edges[e][0] == edges[e][1]) {
+        if (colors)
+          colors.splice(e, 1)
+        edges.splice(e--, 1)
+        
+        break;
+      }
+    }
+  }
   // If using colors, augment edges with color data
   var prevEdges
   if (colors) {
@@ -10601,7 +10601,6 @@ function PSLGToPoly(points, edges) {
   var cells = cdt2d(points, edges, {
     delaunay: false,
     exterior: false })
-
   //Extract boundary
   var bnd = boundary(cells)
 

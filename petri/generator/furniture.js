@@ -76,6 +76,12 @@ Game.Struct.Furniture = [
         }
       }
     }
+    for (var i = 0; i < this.Wall.count; i++) {
+      if (this.getWallType(i) == 100 && (this.getWallBuilding(i) == building))
+        if (doPolygonsIntersect(polygon1, this.computeWallOuterPolygon(i))) {
+          return i + 1;
+        }
+    }
     return 0
   },
 

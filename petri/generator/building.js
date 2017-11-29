@@ -3,7 +3,7 @@ Game.Struct.Building = [
     return 100 + this.random() * 50
   },
   function setBuildingLength(length) {
-    return 100 + this.random() * 50
+    return 80 + this.random() * 50
   },
   function setBuildingHeight(height) {
     return Math.max(30, Math.floor(this.random() * 1) * 30)
@@ -154,7 +154,7 @@ Game.Struct.Building = [
     //find two points that connect all rooms
     var mid = {x: 0,y:0}
     for (var s = 0; s < points.length; s++) {
-      edges: for (var e = 0; e < s; e++) {
+      edges: for (var e = 0; e <= s; e++) {
         var start = points[s];
         var end = points[e];
         mid.x = points[s].x + (points[e].x - points[s].x) / 2;
@@ -178,27 +178,35 @@ Game.Struct.Building = [
     if (!bestStart){
       console.error('fail', index)
       return null
-    }
-    var solution = this.computeNavigationNetwork(pslg)
-    this.computeDistances(pslg, solution)
-    var path = this.computePSLGPath(pslg, solution, bestStart, bestEnd)
-    var p = path;
-//    if (p.length > 1)
-//      debugger
+    } else if (Math.sqrt(Math.pow(bestStart.x - bestEnd.x, 2) + Math.pow(bestStart.y - bestEnd.y, 2), 2) < 5) {
+      path = [bestStart];
+      var angle = this.getBuildingAngle(index);
+      path.push({
+        x: bestStart.x + (Math.cos(angle) * 1),
+        y: bestStart.y + (Math.sin(angle) * 1)
+      })
+    } else {
+      var solution = this.computeNavigationNetwork(pslg)
+      this.computeDistances(pslg, solution)
+      var path = this.computePSLGPath(pslg, solution, bestStart, bestEnd)
+      var p = path;
+  //    if (p.length > 1)
+  //      debugger
 
-    // Omit intermediate points that are <5 units away from neighbour
-    path = [bestStart].concat(path.slice(1, -1).map(function(p) {
-      return {x: p[0], y: p[1], index: p.index}
-    }), [bestEnd]).filter(function(p1, index, array) {
-      if (index == 0 || index == array.length - 1) return true;
-      var p1 = array[index]
-      var p2 = array[(index + 1) % points.length]
-      var p0 = array[(index || points.length) - 1]
-      var d1 = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2), 2);
-      
-      var d2 = Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2), 2);
-      return d1 > 5 && d2 > 5
-    })
+      // Omit intermediate points that are <5 units away from neighbour
+      path = [bestStart].concat(path.slice(1, -1).map(function(p) {
+        return {x: p[0], y: p[1], index: p.index}
+      }), [bestEnd]).filter(function(p1, index, array) {
+        if (index == 0 || index == array.length - 1) return true;
+        var p1 = array[index]
+        var p2 = array[(index + 1) % points.length]
+        var p0 = array[(index || points.length) - 1]
+        var d1 = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2), 2);
+        
+        var d2 = Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2), 2);
+        return d1 > 5 && d2 > 5
+      })
+    }
     var shape = this.computeLineOffset(path, 25, 2);
     var buildingShape = this.computePolygonOffset(allLoops, 0.005, null, 2);
 

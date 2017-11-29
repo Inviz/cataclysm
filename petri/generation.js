@@ -64,14 +64,135 @@ Generation.prototype.computeVectorFromSegment = function(x, y, distance, angle) 
   return v2;
 }
 Generation.prototype.computePSLG = function(polygons) {
-  return polygonToPSLG(polygons.map(function(loop) {
-      var newLoop = loop.map(function(pt) {
-        return [pt.x, pt.y]//[Math.floor(pt.x * 1) / 1, Math.floor(pt.y * 1) / 1]
-      })
-      //if (loop.colors)
-      //  newLoop.colors = loop.colors
-      return newLoop
-    }), {clean: true}, 0, 1);
+  var colors
+  var points = []
+  var edges = []
+  // unroll loops into pslg
+  for(var i=0; i<polygons.length; ++i) {
+    var loop = polygons[i]
+    var offset = points.length
+    for(var j=0; j<loop.length; ++j) {
+      points.push([loop[j].x, loop[j].y])
+      edges.push([ offset+j, offset+(j+1)%loop.length ])
+      if (loop.length == 1)
+        break;
+    }
+  }
+
+
+  // snap points to lines
+  for (var p = 0; p < points.length; p++) {
+    for (var i = 0; i < edges.length; ++i) {
+      var e = edges[i]
+      var p1 = points[e[0]]
+      var p2 = points[e[1]]
+  
+      if (p == e[0] || p == e[1]) continue;
+      var t1 = points[p]
+      var c1 = closestOnLineArray(t1, p1, p2);
+      var d = Math.sqrt(Math.pow(c1[0] - t1[0], 2) + Math.pow(c1[1] - t1[1], 2), 2)
+      if (d <  5) {
+        edges.push([e[0], p])
+        edges.push([p, e[1]])
+        edges.splice(i, 1)
+        if (colors) {
+          colors.push(colors[i])
+          colors.push(colors[i])
+          colors.splice(i, 1)
+        }
+        i--
+      }
+    }
+  }
+
+  // merge points
+  var pts = [];
+  pts: for (var p = 0; p < points.length; p++) {
+      var a = points[p]
+    for (var o = 0; o < pts.length; o++) {
+      var b = pts[o]
+      var d = Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2), 2)
+      if (d < 2) {
+        for (var e = 0; e < edges.length; e++) {
+          if (edges[e][0] == p)
+            edges[e][0] = o;
+          if (edges[e][1] == p)
+            edges[e][1] = o;
+        }
+        continue pts;
+      }
+    }
+    pts.push(a)
+    for (var e = 0; e < edges.length; e++) {
+      if (edges[e][0] == p)
+        edges[e][0] = pts.indexOf(a);
+      if (edges[e][1] == p)
+        edges[e][1] = pts.indexOf(a);
+    }
+  }
+  points = pts;
+
+  // filter out short edges
+  //for (var i = 0; i < edges.length; ++i) {
+  //  var a = points[edges[i][0]]
+  //  var b = points[edges[i][1]]
+  //  var d = Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2), 2)
+  //  if (d < 0.5) {
+  //    if (colors)
+  //      colors.splice(i, 1)
+  //    edges.splice(i--, 1)
+  //  }
+  //}
+
+  // filter out dupe edges
+  for (var e = 0; e < edges.length; e++) {
+    for (var o = 0; o < e; o++) {
+      if (edges[e][0] == edges[o][0] && edges[e][1] == edges[o][1]
+      || edges[e][1] == edges[o][0] && edges[e][0] == edges[o][1]
+      || edges[e][0] == edges[e][1]) {
+        if (colors)
+          colors.splice(e, 1)
+        edges.splice(e--, 1)
+        
+        break;
+      }
+    }
+  }
+
+  // simplify colinear lines
+  //for (var p = 0; p < points.length; p++) {
+  //  var foundEdges = [];
+  //  for (var e = 0; e < edges.length; e++) {
+  //    if (edges[e][0] == p || edges[e][1] == p) {
+  //      foundEdges.push(edges[e]);
+  //    }  
+  //  }
+  //  if (foundEdges.length == 0) {
+  //  } else if (foundEdges.length == 2) {
+  //    var angle1 = Math.atan2(points[foundEdges[0][0]][1] - points[foundEdges[0][1]][1], points[foundEdges[0][0]][0] - points[foundEdges[0][1]][0])
+  //    var angle2 = Math.atan2(points[foundEdges[1][0]][1] - points[foundEdges[1][1]][1], points[foundEdges[1][0]][0] - points[foundEdges[1][1]][0])
+  //    var angleDiff = this.computeDegreeDifference(angle1, angle2)
+  //    if (angleDiff < 0.01) {
+  //      if (foundEdges[0][0] == p) {
+  //        if (foundEdges[1][0] == p)
+  //          foundEdges[0][0] = foundEdges[1][1]
+  //        else
+  //          foundEdges[0][0] = foundEdges[1][0]
+  //      } else {
+  //        if (foundEdges[1][0] == p)
+  //          foundEdges[0][1] = foundEdges[1][1]
+  //        else
+  //          foundEdges[0][1] = foundEdges[1][0]
+  //      }
+  //      edges.splice(edges.indexOf(foundEdges[1]), 1)
+  //    }
+  //  }
+  //}
+
+  return {
+    points: points,
+    edges: edges
+  }
 }
 Generation.prototype.computeCleanPolygon = function(pslg) {
   return PSLGToPoly(pslg.points, pslg.edges).map(function(loop) {

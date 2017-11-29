@@ -171,7 +171,15 @@ distanceToLine = (function() {
     return Math.sqrt(distToSegmentSquared(p, v, w)); 
   }
 })();
-
+distanceBetweenPolygons = function (poly1, poly2) {
+  var minDistance = Infinity;
+  for (var p = 0; p < poly1.length; p++) {
+    var distance = distanceToPolygon(poly1[p], poly2);
+    if (distance < minDistance)
+      minDistance = distance;
+  }
+  return minDistance
+}
 closestOnLine = function(pt0, pt1, pt2) {
   function dist2(pt1, pt2) { 
       return Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2);

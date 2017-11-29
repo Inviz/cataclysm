@@ -315,8 +315,7 @@ function draw() {
     //  });
     //})
     Game.World.eachBuilding(function(b) {
-       var pslg = this.computeBuildingPSLG(b)
-       var network = this.computeBuildingNavigationNetwork(b)
+       var pslg = this.computeBuildingInternalPSLG(b)
 
        var corridor = this.computeBuildingCorridorPolygon(b);
        //if (corridor) {
@@ -366,6 +365,10 @@ function draw() {
              scale([x2, y2])
              ]])
          })
+    })
+    Game.World.eachWall(function(r) {
+      if (this.getWallType(r) == 100)
+          hulls.push(['blue', 6, this.computeWallPolygon(r).map(scale)])
     })
     var blocks = [];
     var sidewalks = [];

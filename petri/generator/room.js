@@ -128,6 +128,10 @@ Game.Struct.Room = [
         if (doPolygonsIntersect(polygon1, polygon2)) {
           return i + 1;
         }
+        // dont allow rooms to be too close to each other
+        var distance = distanceBetweenPolygons(polygon1, polygon2);
+        if (distance > 1 && distance < 30)
+          return i + 1;
       }
     }
     var buildings = this.Building.rtree.search(box);
@@ -221,21 +225,22 @@ Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, max,
     if (this.random() > 0.5)
       return
   } else {
-    var minSize = 50;
+    var minSize = 40;
   }
   var candidate1 = 9998
   var candidate2 = 9999;
-  for (var attempt = 0; attempt < 30; attempt++) {
+  max++;
+  attempts: for (var attempt = 0; attempt < 150; attempt++) {
     this.uncomputeRoom(candidate1)
     this.uncomputeRoom(candidate2)
-    if (width / height > 0.8 && width / height < 1.25 ? this.random() > 0.5 : width > height) {
+    if (width / height > 0.9 && width / height < 1.1 ? this.random() > 0.5 : (this.getRoomPlacement(room) ? this.random() > 0.15 : this.random() > 0.85)) {
       var a = width / (ratio + 1);
       var b = a * ratio;
       this.Room(candidate1, building, number, this.getRoomNumber(origin), 0, 
         x - Math.cos(angle) * (a - width) / 2, 
         y - Math.sin(angle) * (a - width) / 2, 
         a, height)
-      this.Room(candidate2, building, ++max, room, 0, 
+      this.Room(candidate2, building, max, room, 0, 
         x + Math.cos(angle) * (b - width) / 2, 
         y + Math.sin(angle) * (b - width) / 2,
         b, height)
@@ -246,14 +251,24 @@ Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, max,
         x - Math.cos(angle + Math.PI / 2) * (a - height) / 2, 
         y - Math.sin(angle + Math.PI / 2) * (a - height) / 2, 
         width, a)
-      this.Room(candidate2, building, ++max, room, 0, 
+      this.Room(candidate2, building, max, room, 0, 
         x + Math.cos(angle + Math.PI / 2) * (b - height) / 2, 
         y + Math.sin(angle + Math.PI / 2) * (b - height) / 2,
         width, b)
     }
     // ensure at least 40 units of width 
+    var doors = [];
+    var door = this.eachWall(function(wall) {
+      if ((this.getWallTo(wall) == room || this.getWallFrom(wall) == room) && this.getWallType(wall) == 100)
+        doors.push(this.computeWallOuterPolygon(wall))
+    })
     if (this.computePolygonOffset([this.computeRoomShrunkPolygon(candidate1)], 0, -minSize / 2, 2).length == 1
     && this.computePolygonOffset([this.computeRoomShrunkPolygon(candidate2)], 0, -minSize / 2, 2).length == 1) {
+      for (var d = 0; d < doors.length; d++) {
+        if (doPolygonsIntersect(this.computeRoomShrunkPolygon(candidate1), doors[d])
+          && doPolygonsIntersect(this.computeRoomShrunkPolygon(candidate2), doors[d]))
+          continue attempts;
+      }
       this.moveRoom(candidate1, room)
       this.moveRoom(candidate2, this.Room.count)
       if (callback)
