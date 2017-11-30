@@ -298,7 +298,7 @@ Game.Generator.prototype.RoadBuilding = function(road, callback) {
   }
 }
 
-Game.Generator.prototype.BlockBuilding = function(block, callback) {
+Game.Generator.prototype.BlockBuildings = function(block, callback) {
   var road = this.getBlockRoad(block)
   var loop = this.getBlockLoop(block)
   //if (loop) {

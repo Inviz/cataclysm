@@ -66,12 +66,13 @@ Game.Generator.prototype.advance = function() {
   // generate blocks
   this.CityBlock(city);
 
-  // fill blocks with multi-room buildings and furniture
+  // fill blocks with multi-room buildings
   this.eachBlock(function(block) {
-    this.BlockBuilding(block, function(building) {
+    // place a building at one of block's anchor points
+    this.BlockBuildings(block, function(building) {
       // allocate larger building zones 
       this.BuildingRoomZones(building)
-      // produce entrance door
+      // produce entrance door at anchor point
       this.BuildingWallEntrance(building)
       // make corridor room to connect remote zones to living room
       this.BuildingCorridorRoom(building, function(building, corridor) {
@@ -80,13 +81,11 @@ Game.Generator.prototype.advance = function() {
       })
       // connect adjacent rooms unless both of them connect to corridor
       this.BuildingRoomWallDoor(building)
-
       // divide rooms
       this.BuildingRooms(building, function(building, from, to) {
         // connect divided rooms
         this.BuildingRoomWallDoor(building, from, to)
       })
-
     })
   })
   // generate windows in rooms
@@ -97,8 +96,10 @@ Game.Generator.prototype.advance = function() {
   this.eachBuilding(function(building) {
     this.BuildingWalls(building);
   })
+  // fill rooms with furniture
   this.eachRoom(function(room) {
     this.BuildingRoomFurniture(this.getRoomBuilding(room), room, function(building, room, furniture) {
+      // generate dependent furniture (i.e. chairs for table)
       this.BuildingRoomFurnitureFurniture(building, room, furniture)
     })
   })
