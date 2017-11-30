@@ -150,7 +150,7 @@ Game.Struct.Room = [
   },
 ]
 
-Game.Generator.prototype.BuildingRoom = function(building, callback) {
+Game.Generator.prototype.BuildingRoomZones = function(building, callback) {
   var min = 1;
   var max = this.random() > 0.6 ? 5 : 4;
   var rooms = max - min//Math.floor(Math.random() * (max - min) + min)
@@ -159,7 +159,7 @@ Game.Generator.prototype.BuildingRoom = function(building, callback) {
   placement: for (var i = 0; i < rooms; i++) {
     var minDistance = Infinity;
     for (var attempt = 0; attempt < 5; attempt++) {
-      this.Room(candidate, building, i, first + Math.floor(this.random() * (i)))
+      this.Room(candidate, building, i * 10, first + Math.floor(this.random() * (i)))
       if (!this.getRoomCollision(candidate)) {
         var distance = this.getRoomDistance(candidate);
         if (distance < minDistance) {
@@ -194,7 +194,7 @@ Game.Generator.prototype.BuildingCorridorRoom = function(building, callback) {
   }
 }
 
-Game.Generator.prototype.BuildingDividedRoom = function(building, callback) {
+Game.Generator.prototype.BuildingRooms = function(building, callback) {
   var rooms = [];
   var max;
   this.eachRoom(function(room) {
@@ -211,7 +211,7 @@ Game.Generator.prototype.BuildingDividedRoom = function(building, callback) {
 }
 
 
-Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, max, callback) {
+Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, rooms, callback) {
   var ratios = [0.5, 2 / 3, 1.5 / 1, 1, 1, 1 / 1.5, 3 / 2, 2]
   var x = this.getRoomX(room);
   var y = this.getRoomY(room);
@@ -222,25 +222,24 @@ Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, max,
   var number = this.getRoomNumber(room);
   if (number == 0) {
     var minSize = 60;
-    if (this.random() > 0.5)
+    if (this.random() > 0.5 && rooms.length > 1)
       return
   } else {
     var minSize = 40;
   }
   var candidate1 = 9998
   var candidate2 = 9999;
-  max++;
-  attempts: for (var attempt = 0; attempt < 150; attempt++) {
+  attempts: for (var attempt = 0; attempt < 50; attempt++) {
     this.uncomputeRoom(candidate1)
     this.uncomputeRoom(candidate2)
-    if (width / height > 0.9 && width / height < 1.1 ? this.random() > 0.5 : (this.getRoomPlacement(room) ? this.random() > 0.15 : this.random() > 0.85)) {
+    if (width / height > 0.9 && width / height < 1.1 ? this.random() > 0.5 : (this.getRoomPlacement(room) ? this.random() > 0.25 : this.random() > 0.75)) {
       var a = width / (ratio + 1);
       var b = a * ratio;
       this.Room(candidate1, building, number, this.getRoomNumber(origin), 0, 
         x - Math.cos(angle) * (a - width) / 2, 
         y - Math.sin(angle) * (a - width) / 2, 
         a, height)
-      this.Room(candidate2, building, max, room, 0, 
+      this.Room(candidate2, building, number + 1, room, 0, 
         x + Math.cos(angle) * (b - width) / 2, 
         y + Math.sin(angle) * (b - width) / 2,
         b, height)
@@ -251,28 +250,43 @@ Game.Generator.prototype.BuildingDividedRoomPair = function(building, room, max,
         x - Math.cos(angle + Math.PI / 2) * (a - height) / 2, 
         y - Math.sin(angle + Math.PI / 2) * (a - height) / 2, 
         width, a)
-      this.Room(candidate2, building, max, room, 0, 
+      this.Room(candidate2, building, number + 1, number, 0, 
         x + Math.cos(angle + Math.PI / 2) * (b - height) / 2, 
         y + Math.sin(angle + Math.PI / 2) * (b - height) / 2,
         width, b)
     }
     // ensure at least 40 units of width 
-    var doors = [];
-    var door = this.eachWall(function(wall) {
-      if ((this.getWallTo(wall) == room || this.getWallFrom(wall) == room) && this.getWallType(wall) == 100)
-        doors.push(this.computeWallOuterPolygon(wall))
+    var doors = []
+    var entrance;
+    this.eachWall(function(wall) {
+      if (this.getWallType(wall) != 100)
+        return;
+
+      if ((this.getWallTo(wall) == room || this.getWallFrom(wall) == room)) {
+        doors.push(wall)
+      }
+      if (this.getWallTo(wall) == room) {
+        entrance = wall;
+      }
     })
     if (this.computePolygonOffset([this.computeRoomShrunkPolygon(candidate1)], 0, -minSize / 2, 2).length == 1
     && this.computePolygonOffset([this.computeRoomShrunkPolygon(candidate2)], 0, -minSize / 2, 2).length == 1) {
       for (var d = 0; d < doors.length; d++) {
-        if (doPolygonsIntersect(this.computeRoomShrunkPolygon(candidate1), doors[d])
-          && doPolygonsIntersect(this.computeRoomShrunkPolygon(candidate2), doors[d]))
+        if (doPolygonsIntersect(this.computeRoomShrunkPolygon(candidate1), this.computeWallOuterPolygon(doors[d]))
+          && doPolygonsIntersect(this.computeRoomShrunkPolygon(candidate2), this.computeWallOuterPolygon(doors[d])))
           continue attempts;
       }
-      this.moveRoom(candidate1, room)
-      this.moveRoom(candidate2, this.Room.count)
-      if (callback)
-        callback.call(this, building, room, this.Room.count)
+      if (entrance != null && doPolygonsIntersect(this.computeRoomShrunkPolygon(candidate1), this.computeWallOuterPolygon(entrance))) {
+        this.moveRoom(candidate1, room)
+        this.moveRoom(candidate2, this.Room.count)
+        if (callback)
+          callback.call(this, building, room, this.Room.count)
+      } else {
+        this.moveRoom(candidate2, room)
+        this.moveRoom(candidate1, this.Room.count)
+        if (callback)
+          callback.call(this, building, this.Room.count, room)
+      }
       this.Room.count++
       break;
     }

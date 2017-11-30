@@ -9,7 +9,7 @@ Game.Struct.Building = [
     return Math.max(35, Math.floor(this.random() * 1) * 30)
   },
   function setBuildingTransparent(transparent) {
-    return 0//this.random() > 0.5
+    return 1//this.random() > 0.5
   },
   function setBuildingOffsetAngle(offsetAngle, road) {
     return (Math.PI + offsetAngle)//360 * Math.random()

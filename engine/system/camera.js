@@ -15,6 +15,7 @@ P.Scene.onCameraMove = function(rotated) {
   P.instances.list.forEach(function(instances) {
     if (rotated === true)
       instances.changes |= P.UPDATE_ROTATION
+    if (instances.projected)
     instances.changes |= P.UPDATE_ALIGNMENT;
   })
 }

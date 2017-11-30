@@ -134,7 +134,6 @@ THREE.InstancedMesh.prototype.buildList = function(visible, areas) {
     if (!source || this.renderForZones || renderClones) {
       for (var k = 0, l = area.zones.length; k < l; k++) {
         var zone = area.zones[k];
-        if (zone.visible === false && !cullAreas) continue;
         var source = zone[getter];
         if (typeof source == 'function')
           source = source.call(zone, zone, area);
@@ -236,61 +235,55 @@ THREE.InstancedMesh.prototype.props = [
 ]
 
 // move values within array
-THREE.InstancedMesh.prototype.moveObjectIndex = function(oldIndex, newIndex) {
+THREE.InstancedMesh.prototype.moveObjectIndex = function(oldIndex, newIndex, changes) {
 
   var attributes = this.geometry.attributes; 
-  if (attributes.instancePosition) {
+  if ((changes & this.UPDATE_POSITION) && attributes.instancePosition) {
     attributes.instancePosition.array[newIndex * 3 + 0] = attributes.instancePosition.array2[oldIndex * 3 + 0]
     attributes.instancePosition.array[newIndex * 3 + 1] = attributes.instancePosition.array2[oldIndex * 3 + 1]
     attributes.instancePosition.array[newIndex * 3 + 2] = attributes.instancePosition.array2[oldIndex * 3 + 2]
   }
-  if (attributes.instanceQuaternion) {
+  if ((changes & this.UPDATE_ROTATION) && attributes.instanceQuaternion) {
     attributes.instanceQuaternion.array[newIndex * 4 + 0] = attributes.instanceQuaternion.array2[oldIndex * 4 + 0]
     attributes.instanceQuaternion.array[newIndex * 4 + 1] = attributes.instanceQuaternion.array2[oldIndex * 4 + 1]
     attributes.instanceQuaternion.array[newIndex * 4 + 2] = attributes.instanceQuaternion.array2[oldIndex * 4 + 2]
     attributes.instanceQuaternion.array[newIndex * 4 + 3] = attributes.instanceQuaternion.array2[oldIndex * 4 + 3]
   }
-  if (attributes.instanceColor) {
+  if ((changes & this.UPDATE_COLOR) && attributes.instanceColor) {
     attributes.instanceColor.array[newIndex * 3 + 0] = attributes.instanceColor.array2[oldIndex * 3 + 0]
     attributes.instanceColor.array[newIndex * 3 + 1] = attributes.instanceColor.array2[oldIndex * 3 + 1]
     attributes.instanceColor.array[newIndex * 3 + 2] = attributes.instanceColor.array2[oldIndex * 3 + 2]
   }
-  if (attributes.instanceScale) {
+  if ((changes & this.UPDATE_SCALE) && attributes.instanceScale) {
     attributes.instanceScale.array[newIndex * 3 + 0] = attributes.instanceScale.array2[oldIndex * 3 + 0]
     attributes.instanceScale.array[newIndex * 3 + 1] = attributes.instanceScale.array2[oldIndex * 3 + 1]
     attributes.instanceScale.array[newIndex * 3 + 2] = attributes.instanceScale.array2[oldIndex * 3 + 2]
   }
-  if (attributes._instanceMatrixA) {
+  if ((changes & this.UPDATE_POSITION) && this._useMatrix) {
     attributes._instanceMatrixA.array[newIndex * 4 + 0] = attributes._instanceMatrixA.array2[oldIndex * 4 + 0]
     attributes._instanceMatrixA.array[newIndex * 4 + 1] = attributes._instanceMatrixA.array2[oldIndex * 4 + 1]
     attributes._instanceMatrixA.array[newIndex * 4 + 2] = attributes._instanceMatrixA.array2[oldIndex * 4 + 2]
     attributes._instanceMatrixA.array[newIndex * 4 + 3] = attributes._instanceMatrixA.array2[oldIndex * 4 + 3]
-  }
-  if (attributes._instanceMatrixB) {
     attributes._instanceMatrixB.array[newIndex * 4 + 0] = attributes._instanceMatrixB.array2[oldIndex * 4 + 0]
     attributes._instanceMatrixB.array[newIndex * 4 + 1] = attributes._instanceMatrixB.array2[oldIndex * 4 + 1]
     attributes._instanceMatrixB.array[newIndex * 4 + 2] = attributes._instanceMatrixB.array2[oldIndex * 4 + 2]
     attributes._instanceMatrixB.array[newIndex * 4 + 3] = attributes._instanceMatrixB.array2[oldIndex * 4 + 3]
-  }
-  if (attributes._instanceMatrixC) {
     attributes._instanceMatrixC.array[newIndex * 4 + 0] = attributes._instanceMatrixC.array2[oldIndex * 4 + 0]
     attributes._instanceMatrixC.array[newIndex * 4 + 1] = attributes._instanceMatrixC.array2[oldIndex * 4 + 1]
     attributes._instanceMatrixC.array[newIndex * 4 + 2] = attributes._instanceMatrixC.array2[oldIndex * 4 + 2]
     attributes._instanceMatrixC.array[newIndex * 4 + 3] = attributes._instanceMatrixC.array2[oldIndex * 4 + 3]
-  }
-  if (attributes._instanceMatrixD) {
     attributes._instanceMatrixD.array[newIndex * 4 + 0] = attributes._instanceMatrixD.array2[oldIndex * 4 + 0]
     attributes._instanceMatrixD.array[newIndex * 4 + 1] = attributes._instanceMatrixD.array2[oldIndex * 4 + 1]
     attributes._instanceMatrixD.array[newIndex * 4 + 2] = attributes._instanceMatrixD.array2[oldIndex * 4 + 2]
     attributes._instanceMatrixD.array[newIndex * 4 + 3] = attributes._instanceMatrixD.array2[oldIndex * 4 + 3]
   }
-  if (attributes.instanceUV) {
+  if ((changes & this.UPDATE_UV) && attributes.instanceUV) {
     attributes.instanceUV.array[newIndex * 4 + 0] = attributes.instanceUV.array2[oldIndex * 4 + 0]
     attributes.instanceUV.array[newIndex * 4 + 1] = attributes.instanceUV.array2[oldIndex * 4 + 1]
     attributes.instanceUV.array[newIndex * 4 + 2] = attributes.instanceUV.array2[oldIndex * 4 + 2]
     attributes.instanceUV.array[newIndex * 4 + 3] = attributes.instanceUV.array2[oldIndex * 4 + 3]
   }
-  if (attributes.instanceOpacity) {
+  if ((changes & this.UPDATE_OPACITY) && attributes.instanceOpacity) {
     attributes.instanceOpacity.array[newIndex + 0] = attributes.instanceOpacity.array2[oldIndex + 0]
  }
 }
@@ -403,6 +396,8 @@ THREE.InstancedMesh.prototype.updateAt = function(index, instance, changes) {
     this.geometry.attributes.instanceOpacity.setX(index, instance.computeOpacity())
 }
 THREE.InstancedMesh.prototype.upload = function(list, changes) {
+  if (!changes)
+    return
   var length = list.length;
   if (!this.doubleBuffers)
     var regen = true;
@@ -421,7 +416,7 @@ THREE.InstancedMesh.prototype.upload = function(list, changes) {
     var reuse = oldIndex != null && !regen;
     // restore data from previous frame at the new position
     if (reuse) {
-      this.moveObjectIndex(oldIndex, i)
+      this.moveObjectIndex(oldIndex, i, changes & features)
     }
     // generate new data if necessary
     if (!reuse || changes)
@@ -440,43 +435,43 @@ THREE.InstancedMesh.prototype.setUpdateRange = function(length, changes) {
   } else {
     var updateRange = {offset: 0, count: length}
     var attributes = this.geometry.attributes; 
-    if (attributes.instancePosition && ((changes & this.UPDATE_POSITION))) {
+    if ((changes & this.UPDATE_POSITION)  && attributes.instancePosition) {
       attributes.instancePosition.needsUpdate = true
       attributes.instancePosition.updateRange = updateRange
     }
-    if (attributes.instanceQuaternion && ((changes & this.UPDATE_ROTATION))) {
+    if ((changes & this.UPDATE_ROTATION)  && attributes.instanceQuaternion) {
       attributes.instanceQuaternion.needsUpdate = true
       attributes.instanceQuaternion.updateRange = updateRange
     }
-    if (attributes.instanceColor && ((changes & this.UPDATE_COLOR))) {
+    if ((changes & this.UPDATE_COLOR)  && attributes.instanceColor) {
       attributes.instanceColor.needsUpdate = true
       attributes.instanceColor.updateRange = updateRange
     }
-    if (attributes.instanceScale && ((changes & this.UPDATE_SCALE))) {
+    if ((changes & this.UPDATE_SCALE)  && attributes.instanceScale) {
       attributes.instanceScale.needsUpdate = true
       attributes.instanceScale.updateRange = updateRange
     }
-    if (attributes._instanceMatrixA && ((changes & this.UPDATE_POSITION))) {
+    if ((changes & this.UPDATE_POSITION)  && attributes._instanceMatrixA) {
       attributes._instanceMatrixA.needsUpdate = true
       attributes._instanceMatrixA.updateRange = updateRange
     }
-    if (attributes._instanceMatrixB && ((changes & this.UPDATE_POSITION))) {
+    if ((changes & this.UPDATE_POSITION)  && attributes._instanceMatrixB) {
       attributes._instanceMatrixB.needsUpdate = true
       attributes._instanceMatrixB.updateRange = updateRange
     }
-    if (attributes._instanceMatrixC && ((changes & this.UPDATE_POSITION))) {
+    if ((changes & this.UPDATE_POSITION)  && attributes._instanceMatrixC) {
       attributes._instanceMatrixC.needsUpdate = true
       attributes._instanceMatrixC.updateRange = updateRange
     }
-    if (attributes._instanceMatrixD && ((changes & this.UPDATE_POSITION))) {
+    if ((changes & this.UPDATE_POSITION)  && attributes._instanceMatrixD) {
       attributes._instanceMatrixD.needsUpdate = true
       attributes._instanceMatrixD.updateRange = updateRange
     }
-    if (attributes.instanceUV && ((changes & this.UPDATE_UV))) {
+    if ((changes & this.UPDATE_UV)  && attributes.instanceUV) {
       attributes.instanceUV.needsUpdate = true
       attributes.instanceUV.updateRange = updateRange
     }
-    if (attributes.instanceOpacity && ((changes & this.UPDATE_OPACITY))) {
+    if ((changes & this.UPDATE_OPACITY)  && attributes.instanceOpacity) {
       attributes.instanceOpacity.needsUpdate = true
       attributes.instanceOpacity.updateRange = updateRange
     }

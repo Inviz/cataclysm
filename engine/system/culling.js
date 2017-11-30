@@ -163,6 +163,7 @@ P.cull.areas = function(areas, order) {
     if (batch.upload) {
       batch.upload(batch.lastVisible, batch.lastVisibleChanged ? P.UPDATE_RESET : batch.batchChanges)
     }
+    batch.lastVisibleChanged = null
     batch.batchChanges = null;
   });
 
