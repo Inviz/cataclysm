@@ -74,32 +74,32 @@ Game.Generator.prototype.advance = function() {
       this.BuildingRoomZones(building)
       // produce entrance door at anchor point
       this.BuildingWallEntrance(building)
-      // make corridor room to connect remote zones to living room
+      // make corridor room that connects all remote zones to main zone
       this.BuildingCorridorRoom(building, function(building, corridor) {
-        // connect all rooms with corridor
+        // connect all zones to corridor
         this.BuildingRoomWallDoor(building, corridor)
       })
-      // connect adjacent rooms unless both of them connect to corridor
+      // connect adjacent zones unless they both have doors to corridor 
       this.BuildingRoomWallDoor(building)
-      // divide rooms
+      // divide zones into rooms
       this.BuildingRooms(building, function(building, from, to) {
         // connect divided rooms
         this.BuildingRoomWallDoor(building, from, to)
       })
     })
   })
-  // generate windows in rooms
+  // place windows in rooms
   this.eachRoom(function(room) {
     this.BuildingRoomWallWindows(this.getRoomBuilding(room), room)
   });
-  // generate walls sans windows
+  // register walls not intersecting doors or windows 
   this.eachBuilding(function(building) {
     this.BuildingWalls(building);
   })
   // fill rooms with furniture
   this.eachRoom(function(room) {
     this.BuildingRoomFurniture(this.getRoomBuilding(room), room, function(building, room, furniture) {
-      // generate dependent furniture (i.e. chairs for table)
+      // generate dependent furniture (i.e. chairs around a table)
       this.BuildingRoomFurnitureFurniture(building, room, furniture)
     })
   })
